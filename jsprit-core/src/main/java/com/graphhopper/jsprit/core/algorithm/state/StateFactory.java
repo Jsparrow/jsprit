@@ -26,7 +26,7 @@ import java.util.List;
  */
 class StateFactory {
 
-    final static List<String> reservedIds = Arrays.asList("max_load", "load", "costs", "load_at_beginning", "load_at_end", "duration", "latest_operation_start_time", "earliest_operation_start_time"
+    static final List<String> reservedIds = Arrays.asList("max_load", "load", "costs", "load_at_beginning", "load_at_end", "duration", "latest_operation_start_time", "earliest_operation_start_time"
         , "future_max_load", "past_max_load", "skills");
 
 
@@ -38,8 +38,12 @@ class StateFactory {
     }
 
     static StateId createId(String name, int index) {
-        if (reservedIds.contains(name)) throwReservedIdException(name);
-        if (index < 10) throwReservedIdException(name);
+        if (reservedIds.contains(name)) {
+			throwReservedIdException(name);
+		}
+        if (index < 10) {
+			throwReservedIdException(name);
+		}
         return new StateIdImpl(name, index);
     }
 
@@ -53,19 +57,26 @@ class StateFactory {
     }
 
     static void throwReservedIdException(String name) {
-        throw new IllegalStateException("state-id with name '" + name + "' cannot be created. it is already reserved internally.");
+        throw new IllegalStateException(new StringBuilder().append("state-id with name '").append(name).append("' cannot be created. it is already reserved internally.").toString());
     }
 
 
     static class StateIdImpl implements StateId {
 
         private int index;
+		private String name;
 
-        public int getIndex() {
+		public StateIdImpl(String name, int index) {
+            this.name = name;
+            this.index = index;
+        }
+
+		@Override
+		public int getIndex() {
             return index;
         }
 
-        /* (non-Javadoc)
+		/* (non-Javadoc)
          * @see java.lang.Object#hashCode()
          */
         @Override
@@ -76,35 +87,33 @@ class StateFactory {
             return result;
         }
 
-        /* (non-Javadoc)
+		/* (non-Javadoc)
          * @see java.lang.Object#equals(java.lang.Object)
          */
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
+            if (this == obj) {
+				return true;
+			}
+            if (obj == null) {
+				return false;
+			}
+            if (getClass() != obj.getClass()) {
+				return false;
+			}
             StateIdImpl other = (StateIdImpl) obj;
             if (name == null) {
-                if (other.name != null)
-                    return false;
-            } else if (!name.equals(other.name))
-                return false;
+                if (other.name != null) {
+					return false;
+				}
+            } else if (!name.equals(other.name)) {
+				return false;
+			}
             return true;
         }
 
-        private String name;
-
-        public StateIdImpl(String name, int index) {
-            super();
-            this.name = name;
-            this.index = index;
-        }
-
-        public String toString() {
+		@Override
+		public String toString() {
             return name;
         }
     }

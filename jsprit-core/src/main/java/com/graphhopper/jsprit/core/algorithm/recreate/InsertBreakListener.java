@@ -32,25 +32,23 @@ class InsertBreakListener implements EventListener {
 
     @Override
     public void inform(Event event) {
-        if (event instanceof InsertBreak) {
-            InsertBreak insertActivity = (InsertBreak) event;
-            if (!insertActivity.getNewVehicle().isReturnToDepot()) {
-                if (insertActivity.getIndex() >= insertActivity.getVehicleRoute().getActivities().size()) {
-                    insertActivity.getVehicleRoute().getEnd().setLocation(insertActivity.getActivity().getLocation());
-                }
-            }
-            VehicleRoute vehicleRoute = ((InsertBreak) event).getVehicleRoute();
-            if (!vehicleRoute.isEmpty()) {
-                if (vehicleRoute.getVehicle() != ((InsertBreak) event).getNewVehicle()) {
-                    if (vehicleRoute.getVehicle().getBreak() != null) {
-                        boolean removed = vehicleRoute.getTourActivities().removeJob(vehicleRoute.getVehicle().getBreak());
-                        if (removed)
-                            logger.trace("remove old break " + vehicleRoute.getVehicle().getBreak());
-                    }
-                }
-            }
-            insertActivity.getVehicleRoute().getTourActivities().addActivity(insertActivity.getIndex(), ((InsertBreak) event).getActivity());
-        }
+        if (!(event instanceof InsertBreak)) {
+			return;
+		}
+		InsertBreak insertActivity = (InsertBreak) event;
+		boolean condition = !insertActivity.getNewVehicle().isReturnToDepot() && insertActivity.getIndex() >= insertActivity.getVehicleRoute().getActivities().size();
+		if (condition) {
+		    insertActivity.getVehicleRoute().getEnd().setLocation(insertActivity.getActivity().getLocation());
+		}
+		VehicleRoute vehicleRoute = ((InsertBreak) event).getVehicleRoute();
+		boolean condition1 = !vehicleRoute.isEmpty() && vehicleRoute.getVehicle() != ((InsertBreak) event).getNewVehicle() && vehicleRoute.getVehicle().getBreak() != null;
+		if (condition1) {
+		    boolean removed = vehicleRoute.getTourActivities().removeJob(vehicleRoute.getVehicle().getBreak());
+		    if (removed) {
+				logger.trace("remove old break " + vehicleRoute.getVehicle().getBreak());
+			}
+		}
+		insertActivity.getVehicleRoute().getTourActivities().addActivity(insertActivity.getIndex(), ((InsertBreak) event).getActivity());
     }
 
 }

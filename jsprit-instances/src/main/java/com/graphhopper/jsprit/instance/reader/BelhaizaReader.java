@@ -45,16 +45,9 @@ import java.io.IOException;
 
 public class BelhaizaReader {
 
-    private int fixedCosts;
+    private static Logger logger = LoggerFactory.getLogger(BelhaizaReader.class);
 
-    /**
-	 * @param costProjectionFactor the costProjectionFactor to set
-	 */
-	public void setVariableCostProjectionFactor(double costProjectionFactor) {
-		this.variableCostProjectionFactor = costProjectionFactor;
-	}
-
-	private static Logger logger = LoggerFactory.getLogger(BelhaizaReader.class);
+	private int fixedCosts;
 
 	private final VehicleRoutingProblem.Builder vrpBuilder;
 
@@ -67,14 +60,19 @@ public class BelhaizaReader {
 	private double fixedCostPerVehicle = 0.0;
 
 	public BelhaizaReader(VehicleRoutingProblem.Builder vrpBuilder) {
-		super();
 		this.vrpBuilder = vrpBuilder;
 	}
 
 	public BelhaizaReader(VehicleRoutingProblem.Builder vrpBuilder, double fixedCostPerVehicle) {
-		super();
 		this.vrpBuilder = vrpBuilder;
 		this.fixedCostPerVehicle=fixedCostPerVehicle;
+	}
+
+	/**
+	 * @param costProjectionFactor the costProjectionFactor to set
+	 */
+	public void setVariableCostProjectionFactor(double costProjectionFactor) {
+		this.variableCostProjectionFactor = costProjectionFactor;
 	}
 
 	public void read(String solomonFile){
@@ -91,7 +89,9 @@ public class BelhaizaReader {
 				continue;
 			}
 			if(counter > 2){
-				if(tokens.length < 7) continue;
+				if(tokens.length < 7) {
+					continue;
+				}
                 Coordinate coord = makeCoord(tokens[1],tokens[2]);
 				String customerId = tokens[0];
 				int demand = Integer.parseInt(tokens[4]);
@@ -100,7 +100,7 @@ public class BelhaizaReader {
 					VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("solomonType").addCapacityDimension(0, vehicleCapacity);
 					typeBuilder.setCostPerDistance(1.0*variableCostProjectionFactor).setFixedCost(fixedCostPerVehicle)
                     .setCostPerWaitingTime(0.8);
-                    System.out.println("fix: " + fixedCostPerVehicle + "; perDistance: 1.0; perWaitingTime: 0.8");
+                    logger.info(new StringBuilder().append("fix: ").append(fixedCostPerVehicle).append("; perDistance: 1.0; perWaitingTime: 0.8").toString());
                     VehicleTypeImpl vehicleType = typeBuilder.build();
 					double end = Double.parseDouble(tokens[8])*timeProjectionFactor;
 					VehicleImpl vehicle = VehicleImpl.Builder.newInstance("solomonVehicle").setEarliestStart(0.).setLatestArrival(end)
@@ -112,7 +112,7 @@ public class BelhaizaReader {
 					Service.Builder serviceBuilder = Service.Builder.newInstance(customerId);
 					serviceBuilder.addSizeDimension(0, demand).setLocation(Location.Builder.newInstance().setCoordinate(coord).setId(customerId).build()).setServiceTime(serviceTime);
 					int noTimeWindows = Integer.parseInt(tokens[7]);
-					for(int i=0;i<noTimeWindows*2;i=i+2){
+					for(int i=0;i<noTimeWindows*2;i+=2){
 						double earliest = Double.parseDouble(tokens[8+i]);
 						double latest = Double.parseDouble(tokens[8+i+1]);
 						serviceBuilder.addTimeWindow(earliest,latest);
@@ -132,7 +132,7 @@ public class BelhaizaReader {
 		try {
 			reader.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			logger.error(e.toString());
 			System.exit(1);
 		}
@@ -142,7 +142,7 @@ public class BelhaizaReader {
 		try {
 			return reader.readLine();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			logger.error(e.toString());
 			System.exit(1);
 			return null;
@@ -160,7 +160,7 @@ public class BelhaizaReader {
 		try {
 			reader = new BufferedReader(new FileReader(solomonFile));
 		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
+			logger.error(e1.getMessage(), e1);
 			logger.error(e1.toString());
 			System.exit(1);
 		}
@@ -172,7 +172,7 @@ public class BelhaizaReader {
 
 	}
 
-    public void setFixedCosts(int fixedCosts) {
+	public void setFixedCosts(int fixedCosts) {
         this.fixedCostPerVehicle = fixedCosts;
     }
 }

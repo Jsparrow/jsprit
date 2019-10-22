@@ -32,7 +32,7 @@ import java.util.Collection;
  */
 public class RuinBreaks implements RuinListener {
 
-    private final static Logger logger = LoggerFactory.getLogger(RuinBreaks.class);
+    private static final Logger logger = LoggerFactory.getLogger(RuinBreaks.class);
 
     @Override
     public void ruinStarts(Collection<VehicleRoute> routes) {
@@ -40,14 +40,14 @@ public class RuinBreaks implements RuinListener {
 
     @Override
     public void ruinEnds(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
-        for (VehicleRoute r : routes) {
+        routes.forEach(r -> {
             Break aBreak = r.getVehicle().getBreak();
             if (aBreak != null) {
                 r.getTourActivities().removeJob(aBreak);
                 logger.trace("ruin: {}", aBreak.getId());
                 unassignedJobs.add(aBreak);
             }
-        }
+        });
     }
 
     @Override

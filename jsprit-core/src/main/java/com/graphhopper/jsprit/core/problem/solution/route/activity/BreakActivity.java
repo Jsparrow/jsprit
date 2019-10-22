@@ -33,54 +33,18 @@ public class BreakActivity extends AbstractActivity implements TourActivity.JobA
 
     private double duration;
 
-    /**
-     * @return the arrTime
-     */
-    public double getArrTime() {
-        return arrTime;
-    }
+	private final Break aBreak;
 
-    /**
-     * @param arrTime the arrTime to set
-     */
-    public void setArrTime(double arrTime) {
-        this.arrTime = arrTime;
-    }
+	private double earliest = 0;
 
-    /**
-     * @return the endTime
-     */
-    public double getEndTime() {
-        return endTime;
-    }
+	private double latest = Double.MAX_VALUE;
 
-    /**
-     * @param endTime the endTime to set
-     */
-    public void setEndTime(double endTime) {
-        this.endTime = endTime;
-    }
-
-    public static BreakActivity copyOf(BreakActivity breakActivity) {
-        return new BreakActivity(breakActivity);
-    }
-
-    public static BreakActivity newInstance(Break aBreak) {
-        return new BreakActivity(aBreak);
-    }
-
-    private final Break aBreak;
-
-    private double earliest = 0;
-
-    private double latest = Double.MAX_VALUE;
-
-    protected BreakActivity(Break aBreak) {
+	protected BreakActivity(Break aBreak) {
         this.aBreak = aBreak;
         this.duration = aBreak.getServiceDuration();
     }
 
-    protected BreakActivity(BreakActivity breakActivity) {
+	protected BreakActivity(BreakActivity breakActivity) {
         this.aBreak = (Break) breakActivity.getJob();
         this.arrTime = breakActivity.getArrTime();
         this.endTime = breakActivity.getEndTime();
@@ -91,68 +55,106 @@ public class BreakActivity extends AbstractActivity implements TourActivity.JobA
         this.duration = breakActivity.getOperationTime();
     }
 
+	/**
+     * @return the arrTime
+     */
+    @Override
+	public double getArrTime() {
+        return arrTime;
+    }
 
-    public double getTheoreticalEarliestOperationStartTime() {
+	/**
+     * @param arrTime the arrTime to set
+     */
+    @Override
+	public void setArrTime(double arrTime) {
+        this.arrTime = arrTime;
+    }
+
+	/**
+     * @return the endTime
+     */
+    @Override
+	public double getEndTime() {
+        return endTime;
+    }
+
+	/**
+     * @param endTime the endTime to set
+     */
+    @Override
+	public void setEndTime(double endTime) {
+        this.endTime = endTime;
+    }
+
+	public static BreakActivity copyOf(BreakActivity breakActivity) {
+        return new BreakActivity(breakActivity);
+    }
+
+	public static BreakActivity newInstance(Break aBreak) {
+        return new BreakActivity(aBreak);
+    }
+
+	@Override
+	public double getTheoreticalEarliestOperationStartTime() {
         return earliest;
     }
 
-    public double getTheoreticalLatestOperationStartTime() {
+	@Override
+	public double getTheoreticalLatestOperationStartTime() {
         return latest;
     }
 
-    @Override
+	@Override
     public double getOperationTime() {
         return duration;
     }
 
-    public void setOperationTime(double duration){
+	public void setOperationTime(double duration){
         this.duration = duration;
     }
 
-    @Override
+	@Override
     public Location getLocation() {
         return location;
     }
 
-    public void setLocation(Location breakLocation) {
+	public void setLocation(Location breakLocation) {
         this.location = breakLocation;
     }
 
-    @Override
+	@Override
     public Service getJob() {
         return aBreak;
     }
 
-
-    @Override
+	@Override
     public String toString() {
-        return "[type=" + getName() + "][location=" + getLocation()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+        return new StringBuilder().append("[type=").append(getName()).append("][location=").append(getLocation()).append("][size=").append(getSize().toString())
+				.append("][twStart=").append(Activities.round(getTheoreticalEarliestOperationStartTime())).append("][twEnd=").append(Activities.round(getTheoreticalLatestOperationStartTime())).append("]").toString();
     }
 
-    @Override
+	@Override
     public void setTheoreticalEarliestOperationStartTime(double earliest) {
         this.earliest = earliest;
     }
 
-    @Override
+	@Override
     public void setTheoreticalLatestOperationStartTime(double latest) {
         this.latest = latest;
     }
 
-    @Override
+	@Override
     public String getName() {
         return aBreak.getType();
     }
 
-    @Override
+	@Override
     public TourActivity duplicate() {
         return new BreakActivity(this);
     }
 
-    @Override
+	@Override
     public Capacity getSize() {
         return aBreak.getSize();
     }

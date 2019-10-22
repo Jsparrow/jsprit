@@ -37,7 +37,6 @@ public final class DeliverService extends AbstractActivity implements DeliveryAc
     private double theoreticalLatest = Double.MAX_VALUE;
 
     public DeliverService(Delivery delivery) {
-        super();
         this.delivery = delivery;
         capacity = Capacity.invert(delivery.getSize());
     }
@@ -118,11 +117,10 @@ public final class DeliverService extends AbstractActivity implements DeliveryAc
         return delivery;
     }
 
-    public String toString() {
-        return "[type=" + getName() + "][locationId=" + getLocation().getId()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+    @Override
+	public String toString() {
+        return new StringBuilder().append("[type=").append(getName()).append("][locationId=").append(getLocation().getId()).append("][size=").append(getSize().toString())
+				.append("][twStart=").append(Activities.round(getTheoreticalEarliestOperationStartTime())).append("][twEnd=").append(Activities.round(getTheoreticalLatestOperationStartTime())).append("]").toString();
     }
 
     @Override

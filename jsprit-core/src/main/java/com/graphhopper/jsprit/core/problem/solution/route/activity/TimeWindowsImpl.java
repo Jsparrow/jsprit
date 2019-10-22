@@ -27,33 +27,32 @@ import java.util.Collections;
  */
 public class TimeWindowsImpl implements TimeWindows {
 
-    private Collection<TimeWindow> timeWindows = new ArrayList<TimeWindow>();
+    private Collection<TimeWindow> timeWindows = new ArrayList<>();
 
     public void add(TimeWindow timeWindow){
         for(TimeWindow tw : timeWindows){
             if(timeWindow.getStart() > tw.getStart() && timeWindow.getStart() < tw.getEnd()){
-                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+                throw new IllegalArgumentException(new StringBuilder().append("time-windows cannot overlap each other. overlap: ").append(tw).append(", ").append(timeWindow).toString());
             }
             if(timeWindow.getEnd() > tw.getStart() && timeWindow.getEnd() < tw.getEnd()){
-                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+                throw new IllegalArgumentException(new StringBuilder().append("time-windows cannot overlap each other. overlap: ").append(tw).append(", ").append(timeWindow).toString());
             }
             if(timeWindow.getStart() <= tw.getStart() && timeWindow.getEnd() >= tw.getEnd()){
-                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+                throw new IllegalArgumentException(new StringBuilder().append("time-windows cannot overlap each other. overlap: ").append(tw).append(", ").append(timeWindow).toString());
             }
         }
         timeWindows.add(timeWindow);
     }
 
-    public Collection<TimeWindow> getTimeWindows() {
+    @Override
+	public Collection<TimeWindow> getTimeWindows() {
         return Collections.unmodifiableCollection(timeWindows);
     }
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer(timeWindows.size() * 60);
-        for (TimeWindow tw : timeWindows) {
-            sb.append("[timeWindow=").append(tw).append("]");
-        }
+        StringBuilder sb = new StringBuilder(timeWindows.size() * 60);
+        timeWindows.forEach(tw -> sb.append("[timeWindow=").append(tw).append("]"));
         return sb.toString();
     }
 }

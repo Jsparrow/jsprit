@@ -46,11 +46,11 @@ import com.graphhopper.jsprit.core.util.CostFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import java.util.Collections;
 
 
 public class ServiceInsertionAndLoadConstraintsTest {
@@ -71,22 +71,9 @@ public class ServiceInsertionAndLoadConstraintsTest {
 
     };
 
-    HardActivityConstraint hardActivityLevelConstraint = new HardActivityConstraint() {
+    HardActivityConstraint hardActivityLevelConstraint = (JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) -> ConstraintsStatus.FULFILLED;
 
-        @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
-            return ConstraintsStatus.FULFILLED;
-        }
-    };
-
-    HardRouteConstraint hardRouteLevelConstraint = new HardRouteConstraint() {
-
-        @Override
-        public boolean fulfilled(JobInsertionContext insertionContext) {
-            return true;
-        }
-
-    };
+    HardRouteConstraint hardRouteLevelConstraint = (JobInsertionContext insertionContext) -> true;
 
     ActivityInsertionCostsCalculator activityInsertionCostsCalculator;
 
@@ -128,19 +115,14 @@ public class ServiceInsertionAndLoadConstraintsTest {
         Inserter inserter = new Inserter(new InsertionListeners(), vrp);
         inserter.insertJob(delivery, new InsertionData(0, 0, 0, vehicle, null), route);
 
-        JobActivityFactory activityFactory = new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        };
+        JobActivityFactory activityFactory = vrp::copyAndGetActivities;
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateLoadStates();
 
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
         constraintManager.addLoadConstraint();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         JobCalculatorSwitcher switcher = new JobCalculatorSwitcher();
         ServiceInsertionCalculator serviceInsertionCalc = new ServiceInsertionCalculator(routingCosts, activityCosts, activityInsertionCostsCalculator, constraintManager, activityFactory);

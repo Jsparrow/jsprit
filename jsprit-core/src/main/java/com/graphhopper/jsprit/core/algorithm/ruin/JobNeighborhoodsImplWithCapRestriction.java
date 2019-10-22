@@ -36,7 +36,7 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
 
     private VehicleRoutingProblem vrp;
 
-    private Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<String, TreeSet<ReferencedJob>>();
+    private Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<>();
 
     private JobDistance jobDistance;
 
@@ -45,7 +45,6 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
     private double maxDistance = 0.;
 
     public JobNeighborhoodsImplWithCapRestriction(VehicleRoutingProblem vrp, JobDistance jobDistance, int capacity) {
-        super();
         this.vrp = vrp;
         this.jobDistance = jobDistance;
         this.capacity = capacity;
@@ -56,24 +55,26 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
     public Iterator<Job> getNearestNeighborsIterator(int nNeighbors, Job neighborTo) {
 
         TreeSet<ReferencedJob> tree = distanceNodeTree.get(neighborTo.getId());
-        if (tree == null) return new Iterator<Job>() {
+        if (tree == null) {
+			return new Iterator<Job>() {
 
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+			    @Override
+			    public boolean hasNext() {
+			        return false;
+			    }
 
-            @Override
-            public Job next() {
-                return null;
-            }
+			    @Override
+			    public Job next() {
+			        return null;
+			    }
 
-            @Override
-            public void remove() {
+			    @Override
+			    public void remove() {
 
-            }
+			    }
 
-        };
+			};
+		}
         Iterator<ReferencedJob> descendingIterator = tree.iterator();
         return new NearestNeighborhoodIterator(descendingIterator, nNeighbors);
     }
@@ -81,7 +82,9 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
     @Override
     public void initialise() {
         logger.debug("calculates distances from EACH job to EACH job --> n^2={} calculations, but 'only' {} are cached.", Math.pow(vrp.getJobs().values().size(), 2), (vrp.getJobs().values().size() * capacity));
-        if (capacity == 0) return;
+        if (capacity == 0) {
+			return;
+		}
         calculateDistancesFromJob2Job();
     }
 
@@ -104,7 +107,7 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
         int nuOfDistancesStored = 0;
         for (Job i : vrp.getJobs().values()) {
             // Collections.sort(list, );
-            TreeSet<ReferencedJob> treeSet = new TreeSet<ReferencedJob>(
+            TreeSet<ReferencedJob> treeSet = new TreeSet<>(
                 new Comparator<ReferencedJob>() {
                     @Override
                     public int compare(ReferencedJob o1, ReferencedJob o2) {
@@ -117,9 +120,13 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
                 });
             distanceNodeTree.put(i.getId(), treeSet);
             for (Job j : vrp.getJobs().values()) {
-                if (i == j) continue;
+                if (i == j) {
+					continue;
+				}
                 double distance = jobDistance.getDistance(i, j);
-                if (distance > maxDistance) maxDistance = distance;
+                if (distance > maxDistance) {
+					maxDistance = distance;
+				}
                 ReferencedJob refNode = new ReferencedJob(j, distance);
                 if (treeSet.size() < capacity) {
                     treeSet.add(refNode);
@@ -141,7 +148,7 @@ class JobNeighborhoodsImplWithCapRestriction implements JobNeighborhoods {
 
     @Override
     public String toString() {
-        return "[name=neighborhoodWithCapRestriction][capacity=" + capacity + "]";
+        return new StringBuilder().append("[name=neighborhoodWithCapRestriction][capacity=").append(capacity).append("]").toString();
     }
 
 }

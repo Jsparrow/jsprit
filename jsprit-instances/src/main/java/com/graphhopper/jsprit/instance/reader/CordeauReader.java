@@ -57,7 +57,6 @@ public class CordeauReader {
 
 
     public CordeauReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
@@ -71,7 +70,7 @@ public class CordeauReader {
 
         int counter = 0;
         String line;
-        List<List<Builder>> vehiclesAtDepot = new ArrayList<List<Builder>>();
+        List<List<Builder>> vehiclesAtDepot = new ArrayList<>();
         int depotCounter = 0;
         while ((line = readLine(reader)) != null) {
             line = line.replace("\r", "");
@@ -79,21 +78,24 @@ public class CordeauReader {
             String[] tokens = line.split("\\s+");
             if (counter == 0) {
                 vrpType = Integer.parseInt(tokens[0].trim());
-                if (vrpType != 2)
-                    throw new IllegalStateException("expect vrpType to be equal to 2 and thus to be MDVRP");
+                if (vrpType != 2) {
+					throw new IllegalStateException("expect vrpType to be equal to 2 and thus to be MDVRP");
+				}
                 nOfVehiclesAtEachDepot = Integer.parseInt(tokens[1].trim());
                 nOfCustomers = Integer.parseInt(tokens[2].trim());
                 nOfDepots = Integer.parseInt(tokens[3].trim());
             } else if (counter <= nOfDepots) {
-                String depot = Integer.valueOf(counter).toString();
+                String depot = Integer.toString(counter);
                 int duration = Integer.parseInt(tokens[0].trim());
-                if (duration == 0) duration = 999999;
+                if (duration == 0) {
+					duration = 999999;
+				}
                 int capacity = Integer.parseInt(tokens[1].trim());
                 VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance(counter + "_cordeauType").addCapacityDimension(0, capacity).
                     setCostPerDistance(1.0).setFixedCost(0).build();
                 List<Builder> builders = new ArrayList<VehicleImpl.Builder>();
                 for (int vehicleCounter = 0; vehicleCounter < nOfVehiclesAtEachDepot; vehicleCounter++) {
-                    Builder vBuilder = VehicleImpl.Builder.newInstance(depot + "_" + (vehicleCounter + 1) + "_cordeauVehicle");
+                    Builder vBuilder = VehicleImpl.Builder.newInstance(new StringBuilder().append(depot).append("_").append(vehicleCounter + 1).append("_cordeauVehicle").toString());
                     vBuilder.setLatestArrival(duration).setType(vehicleType);
                     builders.add(vBuilder);
                 }
@@ -109,11 +111,10 @@ public class CordeauReader {
             } else if (counter <= (nOfCustomers + nOfDepots + nOfDepots)) {
                 Coordinate depotCoord = makeCoord(tokens[1].trim(), tokens[2].trim());
                 List<Builder> vBuilders = vehiclesAtDepot.get(depotCounter);
-                for (Builder vBuilder : vBuilders) {
-                    vBuilder.setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY()));
-                    VehicleImpl vehicle = vBuilder.build();
-                    vrpBuilder.addVehicle(vehicle);
-                }
+                vBuilders.stream().map(vBuilder -> {
+					vBuilder.setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY()));
+					return vBuilder.build();
+				}).forEach(vrpBuilder::addVehicle);
                 depotCounter++;
             } else {
                 throw new IllegalStateException("there are more lines than expected in file.");

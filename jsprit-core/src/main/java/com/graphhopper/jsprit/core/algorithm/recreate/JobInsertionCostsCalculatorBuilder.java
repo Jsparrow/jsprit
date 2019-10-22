@@ -35,72 +35,47 @@ import java.util.List;
 
 public class JobInsertionCostsCalculatorBuilder {
 
-    private static class CalculatorPlusListeners {
-
-        private JobInsertionCostsCalculator calculator;
-
-        public JobInsertionCostsCalculator getCalculator() {
-            return calculator;
-        }
-
-        private List<PrioritizedVRAListener> algorithmListener = new ArrayList<PrioritizedVRAListener>();
-        private List<InsertionListener> insertionListener = new ArrayList<InsertionListener>();
-
-        public CalculatorPlusListeners(JobInsertionCostsCalculator calculator) {
-            super();
-            this.calculator = calculator;
-        }
-
-        public List<PrioritizedVRAListener> getAlgorithmListener() {
-            return algorithmListener;
-        }
-
-        public List<InsertionListener> getInsertionListener() {
-            return insertionListener;
-        }
-    }
-
     private List<InsertionListener> insertionListeners;
 
-    private List<PrioritizedVRAListener> algorithmListeners;
+	private List<PrioritizedVRAListener> algorithmListeners;
 
-    private VehicleRoutingProblem vrp;
+	private VehicleRoutingProblem vrp;
 
-    private RouteAndActivityStateGetter states;
+	private RouteAndActivityStateGetter states;
 
-    private boolean local = true;
+	private boolean local = true;
 
-    private int forwardLooking = 0;
+	private int forwardLooking = 0;
 
-    private int memory = 1;
+	private int memory = 1;
 
-    private boolean considerFixedCost = false;
+	private boolean considerFixedCost = false;
 
-    private double weightOfFixedCost = 0;
+	private double weightOfFixedCost = 0;
 
-    private VehicleFleetManager fleetManager;
+	private VehicleFleetManager fleetManager;
 
-    private boolean timeScheduling = false;
+	private boolean timeScheduling = false;
 
-    private double timeSlice;
+	private double timeSlice;
 
-    private int neighbors;
+	private int neighbors;
 
-    private ConstraintManager constraintManager;
+	private ConstraintManager constraintManager;
 
-    private ActivityInsertionCostsCalculator activityInsertionCostCalculator = null;
+	private ActivityInsertionCostsCalculator activityInsertionCostCalculator = null;
 
-    private boolean allowVehicleSwitch = true;
+	private boolean allowVehicleSwitch = true;
 
-    private boolean addDefaultCostCalc = true;
+	private boolean addDefaultCostCalc = true;
 
-    private JobInsertionCostsCalculatorFactory shipmentCalculatorFactory = new ShipmentInsertionCalculatorFactory();
+	private JobInsertionCostsCalculatorFactory shipmentCalculatorFactory = new ShipmentInsertionCalculatorFactory();
 
-    private JobInsertionCostsCalculatorFactory serviceCalculatorFactory = new ServiceInsertionCalculatorFactory();
+	private JobInsertionCostsCalculatorFactory serviceCalculatorFactory = new ServiceInsertionCalculatorFactory();
 
-    private JobInsertionCostsCalculatorFactory breakCalculatorFactory = new BreakInsertionCalculatorFactory();
+	private JobInsertionCostsCalculatorFactory breakCalculatorFactory = new BreakInsertionCalculatorFactory();
 
-    /**
+	/**
      * Constructs the builder.
      * <p>
      * <p>Some calculators require information from the overall algorithm or the higher-level insertion procedure. Thus listeners inform them.
@@ -110,30 +85,35 @@ public class JobInsertionCostsCalculatorBuilder {
      * @param algorithmListeners
      */
     public JobInsertionCostsCalculatorBuilder(List<InsertionListener> insertionListeners, List<PrioritizedVRAListener> algorithmListeners) {
-        super();
         this.insertionListeners = insertionListeners;
         this.algorithmListeners = algorithmListeners;
     }
 
-    public JobInsertionCostsCalculatorBuilder setShipmentCalculatorFactory(JobInsertionCostsCalculatorFactory shipmentCalculatorFactory) {
-        if (shipmentCalculatorFactory == null) return this;
+	public JobInsertionCostsCalculatorBuilder setShipmentCalculatorFactory(JobInsertionCostsCalculatorFactory shipmentCalculatorFactory) {
+        if (shipmentCalculatorFactory == null) {
+			return this;
+		}
         this.shipmentCalculatorFactory = shipmentCalculatorFactory;
         return this;
     }
 
-    public JobInsertionCostsCalculatorBuilder setServiceCalculatorFactory(JobInsertionCostsCalculatorFactory serviceCalculatorFactory) {
-        if (serviceCalculatorFactory == null) return this;
+	public JobInsertionCostsCalculatorBuilder setServiceCalculatorFactory(JobInsertionCostsCalculatorFactory serviceCalculatorFactory) {
+        if (serviceCalculatorFactory == null) {
+			return this;
+		}
         this.serviceCalculatorFactory = serviceCalculatorFactory;
         return this;
     }
 
-    public JobInsertionCostsCalculatorBuilder setBreakCalculatorFactory(JobInsertionCostsCalculatorFactory breakCalculatorFactory) {
-        if (breakCalculatorFactory == null) return this;
+	public JobInsertionCostsCalculatorBuilder setBreakCalculatorFactory(JobInsertionCostsCalculatorFactory breakCalculatorFactory) {
+        if (breakCalculatorFactory == null) {
+			return this;
+		}
         this.breakCalculatorFactory = breakCalculatorFactory;
         return this;
     }
 
-    /**
+	/**
      * Sets activityStates. MUST be set.
      *
      * @param stateManager
@@ -144,7 +124,7 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    /**
+	/**
      * Sets routingProblem. MUST be set.
      *
      * @param vehicleRoutingProblem
@@ -155,7 +135,7 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    /**
+	/**
      * Sets fleetManager. MUST be set.
      *
      * @param fleetManager
@@ -166,7 +146,7 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    /**
+	/**
      * Sets a flag to build a calculator based on local calculations.
      * <p>
      * <p>Insertion of a job and job-activity is evaluated based on the previous and next activity.
@@ -179,12 +159,12 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    public JobInsertionCostsCalculatorBuilder setActivityInsertionCostsCalculator(ActivityInsertionCostsCalculator activityInsertionCostsCalculator) {
+	public JobInsertionCostsCalculatorBuilder setActivityInsertionCostsCalculator(ActivityInsertionCostsCalculator activityInsertionCostsCalculator) {
         this.activityInsertionCostCalculator = activityInsertionCostsCalculator;
         return this;
     }
 
-    /**
+	/**
      * Sets a flag to build a calculator that evaluates job insertion on route-level.
      *
      * @param forwardLooking
@@ -198,7 +178,7 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    /**
+	/**
      * Sets a flag to consider also fixed-cost when evaluating the insertion of a job. The weight of the fixed-cost can be determined by setting
      * weightofFixedCosts.
      *
@@ -210,26 +190,29 @@ public class JobInsertionCostsCalculatorBuilder {
         return this;
     }
 
-    public JobInsertionCostsCalculatorBuilder experimentalTimeScheduler(double timeSlice, int neighbors) {
+	public JobInsertionCostsCalculatorBuilder experimentalTimeScheduler(double timeSlice, int neighbors) {
         timeScheduling = true;
         this.timeSlice = timeSlice;
         this.neighbors = neighbors;
         return this;
     }
 
-    /**
+	/**
      * Builds the jobInsertionCalculator.
      *
      * @return jobInsertionCalculator.
      * @throws IllegalStateException if vrp == null or activityStates == null or fleetManager == null.
      */
     public JobInsertionCostsCalculator build() {
-        if (vrp == null)
-            throw new IllegalStateException("vehicle-routing-problem is null, but it must be set (this.setVehicleRoutingProblem(vrp))");
-        if (states == null)
-            throw new IllegalStateException("states is null, but is must be set (this.setStateManager(states))");
-        if (fleetManager == null)
-            throw new IllegalStateException("fleetManager is null, but it must be set (this.setVehicleFleetManager(fleetManager))");
+        if (vrp == null) {
+			throw new IllegalStateException("vehicle-routing-problem is null, but it must be set (this.setVehicleRoutingProblem(vrp))");
+		}
+        if (states == null) {
+			throw new IllegalStateException("states is null, but is must be set (this.setStateManager(states))");
+		}
+        if (fleetManager == null) {
+			throw new IllegalStateException("fleetManager is null, but it must be set (this.setVehicleFleetManager(fleetManager))");
+		}
         JobInsertionCostsCalculator baseCalculator = null;
         CalculatorPlusListeners standardLocal = null;
         if (local) {
@@ -255,34 +238,30 @@ public class JobInsertionCostsCalculatorBuilder {
             addInsertionListeners(calcPlusListeners.getInsertionListener());
             baseCalculator = calcPlusListeners.getCalculator();
         }
-        return createFinalInsertion(fleetManager, baseCalculator, states);
+        return createFinalInsertion(fleetManager, baseCalculator);
     }
 
-    private void checkServicesOnly() {
+	private void checkServicesOnly() {
         for (Job j : vrp.getJobs().values()) {
             if (j instanceof Shipment) {
-                throw new UnsupportedOperationException("currently the 'insert-on-route-level' option is only available for services (i.e. service, pickup, delivery), \n" +
-                    "if you want to deal with shipments switch to option 'local-level' by either setting bestInsertionBuilder.setLocalLevel() or \n"
-                    + "by omitting the xml-tag '<level forwardLooking=2 memory=1>route</level>' when defining your insertionStrategy in algo-config.xml file");
+                throw new UnsupportedOperationException(new StringBuilder().append("currently the 'insert-on-route-level' option is only available for services (i.e. service, pickup, delivery), \n").append("if you want to deal with shipments switch to option 'local-level' by either setting bestInsertionBuilder.setLocalLevel() or \n").append("by omitting the xml-tag '<level forwardLooking=2 memory=1>route</level>' when defining your insertionStrategy in algo-config.xml file").toString());
             }
         }
 
     }
 
-    private void addInsertionListeners(List<InsertionListener> list) {
-        for (InsertionListener iL : list) {
-            insertionListeners.add(iL);
-        }
+	private void addInsertionListeners(List<InsertionListener> list) {
+        list.forEach(insertionListeners::add);
     }
 
-    private void addAlgorithmListeners(List<PrioritizedVRAListener> list) {
-        for (PrioritizedVRAListener aL : list) {
-            algorithmListeners.add(aL);
-        }
+	private void addAlgorithmListeners(List<PrioritizedVRAListener> list) {
+        list.forEach(algorithmListeners::add);
     }
 
-    private CalculatorPlusListeners createStandardLocal(final VehicleRoutingProblem vrp, RouteAndActivityStateGetter statesManager) {
-        if (constraintManager == null) throw new IllegalStateException("constraint-manager is null");
+	private CalculatorPlusListeners createStandardLocal(final VehicleRoutingProblem vrp, RouteAndActivityStateGetter statesManager) {
+        if (constraintManager == null) {
+			throw new IllegalStateException("constraint-manager is null");
+		}
 
         ActivityInsertionCostsCalculator actInsertionCalc;
         ConfigureLocalActivityInsertionCalculator configLocal = null;
@@ -290,27 +269,12 @@ public class JobInsertionCostsCalculatorBuilder {
             actInsertionCalc = new LocalActivityInsertionCostsCalculator(vrp.getTransportCosts(), vrp.getActivityCosts(), statesManager);
             configLocal = new ConfigureLocalActivityInsertionCalculator(vrp, (LocalActivityInsertionCostsCalculator) actInsertionCalc);
         } else if (activityInsertionCostCalculator == null && !addDefaultCostCalc) {
-            actInsertionCalc = new ActivityInsertionCostsCalculator() {
-
-                @Override
-                public double getCosts(JobInsertionContext iContext, TourActivity prevAct, TourActivity nextAct, TourActivity newAct,
-                                       double depTimeAtPrevAct) {
-                    return 0.;
-                }
-
-            };
+            actInsertionCalc = (JobInsertionContext iContext, TourActivity prevAct, TourActivity nextAct, TourActivity newAct, double depTimeAtPrevAct) -> 0.;
         } else {
             actInsertionCalc = activityInsertionCostCalculator;
         }
 
-        JobActivityFactory activityFactory = new JobActivityFactory() {
-
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-
-        };
+        JobActivityFactory activityFactory = vrp::copyAndGetActivities;
 
         JobInsertionCostsCalculator shipmentInsertion = shipmentCalculatorFactory.create(vrp, actInsertionCalc, activityFactory, constraintManager);
         JobInsertionCostsCalculator serviceInsertion = serviceCalculatorFactory.create(vrp, actInsertionCalc, activityFactory, constraintManager);
@@ -330,7 +294,7 @@ public class JobInsertionCostsCalculatorBuilder {
         return calculatorPlusListeners;
     }
 
-    private CalculatorPlusListeners createStandardRoute(final VehicleRoutingProblem vrp, RouteAndActivityStateGetter activityStates2, int forwardLooking, int solutionMemory) {
+	private CalculatorPlusListeners createStandardRoute(final VehicleRoutingProblem vrp, RouteAndActivityStateGetter activityStates2, int forwardLooking, int solutionMemory) {
         ActivityInsertionCostsCalculator routeLevelCostEstimator;
         if (activityInsertionCostCalculator == null && addDefaultCostCalc) {
             RouteLevelActivityInsertionCostsEstimator routeLevelActivityInsertionCostsEstimator = new RouteLevelActivityInsertionCostsEstimator(vrp.getTransportCosts(), vrp.getActivityCosts(), activityStates2);
@@ -355,29 +319,47 @@ public class JobInsertionCostsCalculatorBuilder {
         jobInsertionCalculator.setNuOfActsForwardLooking(forwardLooking);
         jobInsertionCalculator.setMemorySize(solutionMemory);
         jobInsertionCalculator.setStates(activityStates2);
-        jobInsertionCalculator.setJobActivityFactory(new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        });
+        jobInsertionCalculator.setJobActivityFactory(vrp::copyAndGetActivities);
         return new CalculatorPlusListeners(jobInsertionCalculator);
     }
 
-    private JobInsertionCostsCalculator createFinalInsertion(VehicleFleetManager fleetManager, JobInsertionCostsCalculator baseCalc, RouteAndActivityStateGetter activityStates2) {
+	private JobInsertionCostsCalculator createFinalInsertion(VehicleFleetManager fleetManager, JobInsertionCostsCalculator baseCalc) {
         VehicleTypeDependentJobInsertionCalculator vehicleTypeDependentJobInsertionCalculator = new VehicleTypeDependentJobInsertionCalculator(vrp, fleetManager, baseCalc);
         vehicleTypeDependentJobInsertionCalculator.setVehicleSwitchAllowed(allowVehicleSwitch);
         return vehicleTypeDependentJobInsertionCalculator;
     }
 
-    public JobInsertionCostsCalculatorBuilder setConstraintManager(ConstraintManager constraintManager) {
+	public JobInsertionCostsCalculatorBuilder setConstraintManager(ConstraintManager constraintManager) {
         this.constraintManager = constraintManager;
         return this;
     }
 
-    public JobInsertionCostsCalculatorBuilder setAllowVehicleSwitch(boolean allowVehicleSwitch) {
+	public JobInsertionCostsCalculatorBuilder setAllowVehicleSwitch(boolean allowVehicleSwitch) {
         this.allowVehicleSwitch = allowVehicleSwitch;
         return this;
+    }
+
+	private static class CalculatorPlusListeners {
+
+        private JobInsertionCostsCalculator calculator;
+		private List<PrioritizedVRAListener> algorithmListener = new ArrayList<>();
+		private List<InsertionListener> insertionListener = new ArrayList<>();
+
+		public CalculatorPlusListeners(JobInsertionCostsCalculator calculator) {
+            this.calculator = calculator;
+        }
+
+		public JobInsertionCostsCalculator getCalculator() {
+            return calculator;
+        }
+
+		public List<PrioritizedVRAListener> getAlgorithmListener() {
+            return algorithmListener;
+        }
+
+		public List<InsertionListener> getInsertionListener() {
+            return insertionListener;
+        }
     }
 
 }

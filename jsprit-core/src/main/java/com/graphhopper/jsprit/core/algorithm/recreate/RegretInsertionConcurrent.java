@@ -55,7 +55,16 @@ public class RegretInsertionConcurrent extends AbstractInsertionStrategy {
 
     private final ExecutorCompletionService<ScoredJob> completionService;
 
-    /**
+    public RegretInsertionConcurrent(JobInsertionCostsCalculator jobInsertionCalculator, VehicleRoutingProblem vehicleRoutingProblem, ExecutorService executorService) {
+        super(vehicleRoutingProblem);
+        this.scoringFunction = new DefaultScorer(vehicleRoutingProblem);
+        this.insertionCostsCalculator = jobInsertionCalculator;
+        this.vrp = vehicleRoutingProblem;
+        completionService = new ExecutorCompletionService<>(executorService);
+        logger.debug("initialise " + this);
+    }
+
+	/**
      * Sets the scoring function.
      * <p>
      * <p>By default, the this.TimeWindowScorer is used.
@@ -66,22 +75,12 @@ public class RegretInsertionConcurrent extends AbstractInsertionStrategy {
         this.scoringFunction = scoringFunction;
     }
 
-    public RegretInsertionConcurrent(JobInsertionCostsCalculator jobInsertionCalculator, VehicleRoutingProblem vehicleRoutingProblem, ExecutorService executorService) {
-        super(vehicleRoutingProblem);
-        this.scoringFunction = new DefaultScorer(vehicleRoutingProblem);
-        this.insertionCostsCalculator = jobInsertionCalculator;
-        this.vrp = vehicleRoutingProblem;
-        completionService = new ExecutorCompletionService<>(executorService);
-        logger.debug("initialise " + this);
-    }
-
-    @Override
+	@Override
     public String toString() {
-        return "[name=regretInsertion][additionalScorer=" + scoringFunction + "]";
+        return new StringBuilder().append("[name=regretInsertion][additionalScorer=").append(scoringFunction).append("]").toString();
     }
 
-
-    /**
+	/**
      * Runs insertion.
      * <p>
      * <p>Before inserting a job, all unassigned jobs are scored according to its best- and secondBest-insertion plus additional scoring variables.
@@ -124,25 +123,24 @@ public class RegretInsertionConcurrent extends AbstractInsertionStrategy {
                 insertJob(bestScoredJob.getJob(), bestScoredJob.getInsertionData(), bestScoredJob.getRoute());
                 jobs.remove(bestScoredJob.getJob());
             }
-            for (ScoredJob bad : badJobList) {
+            badJobList.forEach(bad -> {
                 Job unassigned = bad.getJob();
                 jobs.remove(unassigned);
                 badJobs.add(unassigned);
                 markUnassigned(unassigned, bad.getInsertionData().getFailedConstraintNames());
-            }
+            });
         }
         return badJobs;
     }
 
-    private ScoredJob nextJob(final Collection<VehicleRoute> routes, List<Job> unassignedJobList, List<ScoredJob> badJobList) {
+	private ScoredJob nextJob(final Collection<VehicleRoute> routes, List<Job> unassignedJobList, List<ScoredJob> badJobList) {
         ScoredJob bestScoredJob = null;
 
-        for (final Job unassignedJob : unassignedJobList) {
-            completionService.submit(() -> RegretInsertion.getScoredJob(routes, unassignedJob, insertionCostsCalculator, scoringFunction));
-        }
+        unassignedJobList.forEach((final Job unassignedJob) -> completionService.submit(
+				() -> RegretInsertion.getScoredJob(routes, unassignedJob, insertionCostsCalculator, scoringFunction)));
 
         try {
-            for (int i = 0; i < unassignedJobList.size(); i++) {
+            for (Job anUnassignedJobList : unassignedJobList) {
                 Future<ScoredJob> fsj = completionService.take();
                 ScoredJob sJob = fsj.get();
                 if (sJob instanceof ScoredJob.BadJob) {
@@ -160,7 +158,8 @@ public class RegretInsertionConcurrent extends AbstractInsertionStrategy {
                 }
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            logger.error(e.getMessage(), e);
+			Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -168,11 +167,8 @@ public class RegretInsertionConcurrent extends AbstractInsertionStrategy {
         return bestScoredJob;
     }
 
-    private VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
-        for(VehicleRoute r : routes){
-            if(r.getVehicle().getBreak() == job) return r;
-        }
-        return null;
+	private VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
+        return routes.stream().filter(r -> r.getVehicle().getBreak() == job).findFirst().orElse(null);
     }
 
 

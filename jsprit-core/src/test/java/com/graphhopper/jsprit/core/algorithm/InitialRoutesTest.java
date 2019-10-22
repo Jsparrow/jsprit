@@ -97,7 +97,9 @@ public class InitialRoutesTest {
     private Job getInitialJob(String jobId, VehicleRoutingProblem vrp) {
         for (VehicleRoute r : vrp.getInitialVehicleRoutes()) {
             for (Job j : r.getTourActivities().getJobs()) {
-                if (j.getId().equals(jobId)) return j;
+                if (j.getId().equals(jobId)) {
+					return j;
+				}
             }
         }
         return null;
@@ -107,9 +109,9 @@ public class InitialRoutesTest {
         boolean isInRoute = false;
         for (VehicleRoute route : routes) {
             for (TourActivity act : route.getActivities()) {
-                if (act instanceof TourActivity.JobActivity) {
-                    if (((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) isInRoute = true;
-                }
+                if (act instanceof TourActivity.JobActivity && ((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) {
+					isInRoute = true;
+				}
             }
         }
         return isInRoute;
@@ -118,11 +120,9 @@ public class InitialRoutesTest {
     private boolean hasActivityIn(VehicleRoutingProblemSolution solution, String vehicleId, Job job) {
         for (VehicleRoute route : solution.getRoutes()) {
             String vehicleId_ = route.getVehicle().getId();
-            if (vehicleId_.equals(vehicleId)) {
-                if (route.getTourActivities().servesJob(job)) {
-                    return true;
-                }
-            }
+            if (vehicleId_.equals(vehicleId) && route.getTourActivities().servesJob(job)) {
+			    return true;
+			}
         }
         return false;
     }
@@ -131,9 +131,9 @@ public class InitialRoutesTest {
     private boolean hasActivityIn(VehicleRoute route, String jobId) {
         boolean isInRoute = false;
         for (TourActivity act : route.getActivities()) {
-            if (act instanceof TourActivity.JobActivity) {
-                if (((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) isInRoute = true;
-            }
+            if (act instanceof TourActivity.JobActivity && ((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) {
+				isInRoute = true;
+			}
         }
         return isInRoute;
     }

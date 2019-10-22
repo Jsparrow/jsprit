@@ -50,13 +50,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Collections;
 
 
 public class ShipmentInsertionCalculatorTest {
@@ -79,14 +79,7 @@ public class ShipmentInsertionCalculatorTest {
 
     };
 
-    HardRouteConstraint hardRouteLevelConstraint = new HardRouteConstraint() {
-
-        @Override
-        public boolean fulfilled(JobInsertionContext insertionContext) {
-            return true;
-        }
-
-    };
+    HardRouteConstraint hardRouteLevelConstraint = (JobInsertionContext insertionContext) -> true;
 
     ActivityInsertionCostsCalculator activityInsertionCostsCalculator;
 
@@ -118,7 +111,7 @@ public class ShipmentInsertionCalculatorTest {
         Shipment shipment = Shipment.Builder.newInstance("s").addSizeDimension(0, 1).setPickupLocation(Location.Builder.newInstance().setId("0,10").build()).setDeliveryLocation(Location.newInstance("10,0")).build();
         VehicleRoute route = VehicleRoute.emptyRoute();
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupShipment(shipment));
         activities.add(new DeliverShipment(shipment));
         when(activityFactory.createActivities(shipment)).thenReturn(activities);
@@ -136,7 +129,7 @@ public class ShipmentInsertionCalculatorTest {
         new Inserter(new InsertionListeners(), vehicleRoutingProblem).insertJob(shipment, new InsertionData(0, 0, 0, vehicle, null), route);
 
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupShipment(shipment2));
         activities.add(new DeliverShipment(shipment2));
         when(activityFactory.createActivities(shipment2)).thenReturn(activities);
@@ -149,7 +142,7 @@ public class ShipmentInsertionCalculatorTest {
     }
 
     private List<AbstractActivity> getTourActivities(Shipment shipment) {
-        List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> acts = new ArrayList<>();
         PickupShipment pick = new PickupShipment(shipment);
         DeliverShipment del = new DeliverShipment(shipment);
         acts.add(pick);
@@ -166,17 +159,10 @@ public class ShipmentInsertionCalculatorTest {
         new Inserter(new InsertionListeners(), vehicleRoutingProblem).insertJob(shipment, new InsertionData(0, 0, 0, vehicle, null), route);
 
         constraintManager = new ConstraintManager(mock(VehicleRoutingProblem.class), mock(RouteAndActivityStateGetter.class));
-        constraintManager.addConstraint(new HardRouteConstraint() {
-
-            @Override
-            public boolean fulfilled(JobInsertionContext insertionContext) {
-                return false;
-            }
-
-        });
+        constraintManager.addConstraint((JobInsertionContext insertionContext) -> false);
 
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupShipment(shipment2));
         activities.add(new DeliverShipment(shipment2));
         when(activityFactory.createActivities(shipment2)).thenReturn(activities);
@@ -202,7 +188,7 @@ public class ShipmentInsertionCalculatorTest {
         inserter.insertJob(shipment2, new InsertionData(0, 1, 2, vehicle, null), route);
 
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupShipment(shipment3));
         activities.add(new DeliverShipment(shipment3));
         when(activityFactory.createActivities(shipment3)).thenReturn(activities);
@@ -227,7 +213,7 @@ public class ShipmentInsertionCalculatorTest {
         inserter.insertJob(shipment2, new InsertionData(0, 1, 2, vehicle, null), route);
 
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupShipment(shipment3));
         activities.add(new DeliverShipment(shipment3));
         when(activityFactory.createActivities(shipment3)).thenReturn(activities);
@@ -258,7 +244,7 @@ public class ShipmentInsertionCalculatorTest {
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateLoadStates();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
         constraintManager.addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), ConstraintManager.Priority.CRITICAL);
@@ -290,17 +276,17 @@ public class ShipmentInsertionCalculatorTest {
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateLoadStates();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
         constraintManager.addLoadConstraint();
 
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         Pickup service = (Pickup) Pickup.Builder.newInstance("pick").addSizeDimension(0, 1).setLocation(Location.newInstance("5,5")).build();
 
         JobActivityFactory activityFactory = mock(JobActivityFactory.class);
-        List<AbstractActivity> activities = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> activities = new ArrayList<>();
         activities.add(new PickupService(service));
         when(activityFactory.createActivities(service)).thenReturn(activities);
 

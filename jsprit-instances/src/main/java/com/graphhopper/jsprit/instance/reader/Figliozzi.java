@@ -34,20 +34,13 @@ public class Figliozzi {
 
     public static class TimeDependentTransportCostsFactory {
 
-        public static enum SpeedDistribution {
-
-            TD1a, TD1b, TD1c, TD2a, TD2b, TD2c, TD3a, TD3b, TD3c, TD1d, TD2d, TD3d, TD4, TD5, TD6, CLASSIC
-
-        }
-
-
         public static TDCosts createCosts(Locations locations, SpeedDistribution speedDistribution, double depotClosingTime) {
             List<Double> timeBins = createTimeBins(depotClosingTime);
             List<Double> speedValues = createSpeedValues(speedDistribution);
             return new TDCosts(locations, timeBins, speedValues);
         }
 
-        static List<Double> createSpeedValues(SpeedDistribution speedDistribution) {
+		static List<Double> createSpeedValues(SpeedDistribution speedDistribution) {
             List<Double> speedValues = Collections.emptyList();
             switch (speedDistribution) {
                 case TD1a:
@@ -107,14 +100,20 @@ public class Figliozzi {
             return speedValues;
         }
 
-        private static List<Double> createTimeBins(double depotClosingTime) {
-            List<Double> timeBins = new ArrayList<Double>();
+		private static List<Double> createTimeBins(double depotClosingTime) {
+            List<Double> timeBins = new ArrayList<>();
             timeBins.add(.2 * depotClosingTime);
             timeBins.add(.4 * depotClosingTime);
             timeBins.add(.6 * depotClosingTime);
             timeBins.add(.8 * depotClosingTime);
             timeBins.add(depotClosingTime);
             return timeBins;
+        }
+
+		public static enum SpeedDistribution {
+
+            TD1a, TD1b, TD1c, TD2a, TD2b, TD2c, TD3a, TD3b, TD3c, TD1d, TD2d, TD3d, TD4, TD5, TD6, CLASSIC
+
         }
 
     }
@@ -133,7 +132,6 @@ public class Figliozzi {
         private double transportTimeParameter = 1.;
 
         public TDCosts(Locations locations, List<Double> timeBins, List<Double> speedValues) {
-            super();
             speed = speedValues;
             this.timeBins = timeBins;
             this.locations = locations;
@@ -173,7 +171,7 @@ public class Figliozzi {
                 if (currentTime < timeThreshold) {
                     double maxReachableDistance = (timeThreshold - currentTime) * speed.get(i);
                     if (distanceToTravel > maxReachableDistance) {
-                        distanceToTravel = distanceToTravel - maxReachableDistance;
+                        distanceToTravel -= maxReachableDistance;
                         totalTravelTime += (timeThreshold - currentTime);
                         currentTime = timeThreshold;
                     } else { //<= maxReachableDistance
@@ -204,7 +202,7 @@ public class Figliozzi {
                 if (currentTime > nextLowerTimeThreshold) {
                     double maxReachableDistance = (currentTime - nextLowerTimeThreshold) * speed.get(i);
                     if (distanceToTravel > maxReachableDistance) {
-                        distanceToTravel = distanceToTravel - maxReachableDistance;
+                        distanceToTravel -= maxReachableDistance;
                         totalTravelTime += (currentTime - nextLowerTimeThreshold);
                         currentTime = nextLowerTimeThreshold;
                     } else { //<= maxReachableDistance

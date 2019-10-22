@@ -29,26 +29,27 @@ import java.util.Random;
 public class SelectRandomly implements SolutionSelector {
 
     private static SelectRandomly selector = null;
+	private Random random = RandomNumberGeneration.getRandom();
 
-    public static SelectRandomly getInstance() {
-        if (selector == null) {
-            selector = new SelectRandomly();
-            return selector;
-        }
-        return selector;
+	public static SelectRandomly getInstance() {
+        if (selector != null) {
+			return selector;
+		}
+		selector = new SelectRandomly();
+		return selector;
     }
 
-    private Random random = RandomNumberGeneration.getRandom();
-
-    @Override
+	@Override
     public VehicleRoutingProblemSolution selectSolution(Collection<VehicleRoutingProblemSolution> solutions) {
-        if (solutions.isEmpty()) return null;
-        List<VehicleRoutingProblemSolution> solList = new ArrayList<VehicleRoutingProblemSolution>(solutions);
+        if (solutions.isEmpty()) {
+			return null;
+		}
+        List<VehicleRoutingProblemSolution> solList = new ArrayList<>(solutions);
         int randomIndex = random.nextInt(solutions.size());
         return solList.get(randomIndex);
     }
 
-    public void setRandom(Random random) {
+	public void setRandom(Random random) {
         this.random = random;
     }
 

@@ -40,7 +40,6 @@ class CalculatesServiceInsertionWithTimeSchedulingInSlices implements JobInserti
     private double timeSlice = 900.0;
 
     public CalculatesServiceInsertionWithTimeSchedulingInSlices(JobInsertionCostsCalculator jic, double timeSlice, int neighbors) {
-        super();
         this.jic = jic;
         this.timeSlice = timeSlice;
         this.nOfDepartureTimes = neighbors;
@@ -49,16 +48,19 @@ class CalculatesServiceInsertionWithTimeSchedulingInSlices implements JobInserti
 
     @Override
     public String toString() {
-        return "[name=" + this.getClass().toString() + "][timeSlice=" + timeSlice + "][#timeSlice=" + nOfDepartureTimes + "]";
+        return new StringBuilder().append("[name=").append(this.getClass().toString()).append("][timeSlice=").append(timeSlice).append("][#timeSlice=").append(nOfDepartureTimes)
+				.append("]").toString();
     }
 
     @Override
     public InsertionData getInsertionData(VehicleRoute currentRoute, Job jobToInsert, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownScore) {
-        List<Double> vehicleDepartureTimes = new ArrayList<Double>();
+        List<Double> vehicleDepartureTimes = new ArrayList<>();
         double currentStart;
         if (currentRoute.getStart() == null) {
             currentStart = newVehicleDepartureTime;
-        } else currentStart = currentRoute.getStart().getEndTime();
+        } else {
+			currentStart = currentRoute.getStart().getEndTime();
+		}
 
         vehicleDepartureTimes.add(currentStart);
 //		double earliestDeparture = newVehicle.getEarliestDeparture();
@@ -78,8 +80,9 @@ class CalculatesServiceInsertionWithTimeSchedulingInSlices implements JobInserti
         InsertionData bestIData = null;
         for (Double departureTime : vehicleDepartureTimes) {
             InsertionData iData = jic.getInsertionData(currentRoute, jobToInsert, newVehicle, departureTime, newDriver, bestKnownScore);
-            if (bestIData == null) bestIData = iData;
-            else if (iData.getInsertionCost() < bestIData.getInsertionCost()) {
+            if (bestIData == null) {
+				bestIData = iData;
+			} else if (iData.getInsertionCost() < bestIData.getInsertionCost()) {
                 iData.setVehicleDepartureTime(departureTime);
                 bestIData = iData;
             }

@@ -35,7 +35,6 @@ public class InfiniteFleetManagerFactory implements VehicleFleetManagerFactory {
      * @param vehicles that are used to initialize the fleet manager
      */
     public InfiniteFleetManagerFactory(Collection<Vehicle> vehicles) {
-        super();
         this.vehicles = vehicles;
     }
 

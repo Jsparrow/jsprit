@@ -41,13 +41,16 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by schroeder on 06/02/17.
  */
 public class UnassignedJobReasonTrackerTest {
 
-    Vehicle vehicle;
+    private static final Logger logger = LoggerFactory.getLogger(UnassignedJobReasonTrackerTest.class);
+	Vehicle vehicle;
 
     @Before
     public void doBefore() {
@@ -157,7 +160,7 @@ public class UnassignedJobReasonTrackerTest {
         Iterator<Map.Entry<Comparable<?>, Long>> entryIterator = frequency.entrySetIterator();
         while (entryIterator.hasNext()) {
             Map.Entry<Comparable<?>, Long> e = entryIterator.next();
-            System.out.println(e.getKey().toString() + " " + e.getValue());
+            logger.info(new StringBuilder().append(e.getKey().toString()).append(" ").append(e.getValue()).toString());
         }
     }
 }

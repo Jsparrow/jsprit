@@ -40,12 +40,16 @@ class StringUtil {
     }
 
     static int determineSubstringLength(int baseLength, int routeLength, Random random) {
-        if (baseLength == routeLength) return 0;
+        if (baseLength == routeLength) {
+			return 0;
+		}
         int substringLength = 1;
         while (baseLength + substringLength < routeLength) {
             if (random.nextDouble() < 0.01) {
                 return substringLength;
-            } else substringLength++;
+            } else {
+				substringLength++;
+			}
         }
         return substringLength;
     }

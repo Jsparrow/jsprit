@@ -40,7 +40,6 @@ public class SchrimpfInitialThresholdGenerator implements AlgorithmStartsListene
     private int nOfRandomWalks;
 
     public SchrimpfInitialThresholdGenerator(SchrimpfAcceptance schrimpfAcceptance, int nOfRandomWalks) {
-        super();
         this.schrimpfAcceptance = schrimpfAcceptance;
         this.nOfRandomWalks = nOfRandomWalks;
     }

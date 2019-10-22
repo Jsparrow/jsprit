@@ -60,7 +60,7 @@ public class RegretInsertionTest {
         VehicleFleetManager fm = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
         JobInsertionCostsCalculator calculator = getCalculator(vrp);
         RegretInsertionFast regretInsertion = new RegretInsertionFast(calculator, vrp, fm);
-        Collection<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        Collection<VehicleRoute> routes = new ArrayList<>();
 
         regretInsertion.insertJobs(routes, vrp.getJobs().values());
         Assert.assertEquals(1, routes.size());
@@ -77,7 +77,7 @@ public class RegretInsertionTest {
         VehicleFleetManager fm = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
         JobInsertionCostsCalculator calculator = getCalculator(vrp);
         RegretInsertionFast regretInsertion = new RegretInsertionFast(calculator, vrp, fm);
-        Collection<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        Collection<VehicleRoute> routes = new ArrayList<>();
 
         regretInsertion.insertJobs(routes, vrp.getJobs().values());
         Assert.assertEquals(2, routes.iterator().next().getActivities().size());
@@ -94,7 +94,7 @@ public class RegretInsertionTest {
         VehicleFleetManager fm = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
         JobInsertionCostsCalculator calculator = getCalculator(vrp);
         RegretInsertionFast regretInsertion = new RegretInsertionFast(calculator, vrp, fm);
-        Collection<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        Collection<VehicleRoute> routes = new ArrayList<>();
 
         CkeckJobSequence position = new CkeckJobSequence(2, s1);
         regretInsertion.addListener(position);
@@ -123,84 +123,6 @@ public class RegretInsertionTest {
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
 
         Assert.assertEquals(2, solution.getRoutes().size());
-    }
-
-    static class JobInRouteUpdater implements StateUpdater, ActivityVisitor {
-
-        private StateManager stateManager;
-
-        private StateId job1AssignedId;
-
-        private StateId job2AssignedId;
-
-        private VehicleRoute route;
-
-        public JobInRouteUpdater(StateManager stateManager, StateId job1AssignedId, StateId job2AssignedId) {
-            this.stateManager = stateManager;
-            this.job1AssignedId = job1AssignedId;
-            this.job2AssignedId = job2AssignedId;
-        }
-
-        @Override
-        public void begin(VehicleRoute route) {
-            this.route = route;
-        }
-
-        @Override
-        public void visit(TourActivity activity) {
-            if(((TourActivity.JobActivity)activity).getJob().getId().equals("s1")){
-                stateManager.putProblemState(job1AssignedId,Boolean.class,true);
-            }
-            if(((TourActivity.JobActivity)activity).getJob().getId().equals("s2")){
-                stateManager.putProblemState(job2AssignedId,Boolean.class,true);
-            }
-
-        }
-
-        @Override
-        public void finish() {
-
-        }
-    }
-
-    static class RouteConstraint implements HardRouteConstraint{
-
-        private final StateId job1AssignedId;
-
-        private final StateId job2AssignedId;
-
-        private StateManager stateManager;
-
-        public RouteConstraint(StateId job1Assigned, StateId job2Assigned, StateManager stateManager) {
-            this.job1AssignedId = job1Assigned;
-            this.job2AssignedId = job2Assigned;
-            this.stateManager = stateManager;
-        }
-
-        @Override
-        public boolean fulfilled(JobInsertionContext insertionContext) {
-            if(insertionContext.getJob().getId().equals("s1")){
-                Boolean job2Assigned = stateManager.getProblemState(job2AssignedId,Boolean.class);
-                if(job2Assigned == null || job2Assigned == false) return true;
-                else {
-                    for(Job j : insertionContext.getRoute().getTourActivities().getJobs()){
-                        if(j.getId().equals("s2")) return true;
-                    }
-                }
-                return false;
-            }
-            if(insertionContext.getJob().getId().equals("s2")){
-                Boolean job1Assigned = stateManager.getProblemState(job1AssignedId,Boolean.class);
-                if(job1Assigned == null || job1Assigned == false) return true;
-                else {
-                    for(Job j : insertionContext.getRoute().getTourActivities().getJobs()){
-                        if(j.getId().equals("s1")) return true;
-                    }
-                }
-                return false;
-            }
-            return true;
-        }
     }
 
     @Test
@@ -240,18 +162,17 @@ public class RegretInsertionTest {
             .buildAlgorithm();
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        for(VehicleRoute route : solution.getRoutes()){
-            if(route.getTourActivities().servesJob(s1)){
-                if(!route.getTourActivities().servesJob(s2)){
-                    Assert.assertFalse(true);
-                }
-                else Assert.assertTrue(true);
-            }
-        }
-//        Assert.assertEquals(1, solution.getRoutes().size());
+        //        Assert.assertEquals(1, solution.getRoutes().size());
+		solution.getRoutes().stream().filter(route -> route.getTourActivities().servesJob(s1)).forEach(route -> {
+		    if(!route.getTourActivities().servesJob(s2)){
+		        Assert.assertFalse(true);
+		    } else {
+				Assert.assertTrue(true);
+			}
+		});
     }
 
-    @Test
+	@Test
     public void solutionWithConstraintAndWithFastRegretConcurrentMustBeCorrect() {
         Service s1 = Service.Builder.newInstance("s1").addSizeDimension(0,1).setLocation(Location.newInstance(0, 10)).build();
         Service s2 = Service.Builder.newInstance("s2").addSizeDimension(0,1).setLocation(Location.newInstance(0, -10)).build();
@@ -281,17 +202,16 @@ public class RegretInsertionTest {
             .buildAlgorithm();
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        for(VehicleRoute route : solution.getRoutes()){
-            if(route.getTourActivities().servesJob(s1)){
-                if(!route.getTourActivities().servesJob(s2)){
-                    Assert.assertFalse(true);
-                }
-                else Assert.assertTrue(true);
-            }
-        }
+        solution.getRoutes().stream().filter(route -> route.getTourActivities().servesJob(s1)).forEach(route -> {
+		    if(!route.getTourActivities().servesJob(s2)){
+		        Assert.assertFalse(true);
+		    } else {
+				Assert.assertTrue(true);
+			}
+		});
     }
 
-    @Test
+	@Test
     public void shipment1ShouldBeAddedFirst() {
         Shipment s1 = Shipment.Builder.newInstance("s1")
             .setPickupLocation(Location.Builder.newInstance().setId("pick1").setCoordinate(Coordinate.newInstance(-1, 10)).build())
@@ -309,7 +229,7 @@ public class RegretInsertionTest {
         VehicleFleetManager fm = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
         JobInsertionCostsCalculator calculator = getShipmentCalculator(vrp);
         RegretInsertionFast regretInsertion = new RegretInsertionFast(calculator, vrp, fm);
-        Collection<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        Collection<VehicleRoute> routes = new ArrayList<>();
 
         CkeckJobSequence position = new CkeckJobSequence(2, s2);
         regretInsertion.addListener(position);
@@ -317,51 +237,18 @@ public class RegretInsertionTest {
         Assert.assertTrue(position.isCorrect());
     }
 
-    private JobInsertionCostsCalculator getShipmentCalculator(final VehicleRoutingProblem vrp) {
-        return new JobInsertionCostsCalculator() {
-
-            @Override
-            public InsertionData getInsertionData(VehicleRoute currentRoute, Job newJob, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownCosts) {
-                Vehicle vehicle = vrp.getVehicles().iterator().next();
-                if (newJob.getId().equals("s1")) {
-                    return new InsertionData(10, 0, 0, vehicle, newDriver);
-                } else {
-                    return new InsertionData(20, 0, 0, vehicle, newDriver);
-                }
-            }
-        };
+	private JobInsertionCostsCalculator getShipmentCalculator(final VehicleRoutingProblem vrp) {
+        return (VehicleRoute currentRoute, Job newJob, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownCosts) -> {
+		    Vehicle vehicle = vrp.getVehicles().iterator().next();
+		    if ("s1".equals(newJob.getId())) {
+		        return new InsertionData(10, 0, 0, vehicle, newDriver);
+		    } else {
+		        return new InsertionData(20, 0, 0, vehicle, newDriver);
+		    }
+		};
     }
 
-
-    static class CkeckJobSequence implements BeforeJobInsertionListener {
-
-        int atPosition;
-
-        Job job;
-
-        int positionCounter = 1;
-
-        boolean correct = false;
-
-        CkeckJobSequence(int atPosition, Job job) {
-            this.atPosition = atPosition;
-            this.job = job;
-        }
-
-        @Override
-        public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
-            if (job == this.job && atPosition == positionCounter) {
-                correct = true;
-            }
-            positionCounter++;
-        }
-
-        public boolean isCorrect() {
-            return correct;
-        }
-    }
-
-    private JobInsertionCostsCalculator getCalculator(final VehicleRoutingProblem vrp) {
+	private JobInsertionCostsCalculator getCalculator(final VehicleRoutingProblem vrp) {
         return new JobInsertionCostsCalculator() {
 
             @Override
@@ -418,6 +305,118 @@ public class RegretInsertionTest {
 //        ServiceInsertionCalculator calculator = new ServiceInsertionCalculator(vrp.getTransportCosts(), local, manager);
 //        calculator.setJobActivityFactory(vrp.getJobActivityFactory());
 //        return calculator;
+    }
+
+	static class JobInRouteUpdater implements StateUpdater, ActivityVisitor {
+
+        private StateManager stateManager;
+
+        private StateId job1AssignedId;
+
+        private StateId job2AssignedId;
+
+        private VehicleRoute route;
+
+        public JobInRouteUpdater(StateManager stateManager, StateId job1AssignedId, StateId job2AssignedId) {
+            this.stateManager = stateManager;
+            this.job1AssignedId = job1AssignedId;
+            this.job2AssignedId = job2AssignedId;
+        }
+
+        @Override
+        public void begin(VehicleRoute route) {
+            this.route = route;
+        }
+
+        @Override
+        public void visit(TourActivity activity) {
+            if("s1".equals(((TourActivity.JobActivity)activity).getJob().getId())){
+                stateManager.putProblemState(job1AssignedId,Boolean.class,true);
+            }
+            if("s2".equals(((TourActivity.JobActivity)activity).getJob().getId())){
+                stateManager.putProblemState(job2AssignedId,Boolean.class,true);
+            }
+
+        }
+
+        @Override
+        public void finish() {
+
+        }
+    }
+
+    static class RouteConstraint implements HardRouteConstraint{
+
+        private final StateId job1AssignedId;
+
+        private final StateId job2AssignedId;
+
+        private StateManager stateManager;
+
+        public RouteConstraint(StateId job1Assigned, StateId job2Assigned, StateManager stateManager) {
+            this.job1AssignedId = job1Assigned;
+            this.job2AssignedId = job2Assigned;
+            this.stateManager = stateManager;
+        }
+
+        @Override
+        public boolean fulfilled(JobInsertionContext insertionContext) {
+            if("s1".equals(insertionContext.getJob().getId())){
+                Boolean job2Assigned = stateManager.getProblemState(job2AssignedId,Boolean.class);
+                if(job2Assigned == null || job2Assigned == false) {
+					return true;
+				} else {
+                    for(Job j : insertionContext.getRoute().getTourActivities().getJobs()){
+                        if("s2".equals(j.getId())) {
+							return true;
+						}
+                    }
+                }
+                return false;
+            }
+            if (!"s2".equals(insertionContext.getJob().getId())) {
+				return true;
+			}
+			Boolean job1Assigned = stateManager.getProblemState(job1AssignedId,Boolean.class);
+			if(job1Assigned == null || job1Assigned == false) {
+				return true;
+			} else {
+			    for(Job j : insertionContext.getRoute().getTourActivities().getJobs()){
+			        if("s1".equals(j.getId())) {
+						return true;
+					}
+			    }
+			}
+			return false;
+        }
+    }
+
+    static class CkeckJobSequence implements BeforeJobInsertionListener {
+
+        int atPosition;
+
+        Job job;
+
+        int positionCounter = 1;
+
+        boolean correct = false;
+
+        CkeckJobSequence(int atPosition, Job job) {
+            this.atPosition = atPosition;
+            this.job = job;
+        }
+
+        @Override
+        public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
+            if (job == this.job && atPosition == positionCounter) {
+                correct = true;
+            }
+            positionCounter++;
+        }
+
+        public boolean isCorrect() {
+            return correct;
+        }
     }
 
 }

@@ -54,12 +54,7 @@ public final class RuinRandom extends AbstractRuinStrategy {
         super(vrp);
         this.vrp = vrp;
         this.fractionOfAllNodes2beRuined = fraction;
-        setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return selectNuOfJobs2BeRemoved();
-            }
-        });
+        setRuinShareFactory(this::selectNuOfJobs2BeRemoved);
         logger.debug("initialise {}", this);
     }
 
@@ -70,18 +65,20 @@ public final class RuinRandom extends AbstractRuinStrategy {
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nOfJobs2BeRemoved = getRuinShareFactory().createNumberToBeRemoved();
         ruin(vehicleRoutes, nOfJobs2BeRemoved, unassignedJobs);
         return unassignedJobs;
     }
 
     private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
-        ArrayList<Job> availableJobs = new ArrayList<Job>(vrp.getJobs().values());
+        ArrayList<Job> availableJobs = new ArrayList<>(vrp.getJobs().values());
         Collections.shuffle(availableJobs, random);
         int removed = 0;
         for (Job job : availableJobs) {
-            if (removed == nOfJobs2BeRemoved) break;
+            if (removed == nOfJobs2BeRemoved) {
+				break;
+			}
             if (removeJob(job, vehicleRoutes)) {
                 unassignedJobs.add(job);
             }
@@ -91,7 +88,7 @@ public final class RuinRandom extends AbstractRuinStrategy {
 
     @Override
     public String toString() {
-        return "[name=randomRuin][noJobsToBeRemoved=" + selectNuOfJobs2BeRemoved() + "]";
+        return new StringBuilder().append("[name=randomRuin][noJobsToBeRemoved=").append(selectNuOfJobs2BeRemoved()).append("]").toString();
     }
 
     private int selectNuOfJobs2BeRemoved() {

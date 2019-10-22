@@ -47,7 +47,7 @@ public class SchrimpfAcceptanceTest {
         // we skip the warmup, but still want to test that the initialThreshold is set
         schrimpfAcceptance.setInitialThreshold(0.0);
         // create empty memory with an initial capacity of 1
-        memory = new ArrayList<VehicleRoutingProblemSolution>(1);
+        memory = new ArrayList<>(1);
         // insert the initial (worst) solution, will be accepted anyway since its the first in the memory
         assertTrue("Solution (initial cost = 2.0) should be accepted since the memory is empty", schrimpfAcceptance.acceptSolution(memory, createSolutionWithCost(2.0)));
     }

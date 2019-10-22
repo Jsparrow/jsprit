@@ -22,6 +22,8 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author stefan schroeder
@@ -29,12 +31,13 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts {
 
-    public double speed = 1;
+    private static final Logger logger = LoggerFactory.getLogger(ManhattanCosts.class);
+
+	public double speed = 1;
 
     private Locations locations;
 
     public ManhattanCosts(Locations locations) {
-        super();
         this.locations = locations;
     }
 
@@ -48,14 +51,14 @@ public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts 
         try {
             distance = calculateDistance(from, to);
         } catch (NullPointerException e) {
-            throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
+            logger.error(e.getMessage(), e);
+			throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
         }
         double costs = distance;
-        if (vehicle != null) {
-            if (vehicle.getType() != null) {
-                costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
-            }
-        }
+        boolean condition = vehicle != null && vehicle.getType() != null;
+		if (condition) {
+		    costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
+		}
         return costs;
     }
 
@@ -74,7 +77,9 @@ public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts 
             from = locations.getCoord(fromLocation.getId());
             to = locations.getCoord(toLocation.getId());
         }
-        if (from == null || to == null) throw new NullPointerException();
+        if (from == null || to == null) {
+			throw new NullPointerException();
+		}
         return calculateDistance(from, to);
     }
 

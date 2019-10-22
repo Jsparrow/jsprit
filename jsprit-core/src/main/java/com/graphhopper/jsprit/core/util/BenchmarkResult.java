@@ -34,7 +34,6 @@ public class BenchmarkResult {
     public final int runs;
 
     public BenchmarkResult(BenchmarkInstance instance, int runs, double[] results, double[] compTimes, double[] vehicles) {
-        super();
         this.results = results;
         this.runs = runs;
         this.times = compTimes;

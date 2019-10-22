@@ -234,7 +234,7 @@ public class VehicleRoutingProblemTest {
         when(s2.getId()).thenReturn("s2");
         when(s2.getLocation()).thenReturn(Location.Builder.newInstance().setIndex(1).build());
 
-        Collection<Service> services = new ArrayList<Service>();
+        Collection<Service> services = new ArrayList<>();
         services.add(s1);
         services.add(s2);
 

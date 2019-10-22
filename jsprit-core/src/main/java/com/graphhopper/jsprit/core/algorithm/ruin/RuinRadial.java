@@ -56,14 +56,7 @@ public final class RuinRadial extends AbstractRuinStrategy {
         super(vrp);
         this.vrp = vrp;
         noJobsToMemorize = (int) Math.ceil(vrp.getJobs().values().size() * fraction2beRemoved);
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
+        ruinShareFactory = () -> noJobsToMemorize;
         JobNeighborhoodsImplWithCapRestriction jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
         jobNeighborhoodsImpl.initialise();
         jobNeighborhoods = jobNeighborhoodsImpl;
@@ -75,14 +68,7 @@ public final class RuinRadial extends AbstractRuinStrategy {
         this.vrp = vrp;
 //		this.fractionOfAllNodes2beRuined = fraction2beRemoved;
         noJobsToMemorize = noJobs2beRemoved;
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
+        ruinShareFactory = () -> noJobsToMemorize;
         JobNeighborhoodsImplWithCapRestriction jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
         jobNeighborhoodsImpl.initialise();
         jobNeighborhoods = jobNeighborhoodsImpl;
@@ -93,21 +79,14 @@ public final class RuinRadial extends AbstractRuinStrategy {
         super(vrp);
         this.vrp = vrp;
         noJobsToMemorize = noJobs2beRemoved;
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
+        ruinShareFactory = () -> noJobsToMemorize;
         jobNeighborhoods = neighborhoods;
         logger.debug("initialise {}", this);
     }
 
     @Override
     public String toString() {
-        return "[name=radialRuin][noJobsToBeRemoved=" + noJobsToMemorize + "]";
+        return new StringBuilder().append("[name=radialRuin][noJobsToBeRemoved=").append(noJobsToMemorize).append("]").toString();
     }
 
     /**
@@ -132,7 +111,7 @@ public final class RuinRadial extends AbstractRuinStrategy {
      *
      */
     private Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes, Job targetJob, int nOfJobs2BeRemoved) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nNeighbors = nOfJobs2BeRemoved - 1;
         removeJob(targetJob, vehicleRoutes);
         unassignedJobs.add(targetJob);

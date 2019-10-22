@@ -26,7 +26,7 @@ import java.util.Collections;
 
 class HardRouteLevelConstraintManager implements HardRouteConstraint {
 
-    private Collection<HardRouteConstraint> hardConstraints = new ArrayList<HardRouteConstraint>();
+    private Collection<HardRouteConstraint> hardConstraints = new ArrayList<>();
 
     public void addConstraint(HardRouteConstraint constraint) {
         hardConstraints.add(constraint);
@@ -38,12 +38,7 @@ class HardRouteLevelConstraintManager implements HardRouteConstraint {
 
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
-        for (HardRouteConstraint constraint : hardConstraints) {
-            if (!constraint.fulfilled(insertionContext)) {
-                return false;
-            }
-        }
-        return true;
+        return hardConstraints.stream().allMatch(constraint -> constraint.fulfilled(insertionContext));
     }
 
 }

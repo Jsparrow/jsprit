@@ -31,7 +31,7 @@ public class TestConstraintManager {
 
     @Test
     public void whenGettingConstraintsViaConstructor_theyShouldBeResolvedCorrectly() {
-        List<Constraint> constraints = new ArrayList<Constraint>();
+        List<Constraint> constraints = new ArrayList<>();
         constraints.add(new ServiceDeliveriesFirstConstraint());
         constraints.add(mock(HardRouteConstraint.class));
         ConstraintManager cManager = new ConstraintManager(mock(VehicleRoutingProblem.class), mock(RouteAndActivityStateGetter.class), constraints);
@@ -40,7 +40,7 @@ public class TestConstraintManager {
 
     @Test
     public void whenGettingConstraintsViaConstructorAndAtLeastOneConstraintCannotBeResolved_itShouldOnlyAddTheKnownConstraints() {
-        List<Constraint> constraints = new ArrayList<Constraint>();
+        List<Constraint> constraints = new ArrayList<>();
         constraints.add(new ServiceDeliveriesFirstConstraint());
         constraints.add(mock(Constraint.class));
         ConstraintManager cManager = new ConstraintManager(mock(VehicleRoutingProblem.class), mock(RouteAndActivityStateGetter.class), constraints);

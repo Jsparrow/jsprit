@@ -43,7 +43,6 @@ class RouteLevelActivityInsertionCostsEstimator implements ActivityInsertionCost
     private int nuOfActivities2LookForward = 0;
 
     public RouteLevelActivityInsertionCostsEstimator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts actCosts, RouteAndActivityStateGetter stateManager) {
-        super();
         this.activityCosts = actCosts;
         this.stateManager = stateManager;
         auxilliaryPathCostCalculator = new AuxilliaryCostCalculator(routingCosts, activityCosts);
@@ -51,13 +50,16 @@ class RouteLevelActivityInsertionCostsEstimator implements ActivityInsertionCost
 
     @Override
     public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity nextAct, TourActivity newAct, double depTimeAtPrevAct) {
-        List<TourActivity> path = new ArrayList<TourActivity>();
+        List<TourActivity> path = new ArrayList<>();
         path.add(prevAct);
         path.add(newAct);
         path.add(nextAct);
         int actIndex;
-        if (prevAct instanceof Start) actIndex = 0;
-        else actIndex = iFacts.getRoute().getTourActivities().getActivities().indexOf(nextAct);
+        if (prevAct instanceof Start) {
+			actIndex = 0;
+		} else {
+			actIndex = iFacts.getRoute().getTourActivities().getActivities().indexOf(nextAct);
+		}
         if (nuOfActivities2LookForward > 0 && !(nextAct instanceof End)) {
             path.addAll(getForwardLookingPath(iFacts.getRoute(), actIndex));
         }
@@ -76,12 +78,14 @@ class RouteLevelActivityInsertionCostsEstimator implements ActivityInsertionCost
         } else {
             cost_at_act = stateManager.getActivityState(act, InternalStates.COSTS, Double.class);
         }
-        if (cost_at_act == null) cost_at_act = 0.;
+        if (cost_at_act == null) {
+			cost_at_act = 0.;
+		}
         return cost_at_act;
     }
 
     private List<TourActivity> getForwardLookingPath(VehicleRoute route, int actIndex) {
-        List<TourActivity> forwardLookingPath = new ArrayList<TourActivity>();
+        List<TourActivity> forwardLookingPath = new ArrayList<>();
         int nuOfActsInPath = 0;
         int index = actIndex + 1;
         while (index < route.getTourActivities().getActivities().size() && nuOfActsInPath < nuOfActivities2LookForward) {

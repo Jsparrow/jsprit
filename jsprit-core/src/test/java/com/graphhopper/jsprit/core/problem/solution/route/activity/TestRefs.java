@@ -29,7 +29,7 @@ public class TestRefs {
 
     @Test
     public void testReferencs() {
-        List<Start> starts = new ArrayList<Start>();
+        List<Start> starts = new ArrayList<>();
         starts.add(Start.newInstance("foo0", 0.0, 0.0));
         starts.add(Start.newInstance("foo1", 1.0, 1.0));
 

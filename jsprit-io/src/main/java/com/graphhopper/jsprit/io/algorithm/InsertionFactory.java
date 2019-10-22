@@ -42,7 +42,7 @@ class InsertionFactory {
 
         if (config.containsKey("[@name]")) {
             String insertionName = config.getString("[@name]");
-            if (!insertionName.equals("bestInsertion") && !insertionName.equals("regretInsertion")) {
+            if (!"bestInsertion".equals(insertionName) && !"regretInsertion".equals(insertionName)) {
                 throw new IllegalStateException(insertionName + " is not supported. use either \"bestInsertion\" or \"regretInsertion\"");
             }
 
@@ -55,49 +55,63 @@ class InsertionFactory {
 
             if (config.containsKey("level")) {
                 String level = config.getString("level");
-                if (level.equals("local")) {
+                if ("local".equals(level)) {
                     iBuilder.setLocalLevel(addDefaultCostCalculators);
-                } else if (level.equals("route")) {
+                } else if ("route".equals(level)) {
                     int forwardLooking = 0;
                     int memory = 1;
                     String forward = config.getString("level[@forwardLooking]");
                     String mem = config.getString("level[@memory]");
-                    if (forward != null) forwardLooking = Integer.parseInt(forward);
-                    else
-                        log.warn("parameter route[@forwardLooking] is missing. by default it is 0 which equals to local level");
-                    if (mem != null) memory = Integer.parseInt(mem);
-                    else log.warn("parameter route[@memory] is missing. by default it is 1");
+                    if (forward != null) {
+						forwardLooking = Integer.parseInt(forward);
+					} else {
+						log.warn("parameter route[@forwardLooking] is missing. by default it is 0 which equals to local level");
+					}
+                    if (mem != null) {
+						memory = Integer.parseInt(mem);
+					} else {
+						log.warn("parameter route[@memory] is missing. by default it is 1");
+					}
                     iBuilder.setRouteLevel(forwardLooking, memory, addDefaultCostCalculators);
-                } else
-                    throw new IllegalStateException("level " + level + " is not known. currently it only knows \"local\" or \"route\"");
-            } else iBuilder.setLocalLevel(addDefaultCostCalculators);
+                } else {
+					throw new IllegalStateException(new StringBuilder().append("level ").append(level).append(" is not known. currently it only knows \"local\" or \"route\"").toString());
+				}
+            } else {
+				iBuilder.setLocalLevel(addDefaultCostCalculators);
+			}
 
-            if (config.containsKey("considerFixedCosts") || config.containsKey("considerFixedCost")) {
-                if (addDefaultCostCalculators) {
-                    String val = config.getString("considerFixedCosts");
-                    if (val == null) val = config.getString("considerFixedCost");
-                    if (val.equals("true")) {
-                        double fixedCostWeight = 0.5;
-                        String weight = config.getString("considerFixedCosts[@weight]");
-                        if (weight == null) weight = config.getString("considerFixedCost[@weight]");
-                        if (weight != null) fixedCostWeight = Double.parseDouble(weight);
-                        else
-                            throw new IllegalStateException("fixedCostsParameter 'weight' must be set, e.g. <considerFixedCosts weight=1.0>true</considerFixedCosts>.\n" +
-                                "this has to be changed in algorithm-config-xml-file.");
-                        iBuilder.considerFixedCosts(fixedCostWeight);
-                    } else if (val.equals("false")) {
+            boolean condition = (config.containsKey("considerFixedCosts") || config.containsKey("considerFixedCost")) && addDefaultCostCalculators;
+			if (condition) {
+			    String val = config.getString("considerFixedCosts");
+			    if (val == null) {
+					val = config.getString("considerFixedCost");
+				}
+			    if ("true".equals(val)) {
+			        double fixedCostWeight = 0.5;
+			        String weight = config.getString("considerFixedCosts[@weight]");
+			        if (weight == null) {
+						weight = config.getString("considerFixedCost[@weight]");
+					}
+			        if (weight != null) {
+						fixedCostWeight = Double.parseDouble(weight);
+					} else {
+						throw new IllegalStateException("fixedCostsParameter 'weight' must be set, e.g. <considerFixedCosts weight=1.0>true</considerFixedCosts>.\n" +
+			                "this has to be changed in algorithm-config-xml-file.");
+					}
+			        iBuilder.considerFixedCosts(fixedCostWeight);
+			    } else if ("false".equals(val)) {
 
-                    } else
-                        throw new IllegalStateException("considerFixedCosts must either be true or false, i.e. <considerFixedCosts weight=1.0>true</considerFixedCosts> or \n<considerFixedCosts weight=1.0>false</considerFixedCosts>. " +
-                            "if latter, you can also omit the tag. this has to be changed in algorithm-config-xml-file");
-                }
-            }
+			    } else {
+					throw new IllegalStateException("considerFixedCosts must either be true or false, i.e. <considerFixedCosts weight=1.0>true</considerFixedCosts> or \n<considerFixedCosts weight=1.0>false</considerFixedCosts>. " +
+			            "if latter, you can also omit the tag. this has to be changed in algorithm-config-xml-file");
+				}
+			}
             String allowVehicleSwitch = config.getString("allowVehicleSwitch");
             if (allowVehicleSwitch != null) {
                 iBuilder.setAllowVehicleSwitch(Boolean.parseBoolean(allowVehicleSwitch));
             }
 
-            if (insertionName.equals("regretInsertion")) {
+            if ("regretInsertion".equals(insertionName)) {
                 iBuilder.setInsertionStrategy(InsertionBuilder.Strategy.REGRET);
 
                 String fastRegret = config.getString("fastRegret");
@@ -106,7 +120,9 @@ class InsertionFactory {
                 }
             }
             return iBuilder.build();
-        } else throw new IllegalStateException("cannot create insertionStrategy, since it has no name.");
+        } else {
+			throw new IllegalStateException("cannot create insertionStrategy, since it has no name.");
+		}
     }
 
 

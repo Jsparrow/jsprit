@@ -50,7 +50,6 @@ public class PickupAndDeliverShipmentLoadActivityLevelConstraint implements Hard
      * @param stateManager the stateManager
      */
     public PickupAndDeliverShipmentLoadActivityLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
         defaultValue = Capacity.Builder.newInstance().build();
     }
@@ -66,20 +65,23 @@ public class PickupAndDeliverShipmentLoadActivityLevelConstraint implements Hard
         Capacity loadAtPrevAct;
         if (prevAct instanceof Start) {
             loadAtPrevAct = stateManager.getRouteState(iFacts.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-            if (loadAtPrevAct == null) loadAtPrevAct = defaultValue;
+            if (loadAtPrevAct == null) {
+				loadAtPrevAct = defaultValue;
+			}
         } else {
             loadAtPrevAct = stateManager.getActivityState(prevAct, InternalStates.LOAD, Capacity.class);
-            if (loadAtPrevAct == null) loadAtPrevAct = defaultValue;
+            if (loadAtPrevAct == null) {
+				loadAtPrevAct = defaultValue;
+			}
         }
-        if (newAct instanceof PickupShipment) {
-            if (!Capacity.addup(loadAtPrevAct, newAct.getSize()).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
-                return ConstraintsStatus.NOT_FULFILLED;
-            }
-        }
-        if (newAct instanceof DeliverShipment) {
-            if (!Capacity.addup(loadAtPrevAct, Capacity.invert(newAct.getSize())).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions()))
-                return ConstraintsStatus.NOT_FULFILLED_BREAK;
-        }
+        boolean condition = newAct instanceof PickupShipment && !Capacity.addup(loadAtPrevAct, newAct.getSize()).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions());
+		if (condition) {
+		    return ConstraintsStatus.NOT_FULFILLED;
+		}
+        boolean condition1 = newAct instanceof DeliverShipment && !Capacity.addup(loadAtPrevAct, Capacity.invert(newAct.getSize())).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions());
+		if (condition1) {
+			return ConstraintsStatus.NOT_FULFILLED_BREAK;
+		}
         return ConstraintsStatus.FULFILLED;
     }
 

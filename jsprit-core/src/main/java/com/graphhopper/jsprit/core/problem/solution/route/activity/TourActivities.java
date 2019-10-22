@@ -29,65 +29,31 @@ import java.util.*;
 
 public class TourActivities {
 
-    public static TourActivities copyOf(TourActivities tourActivities) {
+    private final ArrayList<TourActivity> tourActivities = new ArrayList<>();
+
+	private final Set<Job> jobs = new HashSet<>();
+
+	private ReverseActivityIterator backward;
+
+	public TourActivities() {
+    }
+
+	private TourActivities(TourActivities tour2copy) {
+        tour2copy.getActivities().stream().map(TourActivity::duplicate).forEach(newAct -> {
+			this.tourActivities.add(newAct);
+			addJob(newAct);
+		});
+    }
+
+	public static TourActivities copyOf(TourActivities tourActivities) {
         return new TourActivities(tourActivities);
     }
 
-    public static class ReverseActivityIterator implements Iterator<TourActivity> {
-
-        private List<TourActivity> acts;
-        private int currentIndex;
-
-        public ReverseActivityIterator(List<TourActivity> acts) {
-            super();
-            this.acts = acts;
-            currentIndex = acts.size() - 1;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return currentIndex >= 0;
-        }
-
-        @Override
-        public TourActivity next() {
-            TourActivity act = acts.get(currentIndex);
-            currentIndex--;
-            return act;
-        }
-
-        public void reset() {
-            currentIndex = acts.size() - 1;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private final ArrayList<TourActivity> tourActivities = new ArrayList<>();
-
-    private final Set<Job> jobs = new HashSet<>();
-
-    private ReverseActivityIterator backward;
-
-    private TourActivities(TourActivities tour2copy) {
-        for (TourActivity tourAct : tour2copy.getActivities()) {
-            TourActivity newAct = tourAct.duplicate();
-            this.tourActivities.add(newAct);
-            addJob(newAct);
-        }
-    }
-
-    public TourActivities() {
-    }
-
-    public List<TourActivity> getActivities() {
+	public List<TourActivity> getActivities() {
         return Collections.unmodifiableList(tourActivities);
     }
 
-    public Iterator<TourActivity> iterator() {
+	public Iterator<TourActivity> iterator() {
         final Iterator<TourActivity> iterator = tourActivities.iterator();
         return new Iterator<TourActivity>() {
             private TourActivity lastReturned = null;
@@ -114,15 +80,15 @@ public class TourActivities {
         };
     }
 
-    public boolean isEmpty() {
+	public boolean isEmpty() {
         return (tourActivities.size() == 0);
     }
 
-    public Collection<Job> getJobs() {
+	public Collection<Job> getJobs() {
         return Collections.unmodifiableSet(jobs);
     }
 
-    /**
+	/**
      * @param job that needs to be looked up
      * @return true if job is in jobList, otherwise false.
      */
@@ -130,12 +96,12 @@ public class TourActivities {
         return jobs.contains(job);
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[nuOfActivities=" + tourActivities.size() + "]";
+        return new StringBuilder().append("[nuOfActivities=").append(tourActivities.size()).append("]").toString();
     }
 
-    /**
+	/**
      * Removes job AND belonging activity from tour. Note that if job is a Service, it is assumed that there is only one belonging activity,
      * thus, it stops trying to remove activities once the first is found.
      * If you want to always look for belonging activities to be removed in the entire route, use removeJob(Job job, boolean enforceEntireRoute)
@@ -166,9 +132,7 @@ public class TourActivities {
         return activityRemoved;
     }
 
-
-
-    /**
+	/**
      * Removes activity from this activity sequence. Removes its corresponding job as well, if there are no other activities
      * related to this job.
      *
@@ -210,8 +174,7 @@ public class TourActivities {
         return actRemoved;
     }
 
-
-    /**
+	/**
      * Inserts the specified activity add the specified insertionIndex. Shifts the element currently at that position (if any) and
      * any subsequent elements to the right (adds one to their indices).
      * <p>If specified activity instanceof JobActivity, it adds job to jobList.
@@ -240,7 +203,7 @@ public class TourActivities {
         addJob(act);
     }
 
-    /**
+	/**
      * Adds specified activity at the end of activity-list.
      * <p>If act instanceof JobActivity, it adds underlying job also.
      *
@@ -248,21 +211,23 @@ public class TourActivities {
      * @throws IllegalArgumentException if activity-list already contains act.
      */
     public void addActivity(TourActivity act) {
-        if (tourActivities.contains(act))
-            throw new IllegalArgumentException("act " + act + " already in tour. cannot add act twice.");
+        if (tourActivities.contains(act)) {
+			throw new IllegalArgumentException(new StringBuilder().append("act ").append(act).append(" already in tour. cannot add act twice.").toString());
+		}
         tourActivities.add(act);
         addJob(act);
     }
 
-    private void addJob(TourActivity act) {
-        if (act instanceof JobActivity) {
-            Job job = ((JobActivity) act).getJob();
-//            if(job instanceof Service) assert !jobs.contains(job);
-            jobs.add(job);
-        }
+	private void addJob(TourActivity act) {
+        if (!(act instanceof JobActivity)) {
+			return;
+		}
+		Job job = ((JobActivity) act).getJob();
+		//            if(job instanceof Service) assert !jobs.contains(job);
+		jobs.add(job);
     }
 
-    /**
+	/**
      * Returns number of jobs assiciated to activities in this activity sequence.
      *
      * @return no. of jobs
@@ -271,10 +236,45 @@ public class TourActivities {
         return jobs.size();
     }
 
-    public Iterator<TourActivity> reverseActivityIterator() {
-        if (backward == null) backward = new ReverseActivityIterator(tourActivities);
-        else backward.reset();
+	public Iterator<TourActivity> reverseActivityIterator() {
+        if (backward == null) {
+			backward = new ReverseActivityIterator(tourActivities);
+		} else {
+			backward.reset();
+		}
         return backward;
+    }
+
+	public static class ReverseActivityIterator implements Iterator<TourActivity> {
+
+        private List<TourActivity> acts;
+        private int currentIndex;
+
+        public ReverseActivityIterator(List<TourActivity> acts) {
+            this.acts = acts;
+            currentIndex = acts.size() - 1;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex >= 0;
+        }
+
+        @Override
+        public TourActivity next() {
+            TourActivity act = acts.get(currentIndex);
+            currentIndex--;
+            return act;
+        }
+
+        public void reset() {
+            currentIndex = acts.size() - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 
 

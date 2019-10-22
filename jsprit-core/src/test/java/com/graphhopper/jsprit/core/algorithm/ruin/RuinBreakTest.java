@@ -30,8 +30,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * Created by schroeder on 04/08/15.
@@ -48,8 +48,8 @@ public class RuinBreakTest {
         TourActivity tourActivity = route.getActivities().get(0);
         Assert.assertTrue(tourActivity instanceof BreakActivity);
         RuinBreaks ruinBreaks = new RuinBreaks();
-        List<Job> unassigned = new ArrayList<Job>();
-        ruinBreaks.ruinEnds(Arrays.asList(route), unassigned);
+        List<Job> unassigned = new ArrayList<>();
+        ruinBreaks.ruinEnds(Collections.singletonList(route), unassigned);
         Assert.assertEquals(1, unassigned.size());
         Assert.assertEquals(aBreak, unassigned.get(0));
     }

@@ -23,6 +23,6 @@ package com.graphhopper.jsprit.core.problem.solution.route.activity;
  */
 public interface ActivityStartStrategy {
 
-    public double getActivityStartTime(TourActivity activity, double arrivalTime);
+    double getActivityStartTime(TourActivity activity, double arrivalTime);
 
 }

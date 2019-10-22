@@ -74,17 +74,7 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
 
     private End end;
 
-    public void setJobActivityFactory(JobActivityFactory jobActivityFactory) {
-        this.activityFactory = jobActivityFactory;
-    }
-
-    public void setMemorySize(int memorySize) {
-        this.memorySize = memorySize;
-        logger.debug("set [solutionMemory={}]", memorySize);
-    }
-
     public ServiceInsertionOnRouteLevelCalculator(VehicleRoutingTransportCosts vehicleRoutingCosts, VehicleRoutingActivityCosts costFunc, ActivityInsertionCostsCalculator activityInsertionCostsCalculator, HardRouteConstraint hardRouteLevelConstraint, HardActivityConstraint hardActivityLevelConstraint) {
-        super();
         this.transportCosts = vehicleRoutingCosts;
         this.activityCosts = costFunc;
         this.activityInsertionCostsCalculator = activityInsertionCostsCalculator;
@@ -94,22 +84,30 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
         logger.debug("initialise {}", this);
     }
 
+	public void setJobActivityFactory(JobActivityFactory jobActivityFactory) {
+        this.activityFactory = jobActivityFactory;
+    }
 
-    public void setStates(RouteAndActivityStateGetter stateManager) {
+	public void setMemorySize(int memorySize) {
+        this.memorySize = memorySize;
+        logger.debug("set [solutionMemory={}]", memorySize);
+    }
+
+	public void setStates(RouteAndActivityStateGetter stateManager) {
         this.stateManager = stateManager;
     }
 
-    void setNuOfActsForwardLooking(int nOfActsForwardLooking) {
+	void setNuOfActsForwardLooking(int nOfActsForwardLooking) {
         this.nuOfActsForwardLooking = nOfActsForwardLooking;
         logger.debug("set [forwardLooking={}]", nOfActsForwardLooking);
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[name=calculatesServiceInsertionOnRouteLevel][solutionMemory=" + memorySize + "][forwardLooking=" + nuOfActsForwardLooking + "]";
+        return new StringBuilder().append("[name=calculatesServiceInsertionOnRouteLevel][solutionMemory=").append(memorySize).append("][forwardLooking=").append(nuOfActsForwardLooking).append("]").toString();
     }
 
-    /**
+	/**
      * Calculates the insertion costs of job i on route level (which is based on the assumption that inserting job i does not only
      * have local effects but affects the entire route).
      * Calculation is conducted by two steps. In the first step, promising insertion positions are identified by appromiximating their
@@ -117,10 +115,12 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
      */
     @Override
     public InsertionData getInsertionData(final VehicleRoute currentRoute, final Job jobToInsert, final Vehicle newVehicle, double newVehicleDepartureTime, final Driver newDriver, final double best_known_insertion_costs) {
-        if (jobToInsert == null)
-            throw new IllegalStateException("job is null. cannot calculate the insertion of a null-job.");
-        if (newVehicle == null || newVehicle instanceof VehicleImpl.NoVehicle)
-            throw new IllegalStateException("no vehicle given. set para vehicle!");
+        if (jobToInsert == null) {
+			throw new IllegalStateException("job is null. cannot calculate the insertion of a null-job.");
+		}
+        if (newVehicle == null || newVehicle instanceof VehicleImpl.NoVehicle) {
+			throw new IllegalStateException("no vehicle given. set para vehicle!");
+		}
 
         JobInsertionContext insertionContext = new JobInsertionContext(currentRoute, jobToInsert, newVehicle, newDriver, newVehicleDepartureTime);
         if (!hardRouteLevelConstraint.fulfilled(insertionContext)) {
@@ -135,7 +135,7 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
         /**
          * priority queue that stores insertion-data by insertion-costs in ascending order.
          */
-        PriorityQueue<InsertionData> bestInsertionsQueue = new PriorityQueue<InsertionData>(Math.max(2, currentRoute.getTourActivities().getActivities().size()), getComparator());
+        PriorityQueue<InsertionData> bestInsertionsQueue = new PriorityQueue<>(Math.max(2, currentRoute.getTourActivities().getActivities().size()), getComparator());
 
         TourActivities tour = currentRoute.getTourActivities();
         double best_insertion_costs = best_known_insertion_costs;
@@ -164,7 +164,16 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
          */
         for (TourActivity nextAct : tour.getActivities()) {
             ConstraintsStatus hardActivityConstraintsStatus = hardActivityLevelConstraint.fulfilled(insertionContext, prevAct, serviceAct2Insert, nextAct, prevActDepTime_newVehicle);
-            if (hardActivityConstraintsStatus.equals(ConstraintsStatus.FULFILLED)) {
+            /**
+			                 * builds a path on this route forwardPath={i,k,j,j+1,j+2,...,j+nuOfActsForwardLooking}
+			                 */
+			/**
+			                 * insertion_cost_approximation = c({0,1,...,i},newVehicle) + c({i,k,j,j+1,j+2,...,j+nuOfActsForwardLooking},newVehicle) - c({0,1,...,i,j,j+1,...,j+nuOfActsForwardLooking},oldVehicle)
+			                 */
+			/**
+			                 * memorize it in insertion-queue
+			                 */
+			if (hardActivityConstraintsStatus == ConstraintsStatus.FULFILLED) {
                 /**
                  * builds a path on this route forwardPath={i,k,j,j+1,j+2,...,j+nuOfActsForwardLooking}
                  */
@@ -181,7 +190,7 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
                 if (insertion_cost_approximation < best_known_insertion_costs) {
                     bestInsertionsQueue.add(new InsertionData(insertion_cost_approximation, InsertionData.NO_INDEX, actIndex, newVehicle, newDriver));
                 }
-            } else if (hardActivityConstraintsStatus.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            } else if (hardActivityConstraintsStatus == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 loopBroken = true;
                 break;
             }
@@ -217,7 +226,13 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
         if (!loopBroken) {
             End nextAct = end;
             ConstraintsStatus hardActivityConstraintsStatus = hardActivityLevelConstraint.fulfilled(insertionContext, prevAct, serviceAct2Insert, nextAct, prevActDepTime_newVehicle);
-            if (hardActivityConstraintsStatus.equals(ConstraintsStatus.FULFILLED)) {
+            /**
+			                 * insertion_cost_approximation = c({0,1,...,i},newVehicle) + c({i,k,j,j+1,j+2,...,j+nuOfActsForwardLooking},newVehicle) - c({0,1,...,i,j,j+1,...,j+nuOfActsForwardLooking},oldVehicle)
+			                 */
+			/**
+			                 * memorize it in insertion-queue
+			                 */
+			if (hardActivityConstraintsStatus == ConstraintsStatus.FULFILLED) {
                 double actInsertionCosts = activityInsertionCostsCalculator.getCosts(insertionContext, prevAct, nextAct, serviceAct2Insert, prevActDepTime_newVehicle);
 
                 /**
@@ -258,7 +273,7 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
                 /**
                  * build tour with new activity.
                  */
-                List<TourActivity> wholeTour = new ArrayList<TourActivity>();
+                List<TourActivity> wholeTour = new ArrayList<>();
                 wholeTour.add(start);
                 wholeTour.addAll(currentRoute.getTourActivities().getActivities());
                 wholeTour.add(end);
@@ -268,7 +283,9 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
                  * compute cost-diff of tour with and without new activity --> insertion_costs
                  */
                 Double currentRouteCosts = stateManager.getRouteState(currentRoute, InternalStates.COSTS, Double.class);
-                if (currentRouteCosts == null) currentRouteCosts = 0.;
+                if (currentRouteCosts == null) {
+					currentRouteCosts = 0.;
+				}
                 double insertion_costs = auxilliaryPathCostCalculator.costOfPath(wholeTour, start.getEndTime(), newDriver, newVehicle) - currentRouteCosts;
 
                 /**
@@ -280,13 +297,15 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
                 }
             }
         }
-        if (best_insertion_index == InsertionData.NO_INDEX) return InsertionData.createEmptyInsertionData();
+        if (best_insertion_index == InsertionData.NO_INDEX) {
+			return InsertionData.createEmptyInsertionData();
+		}
         InsertionData insertionData = new InsertionData(best_insertion_costs, InsertionData.NO_INDEX, best_insertion_index, newVehicle, newDriver);
         insertionData.setVehicleDepartureTime(start.getEndTime());
         return insertionData;
     }
 
-    private void initialiseStartAndEnd(final Vehicle newVehicle, double newVehicleDepartureTime) {
+	private void initialiseStartAndEnd(final Vehicle newVehicle, double newVehicleDepartureTime) {
         if (start == null) {
             start = new Start(newVehicle.getStartLocation(), newVehicle.getEarliestDeparture(), Double.MAX_VALUE);
             start.setEndTime(newVehicleDepartureTime);
@@ -306,27 +325,27 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
         }
     }
 
-    private double sumOf_prevCosts_oldVehicle(VehicleRoute vehicleRoute, TourActivity act) {
+	private double sumOf_prevCosts_oldVehicle(VehicleRoute vehicleRoute, TourActivity act) {
         Double prevCost;
         if (act instanceof End) {
             prevCost = stateManager.getRouteState(vehicleRoute, InternalStates.COSTS, Double.class);
-        } else prevCost = stateManager.getActivityState(act, InternalStates.COSTS, Double.class);
-        if (prevCost == null) prevCost = 0.;
+        } else {
+			prevCost = stateManager.getActivityState(act, InternalStates.COSTS, Double.class);
+		}
+        if (prevCost == null) {
+			prevCost = 0.;
+		}
         return prevCost;
     }
 
-    private Comparator<InsertionData> getComparator() {
-        return new Comparator<InsertionData>() {
+	private Comparator<InsertionData> getComparator() {
+        return (InsertionData o1, InsertionData o2) -> {
+		    if (o1.getInsertionCost() < o2.getInsertionCost()) {
+		        return -1;
+		    } else {
+		        return 1;
+		    }
 
-            @Override
-            public int compare(InsertionData o1, InsertionData o2) {
-                if (o1.getInsertionCost() < o2.getInsertionCost()) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-
-            }
-        };
+		};
     }
 }

@@ -31,7 +31,6 @@ public class VariableTransportCostCalculator implements SoftActivityConstraint {
     private final VehicleRoutingActivityCosts activityCosts;
 
     public VariableTransportCostCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts) {
-        super();
         this.routingCosts = routingCosts;
         this.activityCosts = activityCosts;
     }
@@ -44,12 +43,11 @@ public class VariableTransportCostCalculator implements SoftActivityConstraint {
         double newAct_arrTime = depTimeAtPrevAct + tp_time_prevAct_newAct;
         double newAct_endTime = Math.max(newAct_arrTime, newAct.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(newAct,newAct_arrTime,iFacts.getNewDriver(),iFacts.getNewVehicle());
 
-        //open routes
-        if (nextAct instanceof End) {
-            if (!iFacts.getNewVehicle().isReturnToDepot()) {
-                return tp_costs_prevAct_newAct;
-            }
-        }
+        boolean condition = nextAct instanceof End && !iFacts.getNewVehicle().isReturnToDepot();
+		//open routes
+        if (condition) {
+		    return tp_costs_prevAct_newAct;
+		}
 
         double tp_costs_newAct_nextAct = routingCosts.getTransportCost(newAct.getLocation(), nextAct.getLocation(), newAct_endTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
         double totalCosts = tp_costs_prevAct_newAct + tp_costs_newAct_nextAct;

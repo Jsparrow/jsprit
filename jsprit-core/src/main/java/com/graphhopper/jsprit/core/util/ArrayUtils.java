@@ -24,7 +24,9 @@ public class ArrayUtils {
 
     public static double[] toPrimitiveArray(List<Double> list) {
         double[] arr = new double[list.size()];
-        for (int i = 0; i < list.size(); i++) arr[i] = list.get(i);
+        for (int i = 0; i < list.size(); i++) {
+			arr[i] = list.get(i);
+		}
         return arr;
     }
 

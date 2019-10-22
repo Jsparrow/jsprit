@@ -21,130 +21,130 @@ import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 
-public final class Start extends AbstractActivity implements TourActivity {
+public final class Start extends AbstractActivity {
 
     @Deprecated
-    public final static String ACTIVITY_NAME = "start";
+    public static final String ACTIVITY_NAME = "start";
 
-    private final static Capacity capacity = Capacity.Builder.newInstance().build();
+    private static final Capacity capacity = Capacity.Builder.newInstance().build();
 
-    public static Start newInstance(String locationId, double theoreticalStart, double theoreticalEnd) {
-        return new Start(locationId, theoreticalStart, theoreticalEnd);
-    }
+	private String locationId;
 
-    public static Start copyOf(Start start) {
-        return new Start(start);
-    }
+	private double theoreticalEarliestOperationStartTime;
 
-    private String locationId;
+	private double theoreticalLatestOperationStartTime;
 
-    private double theoretical_earliestOperationStartTime;
+	private double endTime;
 
-    private double theoretical_latestOperationStartTime;
+	private double arrTime;
 
-    private double endTime;
+	private Location location;
 
-    private double arrTime;
-
-    private Location location;
-
-    private Start(String locationId, double theoreticalStart, double theoreticalEnd) {
-        super();
-        if (locationId != null) this.location = Location.Builder.newInstance().setId(locationId).build();
-        this.theoretical_earliestOperationStartTime = theoreticalStart;
-        this.theoretical_latestOperationStartTime = theoreticalEnd;
-        this.endTime = theoreticalStart;
-        setIndex(-1);
-    }
-
-    public Start(Location location, double theoreticalStart, double theoreticalEnd) {
-        super();
+	public Start(Location location, double theoreticalStart, double theoreticalEnd) {
         this.location = location;
-        this.theoretical_earliestOperationStartTime = theoreticalStart;
-        this.theoretical_latestOperationStartTime = theoreticalEnd;
+        this.theoreticalEarliestOperationStartTime = theoreticalStart;
+        this.theoreticalLatestOperationStartTime = theoreticalEnd;
         this.endTime = theoreticalStart;
         setIndex(-1);
     }
 
-    private Start(Start start) {
+	private Start(String locationId, double theoreticalStart, double theoreticalEnd) {
+        if (locationId != null) {
+			this.location = Location.Builder.newInstance().setId(locationId).build();
+		}
+        this.theoreticalEarliestOperationStartTime = theoreticalStart;
+        this.theoreticalLatestOperationStartTime = theoreticalEnd;
+        this.endTime = theoreticalStart;
+        setIndex(-1);
+    }
+
+	private Start(Start start) {
         this.location = start.getLocation();
-        theoretical_earliestOperationStartTime = start.getTheoreticalEarliestOperationStartTime();
-        theoretical_latestOperationStartTime = start.getTheoreticalLatestOperationStartTime();
+        theoreticalEarliestOperationStartTime = start.getTheoreticalEarliestOperationStartTime();
+        theoreticalLatestOperationStartTime = start.getTheoreticalLatestOperationStartTime();
         endTime = start.getEndTime();
         setIndex(-1);
     }
 
-    public double getTheoreticalEarliestOperationStartTime() {
-        return theoretical_earliestOperationStartTime;
+	public static Start newInstance(String locationId, double theoreticalStart, double theoreticalEnd) {
+        return new Start(locationId, theoreticalStart, theoreticalEnd);
     }
 
-    public void setLocation(Location location) {
+	public static Start copyOf(Start start) {
+        return new Start(start);
+    }
+
+	@Override
+	public double getTheoreticalEarliestOperationStartTime() {
+        return theoreticalEarliestOperationStartTime;
+    }
+
+	public void setLocation(Location location) {
         this.location = location;
     }
 
-    ;
-
-    public double getTheoreticalLatestOperationStartTime() {
-        return theoretical_latestOperationStartTime;
+	@Override
+	public double getTheoreticalLatestOperationStartTime() {
+        return theoreticalLatestOperationStartTime;
     }
 
-
-    public void setTheoreticalEarliestOperationStartTime(double time) {
-        this.theoretical_earliestOperationStartTime = time;
+	@Override
+	public void setTheoreticalEarliestOperationStartTime(double time) {
+        this.theoreticalEarliestOperationStartTime = time;
     }
 
-    public void setTheoreticalLatestOperationStartTime(double time) {
-        this.theoretical_latestOperationStartTime = time;
+	@Override
+	public void setTheoreticalLatestOperationStartTime(double time) {
+        this.theoreticalLatestOperationStartTime = time;
     }
 
-    @Override
+	@Override
     public Location getLocation() {
         return location;
     }
 
-    @Override
+	@Override
     public double getOperationTime() {
         return 0.0;
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[type=" + getName() + "][location=" + location
-            + "][twStart=" + Activities.round(theoretical_earliestOperationStartTime)
-            + "][twEnd=" + Activities.round(theoretical_latestOperationStartTime) + "]";
+        return new StringBuilder().append("[type=").append(getName()).append("][location=").append(location).append("][twStart=").append(Activities.round(theoreticalEarliestOperationStartTime))
+				.append("][twEnd=").append(Activities.round(theoreticalLatestOperationStartTime)).append("]").toString();
     }
 
-    @Override
+	@Override
     public String getName() {
         return "start";
     }
 
-    @Override
+	@Override
     public double getArrTime() {
         return arrTime;
     }
 
-    @Override
+	@Override
     public double getEndTime() {
         return endTime;
     }
 
-    @Override
+	@Override
     public void setArrTime(double arrTime) {
         this.arrTime = arrTime;
     }
 
-    @Override
+	@Override
     public void setEndTime(double endTime) {
         this.endTime = endTime;
     }
 
-    @Override
+	@Override
     public TourActivity duplicate() {
         return new Start(this);
     }
 
-    @Override
+	@Override
     public Capacity getSize() {
         return capacity;
     }

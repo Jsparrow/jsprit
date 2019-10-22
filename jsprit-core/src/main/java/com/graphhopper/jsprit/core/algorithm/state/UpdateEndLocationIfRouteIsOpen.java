@@ -25,18 +25,18 @@ public class UpdateEndLocationIfRouteIsOpen implements StateUpdater, RouteVisito
 
     @Override
     public void visit(VehicleRoute route) {
-        if (route.getVehicle() != null) {
-            if (!route.getVehicle().isReturnToDepot()) {
-                setRouteEndToLastActivity(route);
-            }
-        }
+        boolean condition = route.getVehicle() != null && !route.getVehicle().isReturnToDepot();
+		if (condition) {
+		    setRouteEndToLastActivity(route);
+		}
     }
 
     private void setRouteEndToLastActivity(VehicleRoute route) {
-        if (!route.getActivities().isEmpty()) {
-            TourActivity lastAct = route.getActivities().get(route.getActivities().size() - 1);
-            route.getEnd().setLocation(lastAct.getLocation());
-        }
+        if (route.getActivities().isEmpty()) {
+			return;
+		}
+		TourActivity lastAct = route.getActivities().get(route.getActivities().size() - 1);
+		route.getEnd().setLocation(lastAct.getLocation());
     }
 
 

@@ -63,7 +63,7 @@ public class TestAlgorithmReader {
         config = new AlgorithmConfig();
         new AlgorithmConfigXmlReader(config).setSchemaValidation(false).read(getClass().getResource("testConfig.xml"));
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
-        solutions = new ArrayList<VehicleRoutingProblemSolution>();
+        solutions = new ArrayList<>();
         new VrpXMLReader(vrpBuilder, solutions).read(getClass().getResourceAsStream("finiteVrp.xml"));
         vrp = vrpBuilder.build();
     }
@@ -72,17 +72,6 @@ public class TestAlgorithmReader {
     public void itShouldReadMaxIterations() {
         VehicleRoutingAlgorithm vra = VehicleRoutingAlgorithms.readAndCreateAlgorithm(vrp, getClass().getResource("algorithmConfigForReaderTest.xml"));
         Assert.assertEquals(2000, vra.getMaxIterations());
-    }
-
-    static class IterationCounter implements IterationEndsListener {
-
-        int iterations = 0;
-
-        @Override
-        public void informIterationEnds(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-            iterations = i;
-        }
-
     }
 
     @Test
@@ -94,7 +83,7 @@ public class TestAlgorithmReader {
         Assert.assertEquals(100, iCounter.iterations);
     }
 
-    @Test
+	@Test
     public void itShouldReadTermination() {
         VehicleRoutingAlgorithm vra = VehicleRoutingAlgorithms.readAndCreateAlgorithm(vrp, getClass().getResource("algorithmConfigForReaderTest.xml"));
         IterationCounter iCounter = new IterationCounter();
@@ -103,8 +92,7 @@ public class TestAlgorithmReader {
         Assert.assertEquals(25, iCounter.iterations);
     }
 
-
-    @Test
+	@Test
     public void testTypedMap() {
         VehicleRoutingAlgorithms.TypedMap typedMap = new VehicleRoutingAlgorithms.TypedMap();
 
@@ -122,7 +110,7 @@ public class TestAlgorithmReader {
 
     }
 
-    @Test
+	@Test
     public void testTypedMap2() {
         VehicleRoutingAlgorithms.TypedMap typedMap = new VehicleRoutingAlgorithms.TypedMap();
 
@@ -146,7 +134,7 @@ public class TestAlgorithmReader {
         assertEquals(selector, typedMap.get(selKey));
     }
 
-    @Test
+	@Test
     public void testTypedMap3() {
         VehicleRoutingAlgorithms.TypedMap typedMap = new VehicleRoutingAlgorithms.TypedMap();
 
@@ -178,7 +166,7 @@ public class TestAlgorithmReader {
         assertEquals(acceptor2, typedMap.get(accKey2));
     }
 
-    @Test
+	@Test
     public void testTypedMap4() {
         VehicleRoutingAlgorithms.TypedMap typedMap = new VehicleRoutingAlgorithms.TypedMap();
 
@@ -241,25 +229,25 @@ public class TestAlgorithmReader {
 
     }
 
-    @Test
+	@Test
     public void initialiseConstructionAlgoCorrectly() {
         VehicleRoutingAlgorithms.createAlgorithm(vrp, config);
         assertTrue(true);
     }
 
-    @Test
+	@Test
     public void whenCreatingAlgorithm_nOfStrategiesIsCorrect() {
         VehicleRoutingAlgorithm algo = VehicleRoutingAlgorithms.createAlgorithm(vrp, config);
         assertEquals(3, algo.getSearchStrategyManager().getStrategies().size());
     }
 
-    @Test
+	@Test
     public void whenCreatingAlgorithm_nOfIterationsIsReadCorrectly() {
         VehicleRoutingAlgorithm algo = VehicleRoutingAlgorithms.createAlgorithm(vrp, config);
         assertEquals(10, algo.getMaxIterations());
     }
 
-    @Test
+	@Test
     public void whenCreatingAlgorithm_nOfStrategyModulesIsCorrect() {
         VehicleRoutingAlgorithm algo = VehicleRoutingAlgorithms.createAlgorithm(vrp, config);
         int nOfModules = 0;
@@ -269,17 +257,28 @@ public class TestAlgorithmReader {
         assertEquals(3, nOfModules);
     }
 
-    @Test
+	@Test
     public void readerTest_whenReadingAlgoWithSchemaValidation_itReadsCorrectly() {
         AlgorithmConfig algoConfig = new AlgorithmConfig();
         new AlgorithmConfigXmlReader(algoConfig).read(getClass().getResource("algorithmConfig.xml"));
 
     }
 
-    @Test
+	@Test
     public void readerTest_whenReadingAlgoWithSchemaValidationWithoutIterations_itReadsCorrectly() {
         AlgorithmConfig algoConfig = new AlgorithmConfig();
         new AlgorithmConfigXmlReader(algoConfig).read(getClass().getResource("algorithmConfig_withoutIterations.xml"));
+
+    }
+
+	static class IterationCounter implements IterationEndsListener {
+
+        int iterations = 0;
+
+        @Override
+        public void informIterationEnds(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+            iterations = i;
+        }
 
     }
 

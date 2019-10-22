@@ -24,7 +24,6 @@ public class RandomRuinStrategyFactory implements RuinStrategyFactory {
     private double fraction;
 
     public RandomRuinStrategyFactory(double fraction) {
-        super();
         this.fraction = fraction;
     }
 

@@ -36,14 +36,13 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
 
     private VehicleRoutingProblem vrp;
 
-    private Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<String, TreeSet<ReferencedJob>>();
+    private Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<>();
 
     private JobDistance jobDistance;
 
     private double maxDistance = 0.;
 
     public JobNeighborhoodsImpl(VehicleRoutingProblem vrp, JobDistance jobDistance) {
-        super();
         this.vrp = vrp;
         this.jobDistance = jobDistance;
         logger.debug("intialise {}", this);
@@ -52,22 +51,24 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
     @Override
     public Iterator<Job> getNearestNeighborsIterator(int nNeighbors, Job neighborTo) {
         TreeSet<ReferencedJob> tree = distanceNodeTree.get(neighborTo.getId());
-        if (tree == null) return new Iterator<Job>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+        if (tree == null) {
+			return new Iterator<Job>() {
+			    @Override
+			    public boolean hasNext() {
+			        return false;
+			    }
 
-            @Override
-            public Job next() {
-                return null;
-            }
+			    @Override
+			    public Job next() {
+			        return null;
+			    }
 
-            @Override
-            public void remove() {
+			    @Override
+			    public void remove() {
 
-            }
-        };
+			    }
+			};
+		}
         Iterator<ReferencedJob> descendingIterator = tree.iterator();
         return new NearestNeighborhoodIterator(descendingIterator, nNeighbors);
     }
@@ -89,7 +90,7 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
         stopWatch.start();
         int nuOfDistancesStored = 0;
         for (Job i : vrp.getJobs().values()) {
-            TreeSet<ReferencedJob> treeSet = new TreeSet<ReferencedJob>(
+            TreeSet<ReferencedJob> treeSet = new TreeSet<>(
                 new Comparator<ReferencedJob>() {
                     @Override
                     public int compare(ReferencedJob o1, ReferencedJob o2) {
@@ -102,9 +103,13 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
                 });
             distanceNodeTree.put(i.getId(), treeSet);
             for (Job j : vrp.getJobs().values()) {
-                if (i == j) continue;
+                if (i == j) {
+					continue;
+				}
                 double distance = jobDistance.getDistance(i, j);
-                if (distance > maxDistance) maxDistance = distance;
+                if (distance > maxDistance) {
+					maxDistance = distance;
+				}
                 ReferencedJob refNode = new ReferencedJob(j, distance);
                 treeSet.add(refNode);
                 nuOfDistancesStored++;

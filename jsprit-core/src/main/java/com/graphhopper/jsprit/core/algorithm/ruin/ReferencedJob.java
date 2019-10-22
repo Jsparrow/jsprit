@@ -28,7 +28,6 @@ class ReferencedJob {
     private double distance;
 
     public ReferencedJob(Job job, double distance) {
-        super();
         this.job = job;
         this.distance = distance;
     }

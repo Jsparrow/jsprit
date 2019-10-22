@@ -29,13 +29,17 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import junit.framework.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Collections;
 
 
 public class ExternalInitialSolutionIsInValidTest {
 
-    @Test
+    private static final Logger logger = LoggerFactory.getLogger(ExternalInitialSolutionIsInValidTest.class);
+
+	@Test
     public void itShouldSolveProblemWithIniSolutionExternallyCreated() {
 
         Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(10, 0)).build();
@@ -52,14 +56,15 @@ public class ExternalInitialSolutionIsInValidTest {
          */
         VehicleRoute route1 = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.getJobActivityFactory()).addService(s1).build();
 
-        vra.addInitialSolution(new VehicleRoutingProblemSolution(Arrays.asList(route1), 20.));
+        vra.addInitialSolution(new VehicleRoutingProblemSolution(Collections.singletonList(route1), 20.));
 
         try {
             vra.searchSolutions();
             Assert.assertTrue(true);
         }
         catch (Exception e){
-            Assert.assertFalse(true);
+            logger.error(e.getMessage(), e);
+			Assert.assertFalse(true);
         }
 
     }

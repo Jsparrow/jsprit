@@ -69,7 +69,6 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
     private final ConstraintManager constraintManager;
 
     public ServiceInsertionCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts, ActivityInsertionCostsCalculator activityInsertionCostsCalculator, ConstraintManager constraintManager, JobActivityFactory activityFactory) {
-        super();
         this.transportCosts = routingCosts;
         this.activityCosts = activityCosts;
         this.constraintManager = constraintManager;
@@ -103,7 +102,9 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
         check hard constraints at route level
          */
         InsertionData noInsertion = checkRouteContraints(insertionContext, constraintManager);
-        if (noInsertion != null) return noInsertion;
+        if (noInsertion != null) {
+			return noInsertion;
+		}
 
         Collection<HardConstraint> failedActivityConstraints = new ArrayList<>();
 
@@ -130,8 +131,9 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
         boolean tourEnd = false;
         while(!tourEnd){
             TourActivity nextAct;
-            if(activityIterator.hasNext()) nextAct = activityIterator.next();
-            else{
+            if(activityIterator.hasNext()) {
+				nextAct = activityIterator.next();
+			} else{
                 nextAct = end;
                 tourEnd = true;
             }
@@ -143,7 +145,7 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
                 activityContext.setInsertionIndex(actIndex);
                 insertionContext.setActivityContext(activityContext);
                 ConstraintsStatus status = fulfilled(insertionContext, prevAct, deliveryAct2Insert, nextAct, prevActStartTime, failedActivityConstraints, constraintManager);
-                if (status.equals(ConstraintsStatus.FULFILLED)) {
+                if (status == ConstraintsStatus.FULFILLED) {
                     double additionalICostsAtActLevel = softActivityConstraint.getCosts(insertionContext, prevAct, deliveryAct2Insert, nextAct, prevActStartTime);
                     double additionalTransportationCosts = activityInsertionCostsCalculator.getCosts(insertionContext, prevAct, nextAct, deliveryAct2Insert, prevActStartTime);
                     if (additionalICostsAtRouteLevel + additionalICostsAtActLevel + additionalTransportationCosts < bestCost) {
@@ -152,11 +154,13 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
                         bestTimeWindow = timeWindow;
                     }
                     not_fulfilled_break = false;
-                } else if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                } else if (status == ConstraintsStatus.NOT_FULFILLED) {
                     not_fulfilled_break = false;
                 }
 			}
-            if(not_fulfilled_break) break;
+            if(not_fulfilled_break) {
+				break;
+			}
             double nextActArrTime = prevActStartTime + transportCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActStartTime, newDriver, newVehicle);
             prevActStartTime = Math.max(nextActArrTime, nextAct.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
             prevAct = nextAct;
@@ -164,9 +168,7 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
         }
         if(insertionIndex == InsertionData.NO_INDEX) {
             InsertionData emptyInsertionData = new InsertionData.NoInsertionFound();
-            for (HardConstraint c : failedActivityConstraints) {
-                emptyInsertionData.addFailedConstrainName(c.getClass().getSimpleName());
-            }
+            failedActivityConstraints.forEach(c -> emptyInsertionData.addFailedConstrainName(c.getClass().getSimpleName()));
             return emptyInsertionData;
         }
         InsertionData insertionData = new InsertionData(bestCost, InsertionData.NO_INDEX, insertionIndex, newVehicle, newDriver);

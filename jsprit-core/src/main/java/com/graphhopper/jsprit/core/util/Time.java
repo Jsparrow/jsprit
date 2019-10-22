@@ -35,12 +35,19 @@ public class Time {
             hours -= 12;
         }
         String hourString = "0" + hours;
-        if (hours > 9) hourString = "" + hours;
-        String minString = "" + min;
-        if (min < 10) minString = "0" + min;
-        String secString = "" + secs;
-        if (secs < 10) secString = "0" + secs;
-        return hourString + ":" + minString + ":" + secString + " " + dayTime;
+        if (hours > 9) {
+			hourString = Integer.toString(hours);
+		}
+        String minString = Integer.toString(min);
+        if (min < 10) {
+			minString = "0" + min;
+		}
+        String secString = Integer.toString(secs);
+        if (secs < 10) {
+			secString = "0" + secs;
+		}
+        return new StringBuilder().append(hourString).append(":").append(minString).append(":").append(secString).append(" ")
+				.append(dayTime).toString();
     }
 
     /**
@@ -58,8 +65,9 @@ public class Time {
      * @return seconds
      */
     public static double parseTimeToSeconds(String timeString) {
-        if (timeString.substring(0, 1).matches("\\D"))
-            throw new IllegalArgumentException("timeString must start with digit [0-9]");
+        if (timeString.substring(0, 1).matches("\\D")) {
+			throw new IllegalArgumentException("timeString must start with digit [0-9]");
+		}
         double dayTime = 0.;
         if (timeString.toLowerCase().contains("pm")) {
             dayTime = 12. * 3600.;

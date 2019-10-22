@@ -54,6 +54,211 @@ import java.util.*;
 public class VehicleRoutingProblem {
 
     /**
+     * logger logging for this class
+     */
+    private static final Logger logger = LoggerFactory.getLogger(VehicleRoutingProblem.class);
+
+	/**
+     * contains transportation costs, i.e. the costs traveling from location A to B
+     */
+    private final VehicleRoutingTransportCosts transportCosts;
+
+	/**
+     * contains activity costs, i.e. the costs imposed by an activity
+     */
+    private final VehicleRoutingActivityCosts activityCosts;
+
+	/**
+     * map of jobs, stored by jobId
+     */
+    private final Map<String, Job> jobs;
+
+	private final Map<String, Job> allJobs;
+
+	/**
+     * Collection that contains available vehicles.
+     */
+    private final Collection<Vehicle> vehicles;
+
+	/**
+     * Collection that contains all available types.
+     */
+    private final Collection<VehicleType> vehicleTypes;
+
+	private final Collection<VehicleRoute> initialVehicleRoutes;
+
+	private final Collection<Location> allLocations;
+
+	/**
+     * An enum that indicates type of fleetSize. By default, it is INFINTE
+     */
+    private final FleetSize fleetSize;
+
+	private Map<Job, List<AbstractActivity>> activityMap;
+
+	private int nuActivities;
+
+	private final JobActivityFactory jobActivityFactory = this::copyAndGetActivities;
+
+	private VehicleRoutingProblem(Builder builder) {
+        this.jobs = builder.jobs;
+        this.fleetSize = builder.fleetSize;
+        this.vehicles = builder.uniqueVehicles;
+        this.vehicleTypes = builder.vehicleTypes.values();
+        this.initialVehicleRoutes = builder.initialRoutes;
+        this.transportCosts = builder.transportCosts;
+        this.activityCosts = builder.activityCosts;
+        this.activityMap = builder.activityMap;
+        this.nuActivities = builder.activityIndexCounter;
+        this.allLocations = builder.allLocations;
+        this.allJobs = new HashMap<>(jobs);
+        this.allJobs.putAll(builder.jobsInInitialRoutes);
+        logger.info("setup problem: {}", this);
+    }
+
+
+	@Override
+    public String toString() {
+        return new StringBuilder().append("[fleetSize=").append(fleetSize).append("][#jobs=").append(jobs.size()).append("][#vehicles=").append(vehicles.size())
+				.append("][#vehicleTypes=").append(vehicleTypes.size()).append("][").append("transportCost=").append(transportCosts).append("][activityCosts=").append(activityCosts)
+				.append("]").toString();
+    }
+
+
+	/**
+     * Returns type of fleetSize, either INFINITE or FINITE.
+     * <p>
+     * <p>By default, it is INFINITE.
+     *
+     * @return either FleetSize.INFINITE or FleetSize.FINITE
+     */
+    public FleetSize getFleetSize() {
+        return fleetSize;
+    }
+
+
+	/**
+     * Returns the unmodifiable job map.
+     *
+     * @return unmodifiable jobMap
+     */
+    public Map<String, Job> getJobs() {
+        return Collections.unmodifiableMap(jobs);
+    }
+
+
+	public Map<String, Job> getJobsInclusiveInitialJobsInRoutes(){
+        return Collections.unmodifiableMap(allJobs);
+    }
+
+
+	/**
+     * Returns a copy of initial vehicle routes.
+     *
+     * @return copied collection of initial vehicle routes
+     */
+    public Collection<VehicleRoute> getInitialVehicleRoutes() {
+        Collection<VehicleRoute> copiedInitialRoutes = new ArrayList<>();
+        initialVehicleRoutes.forEach(route -> copiedInitialRoutes.add(VehicleRoute.copyOf(route)));
+        return copiedInitialRoutes;
+    }
+
+
+	/**
+     * Returns the entire, unmodifiable collection of types.
+     *
+     * @return unmodifiable collection of types
+     * @see com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl
+     */
+    public Collection<VehicleType> getTypes() {
+        return Collections.unmodifiableCollection(vehicleTypes);
+    }
+
+
+	/**
+     * Returns the entire, unmodifiable collection of vehicles.
+     *
+     * @return unmodifiable collection of vehicles
+     * @see Vehicle
+     */
+    public Collection<Vehicle> getVehicles() {
+        return Collections.unmodifiableCollection(vehicles);
+    }
+
+
+	/**
+     * Returns routing costs.
+     *
+     * @return routingCosts
+     * @see VehicleRoutingTransportCosts
+     */
+    public VehicleRoutingTransportCosts getTransportCosts() {
+        return transportCosts;
+    }
+
+
+	/**
+     * Returns activityCosts.
+     */
+    public VehicleRoutingActivityCosts getActivityCosts() {
+        return activityCosts;
+    }
+
+
+	public Collection<Location> getAllLocations(){
+        return allLocations;
+    }
+
+
+	/**
+     * @param job for which the corresponding activities needs to be returned
+     * @return associated activities
+     */
+    public List<AbstractActivity> getActivities(Job job) {
+        return Collections.unmodifiableList(activityMap.get(job));
+    }
+
+
+	//    public Map<Job,List<AbstractActivity>> getActivityMap() { return Collections.unmodifiableMap(activityMap); }
+	
+	    /**
+	     * @return total number of activities
+	     */
+	    public int getNuActivities() {
+	        return nuActivities;
+	    }
+
+
+	/**
+     * @return factory that creates the activities associated to a job
+     */
+    public JobActivityFactory getJobActivityFactory() {
+        return jobActivityFactory;
+    }
+
+
+	/**
+     * @param job for which the corresponding activities needs to be returned
+     * @return a copy of the activities that are associated to the specified job
+     */
+    public List<AbstractActivity> copyAndGetActivities(Job job) {
+        List<AbstractActivity> acts = new ArrayList<>();
+        if (activityMap.containsKey(job)) {
+            activityMap.get(job).forEach(act -> acts.add((AbstractActivity) act.duplicate()));
+        }
+        return acts;
+    }
+
+	/**
+     * Enum that characterizes the fleet-size.
+     *
+     * @author sschroeder
+     */
+    public enum FleetSize {
+        FINITE, INFINITE
+    }
+
+	/**
      * Builder to build the routing-problem.
      *
      * @author stefan schroeder
@@ -61,38 +266,29 @@ public class VehicleRoutingProblem {
     public static class Builder {
 
 
-        /**
-         * Returns a new instance of this builder.
-         *
-         * @return builder
-         */
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private VehicleRoutingTransportCosts transportCosts;
 
-        private VehicleRoutingActivityCosts activityCosts = new WaitingTimeCosts();
+		private VehicleRoutingActivityCosts activityCosts = new WaitingTimeCosts();
 
-        private Map<String, Job> jobs = new LinkedHashMap<>();
+		private Map<String, Job> jobs = new LinkedHashMap<>();
 
-        private Map<String, Job> tentativeJobs = new LinkedHashMap<>();
+		private Map<String, Job> tentativeJobs = new LinkedHashMap<>();
 
-        private Map<String, Job> jobsInInitialRoutes = new LinkedHashMap<>();
+		private Map<String, Job> jobsInInitialRoutes = new LinkedHashMap<>();
 
-        private Map<String, Coordinate> tentative_coordinates = new HashMap<>();
+		private Map<String, Coordinate> tentativeCoordinates = new HashMap<>();
 
-        private FleetSize fleetSize = FleetSize.INFINITE;
+		private FleetSize fleetSize = FleetSize.INFINITE;
 
-        private Map<String, VehicleType> vehicleTypes = new HashMap<>();
+		private Map<String, VehicleType> vehicleTypes = new HashMap<>();
 
-        private Collection<VehicleRoute> initialRoutes = new ArrayList<>();
+		private Collection<VehicleRoute> initialRoutes = new ArrayList<>();
 
-        private Set<Vehicle> uniqueVehicles = new LinkedHashSet<>();
+		private Set<Vehicle> uniqueVehicles = new LinkedHashSet<>();
 
-        private Set<String> addedVehicleIds = new LinkedHashSet<>();
+		private Set<String> addedVehicleIds = new LinkedHashSet<>();
 
-        private JobActivityFactory jobActivityFactory = new JobActivityFactory() {
+		private JobActivityFactory jobActivityFactory = new JobActivityFactory() {
 
             @Override
             public List<AbstractActivity> createActivities(Job job) {
@@ -111,42 +307,51 @@ public class VehicleRoutingProblem {
 
         };
 
-        private int vehicleIndexCounter = 1;
+		private int vehicleIndexCounter = 1;
 
-        private int activityIndexCounter = 1;
+		private int activityIndexCounter = 1;
 
-        private int vehicleTypeIdIndexCounter = 1;
+		private int vehicleTypeIdIndexCounter = 1;
 
-        private Map<VehicleTypeKey, Integer> typeKeyIndices = new HashMap<>();
+		private Map<VehicleTypeKey, Integer> typeKeyIndices = new HashMap<>();
 
-        private Map<Job, List<AbstractActivity>> activityMap = new HashMap<>();
+		private Map<Job, List<AbstractActivity>> activityMap = new HashMap<>();
 
-        private final DefaultShipmentActivityFactory shipmentActivityFactory = new DefaultShipmentActivityFactory();
+		private final DefaultShipmentActivityFactory shipmentActivityFactory = new DefaultShipmentActivityFactory();
 
-        private final DefaultTourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
+		private final DefaultTourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
 
-        private void incActivityIndexCounter() {
+		private Set<Location> allLocations = new HashSet<>();
+
+		private final List<AbstractActivity> nonJobActivities = new ArrayList<>();
+
+		/**
+         * Returns a new instance of this builder.
+         *
+         * @return builder
+         */
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+		private void incActivityIndexCounter() {
             activityIndexCounter++;
         }
 
-        private void incVehicleTypeIdIndexCounter() {
+		private void incVehicleTypeIdIndexCounter() {
             vehicleTypeIdIndexCounter++;
         }
 
-        private Set<Location> allLocations = new HashSet<>();
-
-        /**
+		/**
          * Returns the unmodifiable map of collected locations (mapped by their location-id).
          *
          * @return map with locations
          */
         public Map<String, Coordinate> getLocationMap() {
-            return Collections.unmodifiableMap(tentative_coordinates);
+            return Collections.unmodifiableMap(tentativeCoordinates);
         }
 
-
-
-        /**
+		/**
          * Returns the locations collected SO FAR by this builder.
          * <p>
          * <p>Locations are cached when adding a shipment, service, depot, vehicle.
@@ -154,10 +359,10 @@ public class VehicleRoutingProblem {
          * @return locations
          */
         public Locations getLocations() {
-            return id -> tentative_coordinates.get(id);
+            return tentativeCoordinates::get;
         }
 
-        /**
+		/**
          * Sets routing costs.
          *
          * @param costs the routingCosts
@@ -169,13 +374,12 @@ public class VehicleRoutingProblem {
             return this;
         }
 
-
-        public Builder setJobActivityFactory(JobActivityFactory jobActivityFactory) {
+		public Builder setJobActivityFactory(JobActivityFactory jobActivityFactory) {
             this.jobActivityFactory = jobActivityFactory;
             return this;
         }
 
-        /**
+		/**
          * Sets the type of fleetSize.
          * <p>
          * <p>FleetSize is either FleetSize.INFINITE or FleetSize.FINITE. By default it is FleetSize.INFINITE.
@@ -188,7 +392,7 @@ public class VehicleRoutingProblem {
             return this;
         }
 
-        /**
+		/**
          * Adds a job which is either a service or a shipment.
          * <p>
          * <p>Note that job.getId() must be unique, i.e. no job (either it is a shipment or a service) is allowed to have an already allocated id.
@@ -199,11 +403,13 @@ public class VehicleRoutingProblem {
          *
          */
         public Builder addJob(Job job) {
-            if (!(job instanceof AbstractJob)) throw new IllegalArgumentException("job must be of type AbstractJob");
+            if (!(job instanceof AbstractJob)) {
+				throw new IllegalArgumentException("job must be of type AbstractJob");
+			}
             return addJob((AbstractJob) job);
         }
 
-        /**
+		/**
          * Adds a job which is either a service or a shipment.
          * <p>
          * <p>Note that job.getId() must be unique, i.e. no job (either it is a shipment or a service) is allowed to have an already allocated id.
@@ -213,58 +419,60 @@ public class VehicleRoutingProblem {
          * @throws IllegalStateException if job is neither a shipment nor a service, or jobId has already been added.
          */
         public Builder addJob(AbstractJob job) {
-            if (tentativeJobs.containsKey(job.getId()))
-                throw new IllegalArgumentException("The vehicle routing problem already contains a service or shipment with id " + job.getId() + ". Please make sure you use unique ids for all services and shipments.");
-            if (!(job instanceof Service || job instanceof Shipment))
-                throw new IllegalArgumentException("Job must be either a service or a shipment.");
+            if (tentativeJobs.containsKey(job.getId())) {
+				throw new IllegalArgumentException(new StringBuilder().append("The vehicle routing problem already contains a service or shipment with id ").append(job.getId()).append(". Please make sure you use unique ids for all services and shipments.").toString());
+			}
+            if (!(job instanceof Service || job instanceof Shipment)) {
+				throw new IllegalArgumentException("Job must be either a service or a shipment.");
+			}
             tentativeJobs.put(job.getId(), job);
             addLocationToTentativeLocations(job);
             return this;
         }
 
-        private void addLocationToTentativeLocations(Job job) {
-            for (Activity act : job.getActivities()) {
-                addLocationToTentativeLocations(act.getLocation());
-            }
+		private void addLocationToTentativeLocations(Job job) {
+            job.getActivities().forEach(act -> addLocationToTentativeLocations(act.getLocation()));
         }
 
-        private void addLocationToTentativeLocations(Location location) {
-            tentative_coordinates.put(location.getId(), location.getCoordinate());
+		private void addLocationToTentativeLocations(Location location) {
+            tentativeCoordinates.put(location.getId(), location.getCoordinate());
             allLocations.add(location);
         }
 
-        private void addJobToFinalJobMapAndCreateActivities(Job job) {
+		private void addJobToFinalJobMapAndCreateActivities(Job job) {
             addJobToFinalMap(job);
             List<AbstractActivity> jobActs = jobActivityFactory.createActivities(job);
-            for (AbstractActivity act : jobActs) {
+            jobActs.forEach(act -> {
                 act.setIndex(activityIndexCounter);
                 incActivityIndexCounter();
-            }
+            });
             activityMap.put(job, jobActs);
         }
 
-        private boolean addBreaksToActivityMap() {
+		private boolean addBreaksToActivityMap() {
             boolean hasBreaks = false;
             Set<String> uniqueBreakIds = new HashSet<>();
             for (Vehicle v : uniqueVehicles) {
                 if (v.getBreak() != null) {
-                    if (!uniqueBreakIds.add(v.getBreak().getId()))
-                        throw new IllegalArgumentException("The vehicle routing roblem already contains a vehicle break with id " + v.getBreak().getId() + ". Please choose unique ids for each vehicle break.");
+                    if (!uniqueBreakIds.add(v.getBreak().getId())) {
+						throw new IllegalArgumentException(new StringBuilder().append("The vehicle routing roblem already contains a vehicle break with id ").append(v.getBreak().getId()).append(". Please choose unique ids for each vehicle break.").toString());
+					}
                     hasBreaks = true;
                     List<AbstractActivity> breakActivities = jobActivityFactory.createActivities(v.getBreak());
-                    if (breakActivities.isEmpty())
-                        throw new IllegalArgumentException("At least one activity for break needs to be created by activityFactory.");
-                    for(AbstractActivity act : breakActivities){
+                    if (breakActivities.isEmpty()) {
+						throw new IllegalArgumentException("At least one activity for break needs to be created by activityFactory.");
+					}
+                    breakActivities.forEach(act -> {
                         act.setIndex(activityIndexCounter);
                         incActivityIndexCounter();
-                    }
+                    });
                     activityMap.put(v.getBreak(), breakActivities);
                 }
             }
             return hasBreaks;
         }
 
-        /**
+		/**
          * Adds an initial vehicle route.
          *
          * @param route initial route
@@ -275,7 +483,7 @@ public class VehicleRoutingProblem {
                 addVehicle((AbstractVehicle) route.getVehicle());
                 addedVehicleIds.add(route.getVehicle().getId());
             }
-            for (TourActivity act : route.getActivities()) {
+            route.getActivities().forEach(act -> {
                 AbstractActivity abstractAct = (AbstractActivity) act;
                 abstractAct.setIndex(activityIndexCounter);
                 incActivityIndexCounter();
@@ -285,56 +493,54 @@ public class VehicleRoutingProblem {
                     addLocationToTentativeLocations(job);
                     registerJobAndActivity(abstractAct, job);
                 }
-            }
+            });
             initialRoutes.add(route);
             return this;
         }
 
-
-
-        private void registerJobAndActivity(AbstractActivity abstractAct, Job job) {
-            if (activityMap.containsKey(job)) activityMap.get(job).add(abstractAct);
-            else {
+		private void registerJobAndActivity(AbstractActivity abstractAct, Job job) {
+            if (activityMap.containsKey(job)) {
+				activityMap.get(job).add(abstractAct);
+			} else {
                 List<AbstractActivity> actList = new ArrayList<>();
                 actList.add(abstractAct);
                 activityMap.put(job, actList);
             }
         }
 
-        /**
+		/**
          * Adds a collection of initial vehicle routes.
          *
          * @param routes initial routes
          * @return the builder
          */
         public Builder addInitialVehicleRoutes(Collection<VehicleRoute> routes) {
-            for (VehicleRoute r : routes) {
-                addInitialVehicleRoute(r);
-            }
+            routes.forEach(this::addInitialVehicleRoute);
             return this;
         }
 
-        private void addJobToFinalMap(Job job) {
+		private void addJobToFinalMap(Job job) {
             if (jobs.containsKey(job.getId())) {
-                logger.warn("The job " + job + " has already been added to the job list. This overrides the existing job.");
+                logger.warn(new StringBuilder().append("The job ").append(job).append(" has already been added to the job list. This overrides the existing job.").toString());
             }
             addLocationToTentativeLocations(job);
             jobs.put(job.getId(), job);
         }
 
-        /**
+		/**
          * Adds a vehicle.
          *
          * @param vehicle vehicle to be added
          * @return this builder
          * */
         public Builder addVehicle(Vehicle vehicle) {
-            if (!(vehicle instanceof AbstractVehicle))
-                throw new IllegalArgumentException("A vehicle must be an AbstractVehicle.");
+            if (!(vehicle instanceof AbstractVehicle)) {
+				throw new IllegalArgumentException("A vehicle must be an AbstractVehicle.");
+			}
             return addVehicle((AbstractVehicle) vehicle);
         }
 
-        /**
+		/**
          * Adds a vehicle.
          *
          * @param vehicle vehicle to be added
@@ -342,9 +548,10 @@ public class VehicleRoutingProblem {
          */
         public Builder addVehicle(AbstractVehicle vehicle) {
             if(addedVehicleIds.contains(vehicle.getId())){
-                throw new IllegalArgumentException("The vehicle routing problem already contains a vehicle with id " + vehicle.getId() + ". Please choose unique ids for each vehicle.");
-            }
-            else addedVehicleIds.add(vehicle.getId());
+                throw new IllegalArgumentException(new StringBuilder().append("The vehicle routing problem already contains a vehicle with id ").append(vehicle.getId()).append(". Please choose unique ids for each vehicle.").toString());
+            } else {
+				addedVehicleIds.add(vehicle.getId());
+			}
             if (!uniqueVehicles.contains(vehicle)) {
                 vehicle.setIndex(vehicleIndexCounter);
                 incVehicleIndexCounter();
@@ -362,7 +569,7 @@ public class VehicleRoutingProblem {
             } else {
                 VehicleType existingType = vehicleTypes.get(vehicle.getType().getTypeId());
                 if (!vehicle.getType().equals(existingType)) {
-                    throw new IllegalArgumentException("A type with type id " + vehicle.getType().getTypeId() + " already exists. However, types are different. Please use unique vehicle types only.");
+                    throw new IllegalArgumentException(new StringBuilder().append("A type with type id ").append(vehicle.getType().getTypeId()).append(" already exists. However, types are different. Please use unique vehicle types only.").toString());
                 }
             }
             String startLocationId = vehicle.getStartLocation().getId();
@@ -375,11 +582,11 @@ public class VehicleRoutingProblem {
             return this;
         }
 
-        private void incVehicleIndexCounter() {
+		private void incVehicleIndexCounter() {
             vehicleIndexCounter++;
         }
 
-        /**
+		/**
          * Sets the activity-costs.
          * <p>
          * <p>By default it is set to zero.
@@ -393,18 +600,16 @@ public class VehicleRoutingProblem {
             return this;
         }
 
-        private final List<AbstractActivity> nonJobActivities = new ArrayList<>();
-
-        public Builder addNonJobActivities(Collection<? extends AbstractActivity> nonJobActivities) {
-            for (AbstractActivity act : nonJobActivities) {
+		public Builder addNonJobActivities(Collection<? extends AbstractActivity> nonJobActivities) {
+            nonJobActivities.forEach(act -> {
                 act.setIndex(activityIndexCounter);
                 incActivityIndexCounter();
                 this.nonJobActivities.add(act);
-            }
+            });
             return this;
         }
 
-        /**
+		/**
          * Builds the {@link VehicleRoutingProblem}.
          * <p>
          * <p>If {@link VehicleRoutingTransportCosts} are not set, {@link CrowFlyCosts} is used.
@@ -415,11 +620,7 @@ public class VehicleRoutingProblem {
             if (transportCosts == null) {
                 transportCosts = new CrowFlyCosts(getLocations());
             }
-            for (Job job : tentativeJobs.values()) {
-                if (!jobsInInitialRoutes.containsKey(job.getId())) {
-                    addJobToFinalJobMapAndCreateActivities(job);
-                }
-            }
+            tentativeJobs.values().stream().filter(job -> !jobsInInitialRoutes.containsKey(job.getId())).forEach(this::addJobToFinalJobMapAndCreateActivities);
 
             int jobIndexCounter = 1;
             for (Job job : jobs.values()) {
@@ -430,45 +631,41 @@ public class VehicleRoutingProblem {
             }
 
             boolean hasBreaks = addBreaksToActivityMap();
-            if (hasBreaks && fleetSize.equals(FleetSize.INFINITE))
-                throw new UnsupportedOperationException("Breaks are not yet supported when dealing with infinite fleet. Either set it to finite or omit breaks.");
+            if (hasBreaks && fleetSize == FleetSize.INFINITE) {
+				throw new UnsupportedOperationException("Breaks are not yet supported when dealing with infinite fleet. Either set it to finite or omit breaks.");
+			}
             return new VehicleRoutingProblem(this);
         }
 
-        @Deprecated
+		@Deprecated
         public Builder addLocation(String locationId, Coordinate coordinate) {
-            tentative_coordinates.put(locationId, coordinate);
+            tentativeCoordinates.put(locationId, coordinate);
             return this;
         }
 
-        /**
+		/**
          * Adds a collection of jobs.
          *
          * @param jobs which is a collection of jobs that subclasses Job
          * @return this builder
          */
         public Builder addAllJobs(Collection<? extends Job> jobs) {
-            for (Job j : jobs) {
-                addJob(j);
-            }
+            jobs.forEach(this::addJob);
             return this;
         }
 
-
-        /**
+		/**
          * Adds a collection of vehicles.
          *
          * @param vehicles vehicles to be added
          * @return this builder
          */
         public Builder addAllVehicles(Collection<? extends Vehicle> vehicles) {
-            for (Vehicle v : vehicles) {
-                addVehicle(v);
-            }
+            vehicles.forEach(this::addVehicle);
             return this;
         }
 
-        /**
+		/**
          * Gets an unmodifiable collection of already added vehicles.
          *
          * @return collection of vehicles
@@ -477,7 +674,7 @@ public class VehicleRoutingProblem {
             return Collections.unmodifiableCollection(uniqueVehicles);
         }
 
-        /**
+		/**
          * Gets an unmodifiable collection of already added vehicle-types.
          *
          * @return collection of vehicle-types
@@ -486,7 +683,7 @@ public class VehicleRoutingProblem {
             return Collections.unmodifiableCollection(vehicleTypes.values());
         }
 
-        /**
+		/**
          * Returns an unmodifiable collection of already added jobs.
          *
          * @return collection of jobs
@@ -496,198 +693,6 @@ public class VehicleRoutingProblem {
         }
 
 
-    }
-
-    /**
-     * Enum that characterizes the fleet-size.
-     *
-     * @author sschroeder
-     */
-    public enum FleetSize {
-        FINITE, INFINITE
-    }
-
-    /**
-     * logger logging for this class
-     */
-    private final static Logger logger = LoggerFactory.getLogger(VehicleRoutingProblem.class);
-
-    /**
-     * contains transportation costs, i.e. the costs traveling from location A to B
-     */
-    private final VehicleRoutingTransportCosts transportCosts;
-
-    /**
-     * contains activity costs, i.e. the costs imposed by an activity
-     */
-    private final VehicleRoutingActivityCosts activityCosts;
-
-    /**
-     * map of jobs, stored by jobId
-     */
-    private final Map<String, Job> jobs;
-
-    private final Map<String, Job> allJobs;
-    /**
-     * Collection that contains available vehicles.
-     */
-    private final Collection<Vehicle> vehicles;
-
-    /**
-     * Collection that contains all available types.
-     */
-    private final Collection<VehicleType> vehicleTypes;
-
-
-    private final Collection<VehicleRoute> initialVehicleRoutes;
-
-    private final Collection<Location> allLocations;
-
-    /**
-     * An enum that indicates type of fleetSize. By default, it is INFINTE
-     */
-    private final FleetSize fleetSize;
-
-    private Map<Job, List<AbstractActivity>> activityMap;
-
-    private int nuActivities;
-
-    private final JobActivityFactory jobActivityFactory = job -> copyAndGetActivities(job);
-
-    private VehicleRoutingProblem(Builder builder) {
-        this.jobs = builder.jobs;
-        this.fleetSize = builder.fleetSize;
-        this.vehicles = builder.uniqueVehicles;
-        this.vehicleTypes = builder.vehicleTypes.values();
-        this.initialVehicleRoutes = builder.initialRoutes;
-        this.transportCosts = builder.transportCosts;
-        this.activityCosts = builder.activityCosts;
-        this.activityMap = builder.activityMap;
-        this.nuActivities = builder.activityIndexCounter;
-        this.allLocations = builder.allLocations;
-        this.allJobs = new HashMap<>(jobs);
-        this.allJobs.putAll(builder.jobsInInitialRoutes);
-        logger.info("setup problem: {}", this);
-    }
-
-
-    @Override
-    public String toString() {
-        return "[fleetSize=" + fleetSize + "][#jobs=" + jobs.size() + "][#vehicles=" + vehicles.size() + "][#vehicleTypes=" + vehicleTypes.size() + "][" +
-            "transportCost=" + transportCosts + "][activityCosts=" + activityCosts + "]";
-    }
-
-    /**
-     * Returns type of fleetSize, either INFINITE or FINITE.
-     * <p>
-     * <p>By default, it is INFINITE.
-     *
-     * @return either FleetSize.INFINITE or FleetSize.FINITE
-     */
-    public FleetSize getFleetSize() {
-        return fleetSize;
-    }
-
-    /**
-     * Returns the unmodifiable job map.
-     *
-     * @return unmodifiable jobMap
-     */
-    public Map<String, Job> getJobs() {
-        return Collections.unmodifiableMap(jobs);
-    }
-
-    public Map<String, Job> getJobsInclusiveInitialJobsInRoutes(){
-        return Collections.unmodifiableMap(allJobs);
-    }
-    /**
-     * Returns a copy of initial vehicle routes.
-     *
-     * @return copied collection of initial vehicle routes
-     */
-    public Collection<VehicleRoute> getInitialVehicleRoutes() {
-        Collection<VehicleRoute> copiedInitialRoutes = new ArrayList<>();
-        for (VehicleRoute route : initialVehicleRoutes) {
-            copiedInitialRoutes.add(VehicleRoute.copyOf(route));
-        }
-        return copiedInitialRoutes;
-    }
-
-    /**
-     * Returns the entire, unmodifiable collection of types.
-     *
-     * @return unmodifiable collection of types
-     * @see com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl
-     */
-    public Collection<VehicleType> getTypes() {
-        return Collections.unmodifiableCollection(vehicleTypes);
-    }
-
-
-    /**
-     * Returns the entire, unmodifiable collection of vehicles.
-     *
-     * @return unmodifiable collection of vehicles
-     * @see Vehicle
-     */
-    public Collection<Vehicle> getVehicles() {
-        return Collections.unmodifiableCollection(vehicles);
-    }
-
-    /**
-     * Returns routing costs.
-     *
-     * @return routingCosts
-     * @see VehicleRoutingTransportCosts
-     */
-    public VehicleRoutingTransportCosts getTransportCosts() {
-        return transportCosts;
-    }
-
-    /**
-     * Returns activityCosts.
-     */
-    public VehicleRoutingActivityCosts getActivityCosts() {
-        return activityCosts;
-    }
-
-    public Collection<Location> getAllLocations(){
-        return allLocations;
-    }
-    /**
-     * @param job for which the corresponding activities needs to be returned
-     * @return associated activities
-     */
-    public List<AbstractActivity> getActivities(Job job) {
-        return Collections.unmodifiableList(activityMap.get(job));
-    }
-
-//    public Map<Job,List<AbstractActivity>> getActivityMap() { return Collections.unmodifiableMap(activityMap); }
-
-    /**
-     * @return total number of activities
-     */
-    public int getNuActivities() {
-        return nuActivities;
-    }
-
-    /**
-     * @return factory that creates the activities associated to a job
-     */
-    public JobActivityFactory getJobActivityFactory() {
-        return jobActivityFactory;
-    }
-
-    /**
-     * @param job for which the corresponding activities needs to be returned
-     * @return a copy of the activities that are associated to the specified job
-     */
-    public List<AbstractActivity> copyAndGetActivities(Job job) {
-        List<AbstractActivity> acts = new ArrayList<>();
-        if (activityMap.containsKey(job)) {
-            for (AbstractActivity act : activityMap.get(job)) acts.add((AbstractActivity) act.duplicate());
-        }
-        return acts;
     }
 
 }

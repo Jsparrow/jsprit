@@ -22,6 +22,8 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author stefan schroeder
@@ -29,15 +31,26 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public class GreatCircleCosts extends AbstractForwardVehicleRoutingTransportCosts {
 
-    private double speed = 1.;
+    private static final Logger logger = LoggerFactory.getLogger(GreatCircleCosts.class);
+
+	private double speed = 1.;
 
     private double detour = 1.;
 
-    public void setSpeed(double speed) {
+	private DistanceUnit distanceUnit = DistanceUnit.Kilometer;
+
+	public GreatCircleCosts() {
+	    }
+
+	public GreatCircleCosts(DistanceUnit distanceUnit) {
+        this.distanceUnit = distanceUnit;
+    }
+
+	public void setSpeed(double speed) {
         this.speed = speed;
     }
 
-    /**
+	/**
      * Sets the detour factor.
      * <p>
      * The distance is calculated by the great circle distance * detour factor.
@@ -49,52 +62,42 @@ public class GreatCircleCosts extends AbstractForwardVehicleRoutingTransportCost
         this.detour = detour;
     }
 
-    private DistanceUnit distanceUnit = DistanceUnit.Kilometer;
-
-   public GreatCircleCosts() {
-        super();
-    }
-
-    public GreatCircleCosts(DistanceUnit distanceUnit) {
-        super();
-        this.distanceUnit = distanceUnit;
-    }
-
-
-    @Override
+	@Override
     public double getTransportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         double distance;
         try {
             distance = calculateDistance(from, to);
         } catch (NullPointerException e) {
-            throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
+            logger.error(e.getMessage(), e);
+			throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
         }
         double costs = distance;
-        if (vehicle != null) {
-            if (vehicle.getType() != null) {
-                costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
-            }
-        }
+        boolean condition = vehicle != null && vehicle.getType() != null;
+		if (condition) {
+		    costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
+		}
         return costs;
     }
 
-    private double calculateDistance(Location fromLocation, Location toLocation) {
+	private double calculateDistance(Location fromLocation, Location toLocation) {
         Coordinate from = null;
         Coordinate to = null;
         if (fromLocation.getCoordinate() != null && toLocation.getCoordinate() != null) {
             from = fromLocation.getCoordinate();
             to = toLocation.getCoordinate();
         }
-        if (from == null || to == null) throw new NullPointerException("either from or to location is null");
+        if (from == null || to == null) {
+			throw new NullPointerException("either from or to location is null");
+		}
         return GreatCircleDistanceCalculator.calculateDistance(from, to, distanceUnit) * detour;
     }
 
-    @Override
+	@Override
     public double getTransportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         return calculateDistance(from, to) / speed;
     }
 
-    @Override
+	@Override
     public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
         return calculateDistance(from, to);
     }

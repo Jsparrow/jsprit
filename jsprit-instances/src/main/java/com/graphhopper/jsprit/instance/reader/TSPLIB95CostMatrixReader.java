@@ -22,10 +22,13 @@ package com.graphhopper.jsprit.instance.reader;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 
 import java.io.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TSPLIB95CostMatrixReader {
 
-    private VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder;
+    private static final Logger logger = LoggerFactory.getLogger(TSPLIB95CostMatrixReader.class);
+	private VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder;
 
     public TSPLIB95CostMatrixReader(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder) {
         this.costMatrixBuilder = costMatrixBuilder;
@@ -47,10 +50,10 @@ public class TSPLIB95CostMatrixReader {
             }
             if (isEdgeWeights) {
                 String[] tokens = line.split("\\s+");
-                String fromId = "" + (fromIndex + 1);
+                String fromId = Integer.toString((fromIndex + 1));
                 for (int i = 0; i < tokens.length; i++) {
                     double distance = Double.parseDouble(tokens[i]);
-                    String toId = "" + (i + 1);
+                    String toId = Integer.toString((i + 1));
                     costMatrixBuilder.addTransportDistance(fromId, toId, distance);
                     costMatrixBuilder.addTransportTime(fromId, toId, distance);
                 }
@@ -64,7 +67,7 @@ public class TSPLIB95CostMatrixReader {
         try {
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -73,7 +76,7 @@ public class TSPLIB95CostMatrixReader {
         try {
             s = reader.readLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return s;
     }
@@ -83,7 +86,7 @@ public class TSPLIB95CostMatrixReader {
         try {
             bufferedReader = new BufferedReader(new FileReader(new File(filename)));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return bufferedReader;
     }

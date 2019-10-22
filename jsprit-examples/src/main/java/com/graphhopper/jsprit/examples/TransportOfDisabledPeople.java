@@ -145,21 +145,14 @@ public class TransportOfDisabledPeople {
          *
 		 * wheelchair-bus can only pickup passenger where x<15
 		 */
-        HardRouteConstraint wheelchair_bus_passenger_pickup_constraint = new HardRouteConstraint() {
-
-            @Override
-            public boolean fulfilled(JobInsertionContext insertionContext) {
-                Shipment shipment2insert = ((Shipment) insertionContext.getJob());
-                if (insertionContext.getNewVehicle().getId().equals("wheelchair_bus")) {
-                    if (shipment2insert.getSize().get(PASSENGERSEATS_INDEX) > 0) {
-                        if (shipment2insert.getPickupLocation().getCoordinate().getX() > 15. || shipment2insert.getDeliveryLocation().getCoordinate().getX() > 15.) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-        };
+        HardRouteConstraint wheelchair_bus_passenger_pickup_constraint = (JobInsertionContext insertionContext) -> {
+		    Shipment shipment2insert = ((Shipment) insertionContext.getJob());
+		    boolean condition = "wheelchair_bus".equals(insertionContext.getNewVehicle().getId()) && shipment2insert.getSize().get(PASSENGERSEATS_INDEX) > 0 && (shipment2insert.getPickupLocation().getCoordinate().getX() > 15. || shipment2insert.getDeliveryLocation().getCoordinate().getX() > 15.);
+			if (condition) {
+			    return false;
+			}
+		    return true;
+		};
 
         //build the problem
         VehicleRoutingProblem problem = vrpBuilder.build();

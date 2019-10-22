@@ -27,11 +27,11 @@ public class SelectBest implements SolutionSelector {
     private static SelectBest selector = null;
 
     public static SelectBest getInstance() {
-        if (selector == null) {
-            selector = new SelectBest();
-            return selector;
-        }
-        return selector;
+        if (selector != null) {
+			return selector;
+		}
+		selector = new SelectBest();
+		return selector;
     }
 
     @Override

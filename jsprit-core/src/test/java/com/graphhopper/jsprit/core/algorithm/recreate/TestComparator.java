@@ -43,12 +43,12 @@ public class TestComparator {
             .setPriority(3).build();
         Service s4 = Service.Builder.newInstance("4").setLocation(Location.newInstance("loc"))
             .setPriority(1).build();
-        List<Job> jobs = new ArrayList<Job>();
+        List<Job> jobs = new ArrayList<>();
         jobs.add(s2);
         jobs.add(s3);
         jobs.add(s4);
         jobs.add(s);
-        Collections.sort(jobs, new Comparator<Job>() {
+        jobs.sort(new Comparator<Job>() {
             @Override
             public int compare(Job o1, Job o2) {
                 return o1.getPriority() - o2.getPriority();

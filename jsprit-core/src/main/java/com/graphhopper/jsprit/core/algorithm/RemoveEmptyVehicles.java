@@ -32,7 +32,6 @@ public class RemoveEmptyVehicles implements InsertionEndsListener {
     private VehicleFleetManager fleetManager;
 
     public RemoveEmptyVehicles(VehicleFleetManager fleetManager) {
-        super();
         this.fleetManager = fleetManager;
     }
 
@@ -44,11 +43,9 @@ public class RemoveEmptyVehicles implements InsertionEndsListener {
     @Override
     public void informInsertionEnds(Collection<VehicleRoute> vehicleRoutes, Collection<Job> badJobs) {
         List<VehicleRoute> routes = new ArrayList<>(vehicleRoutes);
-        for (VehicleRoute route : routes) {
-            if (route.isEmpty()) {
-                fleetManager.unlock(route.getVehicle());
-                vehicleRoutes.remove(route);
-            }
-        }
+        routes.stream().filter(VehicleRoute::isEmpty).forEach(route -> {
+		    fleetManager.unlock(route.getVehicle());
+		    vehicleRoutes.remove(route);
+		});
     }
 }

@@ -30,10 +30,9 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import java.util.Collections;
 
 /**
  * Tests skill updater
@@ -57,7 +56,7 @@ public class UpdateRequiredSkillsTest {
 
         stateManager = new StateManager(vrp);
         stateManager.updateSkillStates();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
     }
 
     @Test

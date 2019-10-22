@@ -34,7 +34,8 @@ public class CrowFlyCosts extends EuclideanCosts {
         this.locations = locations;
     }
 
-    double calculateDistance(Location fromLocation, Location toLocation) {
+    @Override
+	double calculateDistance(Location fromLocation, Location toLocation) {
         Coordinate from = null;
         Coordinate to = null;
         if (fromLocation.getCoordinate() != null && toLocation.getCoordinate() != null) {

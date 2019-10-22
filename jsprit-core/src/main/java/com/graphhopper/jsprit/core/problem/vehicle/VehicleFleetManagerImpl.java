@@ -27,76 +27,38 @@ import java.util.List;
 
 class VehicleFleetManagerImpl implements VehicleFleetManager {
 
-    public VehicleFleetManagerImpl newInstance(Collection<Vehicle> vehicles) {
-        return new VehicleFleetManagerImpl(vehicles);
-    }
-
-    static class TypeContainer {
-
-        private ArrayList<Vehicle> vehicleList;
-
-        private int index = 0;
-
-        TypeContainer() {
-            super();
-            vehicleList = new ArrayList<>();
-        }
-
-        void add(Vehicle vehicle) {
-            if (vehicleList.contains(vehicle)) {
-                throw new IllegalStateException("cannot add vehicle twice " + vehicle.getId());
-            }
-            vehicleList.add(vehicle);
-        }
-
-        void remove(Vehicle vehicle) {
-            vehicleList.remove(vehicle);
-        }
-
-        Vehicle getVehicle() {
-            if(index >= vehicleList.size()) index = 0;
-            return vehicleList.get(index);
-        }
-
-        void incIndex(){
-            index++;
-        }
-
-        boolean isEmpty() {
-            return vehicleList.isEmpty();
-        }
-
-    }
-
     private static Logger logger = LoggerFactory.getLogger(VehicleFleetManagerImpl.class);
 
-    private Collection<Vehicle> vehicles;
+	private Collection<Vehicle> vehicles;
 
-    private TypeContainer[] vehicleTypes;
+	private TypeContainer[] vehicleTypes;
 
-    private boolean[] locked;
+	private boolean[] locked;
 
-    private Vehicle[] vehicleArr;
+	private Vehicle[] vehicleArr;
 
-    VehicleFleetManagerImpl(Collection<Vehicle> vehicles) {
-        super();
+	VehicleFleetManagerImpl(Collection<Vehicle> vehicles) {
         this.vehicles = vehicles;
         int arrSize = vehicles.size() + 2;
         locked = new boolean[arrSize];
         vehicleArr = new Vehicle[arrSize];
     }
 
-    void init(){
+	public VehicleFleetManagerImpl newInstance(Collection<Vehicle> vehicles) {
+        return new VehicleFleetManagerImpl(vehicles);
+    }
+
+	void init(){
         initializeVehicleTypes();
         logger.debug("initialise {}",this);
     }
 
-    @Override
+	@Override
     public String toString() {
         return "[name=finiteVehicles]";
     }
 
-    private void initializeVehicleTypes() {
+	private void initializeVehicleTypes() {
         int maxTypeIndex = 0;
         for(Vehicle v : vehicles){
             if(v.getVehicleTypeIdentifier().getIndex() > maxTypeIndex){
@@ -108,25 +70,24 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
             TypeContainer typeContainer = new TypeContainer();
             vehicleTypes[i] = typeContainer;
         }
-        for (Vehicle v : vehicles) {
+        vehicles.forEach(v -> {
             vehicleArr[v.getIndex()]=v;
             addVehicle(v);
-        }
+        });
     }
 
-    private void addVehicle(Vehicle v) {
+	private void addVehicle(Vehicle v) {
         if (v.getType() == null) {
             throw new IllegalStateException("vehicle needs type");
         }
         vehicleTypes[v.getVehicleTypeIdentifier().getIndex()].add(v);
     }
 
-    private void removeVehicle(Vehicle v) {
+	private void removeVehicle(Vehicle v) {
         vehicleTypes[v.getVehicleTypeIdentifier().getIndex()].remove(v);
     }
 
-
-    /**
+	/**
      * Returns a collection of available vehicles.
      * <p>
      * <p>If there is no vehicle with a certain type and location anymore, it looks up whether a penalty vehicle has been specified with
@@ -143,7 +104,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         return vehicles;
     }
 
-    @Override
+	@Override
     public Collection<Vehicle> getAvailableVehicles(Vehicle withoutThisType) {
         List<Vehicle> vehicles = new ArrayList<>();
         for(int i=0;i< vehicleTypes.length;i++){
@@ -154,8 +115,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         return vehicles;
     }
 
-
-    @Override
+	@Override
     public Vehicle getAvailableVehicle(VehicleTypeKey vehicleTypeIdentifier) {
         if(!vehicleTypes[vehicleTypeIdentifier.getIndex()].isEmpty()){
             return vehicleTypes[vehicleTypeIdentifier.getIndex()].getVehicle();
@@ -163,7 +123,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         return null;
     }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see org.matsim.contrib.freight.vrp.basics.VehicleFleetManager#lock(org.matsim.contrib.freight.vrp.basics.Vehicle)
      */
     @Override
@@ -180,7 +140,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         }
     }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see org.matsim.contrib.freight.vrp.basics.VehicleFleetManager#unlock(org.matsim.contrib.freight.vrp.basics.Vehicle)
      */
     @Override
@@ -192,7 +152,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         addVehicle(vehicle);
     }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see org.matsim.contrib.freight.vrp.basics.VehicleFleetManager#isLocked(org.matsim.contrib.freight.vrp.basics.Vehicle)
      */
     @Override
@@ -200,7 +160,7 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         return locked[vehicle.getIndex()];
     }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see org.matsim.contrib.freight.vrp.basics.VehicleFleetManager#unlockAll()
      */
     @Override
@@ -213,6 +173,44 @@ class VehicleFleetManagerImpl implements VehicleFleetManager {
         for (TypeContainer vehicleType : vehicleTypes) {
             vehicleType.incIndex();
         }
+    }
+
+	static class TypeContainer {
+
+        private ArrayList<Vehicle> vehicleList;
+
+        private int index = 0;
+
+        TypeContainer() {
+            vehicleList = new ArrayList<>();
+        }
+
+        void add(Vehicle vehicle) {
+            if (vehicleList.contains(vehicle)) {
+                throw new IllegalStateException("cannot add vehicle twice " + vehicle.getId());
+            }
+            vehicleList.add(vehicle);
+        }
+
+        void remove(Vehicle vehicle) {
+            vehicleList.remove(vehicle);
+        }
+
+        Vehicle getVehicle() {
+            if(index >= vehicleList.size()) {
+				index = 0;
+			}
+            return vehicleList.get(index);
+        }
+
+        void incIndex(){
+            index++;
+        }
+
+        boolean isEmpty() {
+            return vehicleList.isEmpty();
+        }
+
     }
 
 }

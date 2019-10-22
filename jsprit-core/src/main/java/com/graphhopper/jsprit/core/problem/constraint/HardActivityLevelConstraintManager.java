@@ -28,16 +28,16 @@ import java.util.List;
 
 class HardActivityLevelConstraintManager implements HardActivityConstraint {
 
-    private Collection<HardActivityConstraint> criticalConstraints = new ArrayList<HardActivityConstraint>();
+    private Collection<HardActivityConstraint> criticalConstraints = new ArrayList<>();
 
-    private Collection<HardActivityConstraint> highPrioConstraints = new ArrayList<HardActivityConstraint>();
+    private Collection<HardActivityConstraint> highPrioConstraints = new ArrayList<>();
 
-    private Collection<HardActivityConstraint> lowPrioConstraints = new ArrayList<HardActivityConstraint>();
+    private Collection<HardActivityConstraint> lowPrioConstraints = new ArrayList<>();
 
     public void addConstraint(HardActivityConstraint constraint, ConstraintManager.Priority priority) {
-        if (priority.equals(ConstraintManager.Priority.CRITICAL)) {
+        if (priority == ConstraintManager.Priority.CRITICAL) {
             criticalConstraints.add(constraint);
-        } else if (priority.equals(ConstraintManager.Priority.HIGH)) {
+        } else if (priority == ConstraintManager.Priority.HIGH) {
             highPrioConstraints.add(constraint);
         } else {
             lowPrioConstraints.add(constraint);
@@ -57,7 +57,7 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
     }
 
     Collection<HardActivityConstraint> getAllConstraints() {
-        List<HardActivityConstraint> c = new ArrayList<HardActivityConstraint>();
+        List<HardActivityConstraint> c = new ArrayList<>();
         c.addAll(criticalConstraints);
         c.addAll(highPrioConstraints);
         c.addAll(lowPrioConstraints);
@@ -69,31 +69,35 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
         ConstraintsStatus notFulfilled = null;
         for (HardActivityConstraint c : criticalConstraints) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     notFulfilled = status;
                 }
             }
         }
-        if (notFulfilled != null) return notFulfilled;
+        if (notFulfilled != null) {
+			return notFulfilled;
+		}
 
         for (HardActivityConstraint c : highPrioConstraints) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     notFulfilled = status;
                 }
             }
         }
-        if (notFulfilled != null) return notFulfilled;
+        if (notFulfilled != null) {
+			return notFulfilled;
+		}
 
         for (HardActivityConstraint constraint : lowPrioConstraints) {
             ConstraintsStatus status = constraint.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK) || status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK || status == ConstraintsStatus.NOT_FULFILLED) {
                 return status;
             }
         }

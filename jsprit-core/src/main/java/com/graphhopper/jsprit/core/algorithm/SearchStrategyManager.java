@@ -28,15 +28,15 @@ import java.util.*;
 
 public class SearchStrategyManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(SearchStrategyManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(SearchStrategyManager.class);
 
-    private List<SearchStrategyListener> searchStrategyListeners = new ArrayList<SearchStrategyListener>();
+    private List<SearchStrategyListener> searchStrategyListeners = new ArrayList<>();
 
-    private List<SearchStrategy> strategies = new ArrayList<SearchStrategy>();
+    private List<SearchStrategy> strategies = new ArrayList<>();
 
-    private List<Double> weights = new ArrayList<Double>();
+    private List<Double> weights = new ArrayList<>();
 
-    private Map<String, Integer> id2index = new HashMap<String, Integer>();
+    private Map<String, Integer> id2index = new HashMap<>();
 
     private Random random = RandomNumberGeneration.getRandom();
 
@@ -72,7 +72,7 @@ public class SearchStrategyManager {
             throw new IllegalStateException("strategy is null. make sure adding a valid strategy.");
         }
         if (id2index.keySet().contains(strategy.getId())) {
-            throw new IllegalStateException("strategyId " + strategy.getId() + " already in use. replace strateId in your config file or code with a unique strategy id");
+            throw new IllegalStateException(new StringBuilder().append("strategyId ").append(strategy.getId()).append(" already in use. replace strateId in your config file or code with a unique strategy id").toString());
         }
         if (weight < 0.0) {
             throw new IllegalStateException("weight is lower than zero.");
@@ -105,8 +105,9 @@ public class SearchStrategyManager {
      * @throws java.lang.IllegalStateException if randomNumberGenerator is null OR no search strategy can be found
      */
     public SearchStrategy getRandomStrategy() {
-        if (random == null)
-            throw new IllegalStateException("randomizer is null. make sure you set random object correctly");
+        if (random == null) {
+			throw new IllegalStateException("randomizer is null. make sure you set random object correctly");
+		}
         double randomFig = random.nextDouble();
         double sumProbabilities = 0.0;
         for (int i = 0; i < weights.size(); i++) {
@@ -123,8 +124,6 @@ public class SearchStrategyManager {
     }
 
     public void addSearchStrategyModuleListener(SearchStrategyModuleListener moduleListener) {
-        for (SearchStrategy s : strategies) {
-            s.addModuleListener(moduleListener);
-        }
+        strategies.forEach(s -> s.addModuleListener(moduleListener));
     }
 }

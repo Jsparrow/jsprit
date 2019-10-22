@@ -25,9 +25,18 @@ package com.graphhopper.jsprit.core.problem.job;
  */
 public class Delivery extends Service {
 
-    public static class Builder extends Service.Builder<Delivery> {
+    Delivery(Builder builder) {
+        super(builder);
 
-        /**
+    }
+
+	public static class Builder extends Service.Builder<Delivery> {
+
+        Builder(String id) {
+            super(id);
+        }
+
+		/**
          * Returns a new instance of builder that builds a delivery.
          *
          * @param id the id of the delivery
@@ -37,36 +46,32 @@ public class Delivery extends Service {
             return new Builder(id);
         }
 
-        Builder(String id) {
-            super(id);
-        }
-
-
-        public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
-            if(maxTimeInVehicle < 0) throw new IllegalArgumentException("maxTimeInVehicle should not be negative");
+		@Override
+		public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
+            if(maxTimeInVehicle < 0) {
+				throw new IllegalArgumentException("maxTimeInVehicle should not be negative");
+			}
             this.maxTimeInVehicle = maxTimeInVehicle;
             return this;
         }
 
-        /**
+		/**
          * Builds Delivery.
          *
          * @return delivery
          * @throws IllegalArgumentException if neither locationId nor coord is set
          */
-        public Delivery build() {
-            if (location == null) throw new IllegalArgumentException("location is missing");
+        @Override
+		public Delivery build() {
+            if (location == null) {
+				throw new IllegalArgumentException("location is missing");
+			}
             this.setType("delivery");
             super.capacity = super.capacityBuilder.build();
             super.skills = super.skillBuilder.build();
             super.activity = new Activity.Builder(location, Activity.Type.DELIVERY).setTimeWindows(timeWindows.getTimeWindows()).setServiceTime(serviceTime).build();
             return new Delivery(this);
         }
-
-    }
-
-    Delivery(Builder builder) {
-        super(builder);
 
     }
 

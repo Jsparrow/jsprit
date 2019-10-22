@@ -30,17 +30,12 @@ public class CostFactory {
      * @return manhattanCosts
      */
     public static VehicleRoutingTransportCosts createManhattanCosts() {
-        Locations locations = new Locations() {
-
-            @Override
-            public Coordinate getCoord(String id) {
-                //assume: locationId="x,y"
-                String[] splitted = id.split(",");
-                return Coordinate.newInstance(Double.parseDouble(splitted[0]),
-                    Double.parseDouble(splitted[1]));
-            }
-
-        };
+        Locations locations = (String id) -> {
+		    //assume: locationId="x,y"
+		    String[] splitted = id.split(",");
+		    return Coordinate.newInstance(Double.parseDouble(splitted[0]),
+		        Double.parseDouble(splitted[1]));
+		};
         return new ManhattanCosts(locations);
     }
 
@@ -53,17 +48,12 @@ public class CostFactory {
      * @return euclidean
      */
     public static VehicleRoutingTransportCosts createEuclideanCosts() {
-        Locations locations = new Locations() {
-
-            @Override
-            public Coordinate getCoord(String id) {
-                //assume: locationId="x,y"
-                String[] splitted = id.split(",");
-                return Coordinate.newInstance(Double.parseDouble(splitted[0]),
-                    Double.parseDouble(splitted[1]));
-            }
-
-        };
+        Locations locations = (String id) -> {
+		    //assume: locationId="x,y"
+		    String[] splitted = id.split(",");
+		    return Coordinate.newInstance(Double.parseDouble(splitted[0]),
+		        Double.parseDouble(splitted[1]));
+		};
         return new CrowFlyCosts(locations);
     }
 }

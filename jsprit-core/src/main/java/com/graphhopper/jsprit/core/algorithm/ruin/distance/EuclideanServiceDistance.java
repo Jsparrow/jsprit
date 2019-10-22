@@ -24,7 +24,6 @@ import com.graphhopper.jsprit.core.util.EuclideanDistanceCalculator;
 public class EuclideanServiceDistance implements JobDistance {
 
     public EuclideanServiceDistance() {
-        super();
     }
 
     @Override
@@ -36,8 +35,9 @@ public class EuclideanServiceDistance implements JobDistance {
             } else {
                 Service s_i = (Service) i;
                 Service s_j = (Service) j;
-                if (s_i.getLocation().getCoordinate() == null || s_j.getLocation().getCoordinate() == null)
-                    throw new IllegalStateException("cannot calculate euclidean distance. since service coords are missing");
+                if (s_i.getLocation().getCoordinate() == null || s_j.getLocation().getCoordinate() == null) {
+					throw new IllegalStateException("cannot calculate euclidean distance. since service coords are missing");
+				}
                 avgCost = EuclideanDistanceCalculator.calculateDistance(s_i.getLocation().getCoordinate(), s_j.getLocation().getCoordinate());
             }
         } else {

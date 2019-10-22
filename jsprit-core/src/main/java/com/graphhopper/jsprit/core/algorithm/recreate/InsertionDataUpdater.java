@@ -39,7 +39,9 @@ class InsertionDataUpdater {
                 if(addAllAvailable && !initialVehicleIds.contains(route.getVehicle().getId())){
                     relevantVehicles.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
                 }
-            } else relevantVehicles.addAll(fleetManager.getAvailableVehicles());
+            } else {
+				relevantVehicles.addAll(fleetManager.getAvailableVehicles());
+			}
             for (Vehicle v : relevantVehicles) {
                 double depTime = v.getEarliestDeparture();
                 InsertionData iData = insertionCostsCalculator.getInsertionData(route, unassignedJob, v, depTime, route.getDriver(), Double.MAX_VALUE);
@@ -55,15 +57,14 @@ class InsertionDataUpdater {
 
 
     static VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
-        for(VehicleRoute r : routes){
-            if(r.getVehicle().getBreak() == job) return r;
-        }
-        return null;
+        return routes.stream().filter(r -> r.getVehicle().getBreak() == job).findFirst().orElse(null);
     }
 
     static Comparator<VersionedInsertionData> getComparator(){
         return (o1, o2) -> {
-            if (o1.getiData().getInsertionCost() < o2.getiData().getInsertionCost()) return -1;
+            if (o1.getiData().getInsertionCost() < o2.getiData().getInsertionCost()) {
+				return -1;
+			}
             return 1;
         };
     }
@@ -75,43 +76,45 @@ class InsertionDataUpdater {
             InsertionData best = null;
             InsertionData secondBest = null;
             TreeSet<VersionedInsertionData> priorityQueue = priorityQueues[j.getIndex()];
-            Iterator<VersionedInsertionData> iterator = priorityQueue.iterator();
             List<String> failedConstraintNames = new ArrayList<>();
-            while(iterator.hasNext()){
-                VersionedInsertionData versionedIData = iterator.next();
-                if(bestRoute != null){
-                    if(versionedIData.getRoute() == bestRoute){
-                        continue;
-                    }
-                }
+            for (VersionedInsertionData versionedIData : priorityQueue) {
+                boolean condition = bestRoute != null && versionedIData.getRoute() == bestRoute;
+				if(condition) {
+				    continue;
+				}
                 if (versionedIData.getiData() instanceof InsertionData.NoInsertionFound) {
                     failedConstraintNames.addAll(versionedIData.getiData().getFailedConstraintNames());
                     continue;
                 }
-                if(!(versionedIData.getRoute().getVehicle() instanceof VehicleImpl.NoVehicle)) {
-                    if (versionedIData.getiData().getSelectedVehicle() != versionedIData.getRoute().getVehicle()) {
-                        if (!switchAllowed) continue;
-                        if (initialVehicleIds.contains(versionedIData.getRoute().getVehicle().getId())) continue;
-                    }
-                }
-                if(versionedIData.getiData().getSelectedVehicle() != versionedIData.getRoute().getVehicle()) {
-                    if (fleetManager.isLocked(versionedIData.getiData().getSelectedVehicle())) {
-                        Vehicle available = fleetManager.getAvailableVehicle(versionedIData.getiData().getSelectedVehicle().getVehicleTypeIdentifier());
-                        if (available != null) {
-                            InsertionData oldData = versionedIData.getiData();
-                            InsertionData newData = new InsertionData(oldData.getInsertionCost(), oldData.getPickupInsertionIndex(),
-                                oldData.getDeliveryInsertionIndex(), available, oldData.getSelectedDriver());
-                            newData.setVehicleDepartureTime(oldData.getVehicleDepartureTime());
-                            for(Event e : oldData.getEvents()){
-                                if(e instanceof SwitchVehicle){
-                                    newData.getEvents().add(new SwitchVehicle(versionedIData.getRoute(),available,oldData.getVehicleDepartureTime()));
-                                }
-                                else newData.getEvents().add(e);
-                            }
-                            versionedIData = new VersionedInsertionData(newData, versionedIData.getVersion(), versionedIData.getRoute());
-                        } else continue;
-                    }
-                }
+                boolean condition1 = !(versionedIData.getRoute().getVehicle() instanceof VehicleImpl.NoVehicle) && versionedIData.getiData().getSelectedVehicle() != versionedIData.getRoute().getVehicle();
+				if(condition1) {
+				    if (!switchAllowed) {
+						continue;
+					}
+				    if (initialVehicleIds.contains(versionedIData.getRoute().getVehicle().getId())) {
+						continue;
+					}
+				}
+                boolean condition2 = versionedIData.getiData().getSelectedVehicle() != versionedIData.getRoute().getVehicle() && fleetManager.isLocked(versionedIData.getiData().getSelectedVehicle());
+				if(condition2) {
+				    Vehicle available = fleetManager.getAvailableVehicle(versionedIData.getiData().getSelectedVehicle().getVehicleTypeIdentifier());
+				    if (available != null) {
+				        InsertionData oldData = versionedIData.getiData();
+				        InsertionData newData = new InsertionData(oldData.getInsertionCost(), oldData.getPickupInsertionIndex(),
+				            oldData.getDeliveryInsertionIndex(), available, oldData.getSelectedDriver());
+				        newData.setVehicleDepartureTime(oldData.getVehicleDepartureTime());
+				        for(Event e : oldData.getEvents()){
+				            if(e instanceof SwitchVehicle){
+				                newData.getEvents().add(new SwitchVehicle(versionedIData.getRoute(),available,oldData.getVehicleDepartureTime()));
+				            } else {
+								newData.getEvents().add(e);
+							}
+				        }
+				        versionedIData = new VersionedInsertionData(newData, versionedIData.getVersion(), versionedIData.getRoute());
+				    } else {
+						continue;
+					}
+				}
                 int currentDataVersion = updates.get(versionedIData.getRoute());
                 if(versionedIData.getVersion() == currentDataVersion){
                     if(best == null) {
@@ -137,7 +140,9 @@ class InsertionDataUpdater {
                 } else if (secondBest == null || (iData.getInsertionCost() < secondBest.getInsertionCost())) {
                     secondBest = iData;
                 }
-            } else failedConstraintNames.addAll(iData.getFailedConstraintNames());
+            } else {
+				failedConstraintNames.addAll(iData.getFailedConstraintNames());
+			}
             if (best == null) {
                 badJobs.add(new ScoredJob.BadJob(j, failedConstraintNames));
                 continue;
@@ -146,7 +151,9 @@ class InsertionDataUpdater {
             ScoredJob scoredJob;
             if (bestRoute == emptyRoute) {
                 scoredJob = new ScoredJob(j, score, best, bestRoute, true);
-            } else scoredJob = new ScoredJob(j, score, best, bestRoute, false);
+            } else {
+				scoredJob = new ScoredJob(j, score, best, bestRoute, false);
+			}
 
             if(bestScoredJob == null){
                 bestScoredJob = scoredJob;

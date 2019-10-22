@@ -38,20 +38,19 @@ class NearestNeighborhoodIterator implements Iterator<Job> {
     private int jobCount = 0;
 
     public NearestNeighborhoodIterator(Iterator<ReferencedJob> jobIter, int nJobs) {
-        super();
         this.jobIter = jobIter;
         this.nJobs = nJobs;
     }
 
     @Override
     public boolean hasNext() {
-        if (jobCount < nJobs) {
-            boolean hasNext = jobIter.hasNext();
-//            if (!hasNext)
+        if (jobCount >= nJobs) {
+			return false;
+		}
+		boolean hasNext = jobIter.hasNext();
+		//            if (!hasNext)
 //                log.warn("more jobs are requested then iterator can iterate over. probably the number of neighbors memorized in JobNeighborhoods is too small");
-            return hasNext;
-        }
-        return false;
+		return hasNext;
     }
 
     @Override

@@ -27,7 +27,8 @@ public abstract class AbstractActivity implements TourActivity {
 
     private int index;
 
-    public int getIndex() {
+    @Override
+	public int getIndex() {
         return index;
     }
 

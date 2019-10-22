@@ -91,14 +91,14 @@ public class CapacityConstraint_IT {
 
         SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
 
-        for(VehicleRoute r : solution.getRoutes()){
+        solution.getRoutes().forEach(r -> {
             Capacity loadAtBeginning = sa.getLoadAtBeginning(r);
             Capacity capacityDimensions = r.getVehicle().getType().getCapacityDimensions();
 //            System.out.println(r.getVehicle().getId() + " load@beginning: "  + loadAtBeginning);
 //            System.out.println("cap: " + capacityDimensions);
             Assert.assertTrue("capacity has been exceeded",
             loadAtBeginning.isLessOrEqual(capacityDimensions));
-        }
+        });
 //
         Assert.assertTrue(solution.getRoutes().size() != 1);
 

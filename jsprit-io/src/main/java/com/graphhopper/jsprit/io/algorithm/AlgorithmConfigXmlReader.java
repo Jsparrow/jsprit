@@ -38,7 +38,11 @@ public class AlgorithmConfigXmlReader {
 
     private boolean schemaValidation = true;
 
-    /**
+    public AlgorithmConfigXmlReader(AlgorithmConfig algorithmConfig) {
+        this.algorithmConfig = algorithmConfig;
+    }
+
+	/**
      * @param schemaValidation the schemaValidation to set
      */
     public AlgorithmConfigXmlReader setSchemaValidation(boolean schemaValidation) {
@@ -46,11 +50,7 @@ public class AlgorithmConfigXmlReader {
         return this;
     }
 
-    public AlgorithmConfigXmlReader(AlgorithmConfig algorithmConfig) {
-        this.algorithmConfig = algorithmConfig;
-    }
-
-    public void read(URL url) {
+	public void read(URL url) {
         log.debug("read algorithm: " + url);
         algorithmConfig.getXMLConfiguration().setURL(url);
         algorithmConfig.getXMLConfiguration().setAttributeSplittingDisabled(true);
@@ -59,16 +59,12 @@ public class AlgorithmConfigXmlReader {
         if (schemaValidation) {
             final InputStream resource = Resource.getAsInputStream("algorithm_schema.xsd");
             if (resource != null) {
-                EntityResolver resolver = new EntityResolver() {
-
-                    @Override
-                    public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                        {
-                            InputSource is = new InputSource(resource);
-                            return is;
-                        }
-                    }
-                };
+                EntityResolver resolver = (String publicId, String systemId) -> {
+				    {
+				        InputSource is = new InputSource(resource);
+				        return is;
+				    }
+				};
                 algorithmConfig.getXMLConfiguration().setEntityResolver(resolver);
                 algorithmConfig.getXMLConfiguration().setSchemaValidation(true);
             } else {
@@ -82,8 +78,7 @@ public class AlgorithmConfigXmlReader {
         }
     }
 
-
-    public void read(String filename) {
+	public void read(String filename) {
         log.debug("read algorithm-config from file " + filename);
         URL url = Resource.getAsURL(filename);
         read(url);

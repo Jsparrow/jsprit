@@ -25,11 +25,42 @@ import java.util.Collection;
 
 public class Activity {
 
-    public enum Type {
+    private Location location;
+
+	private Collection<TimeWindow> timeWindows;
+
+	private double serviceTime;
+
+	private Activity.Type activityType;
+
+	Activity(Builder builder) {
+        location = builder.location;
+        timeWindows = builder.timeWindows;
+        serviceTime = builder.serviceTime;
+        activityType = builder.activityType;
+    }
+
+	public Type getActivityType() {
+        return activityType;
+    }
+
+	public Location getLocation() {
+        return location;
+    }
+
+	public Collection<TimeWindow> getTimeWindows() {
+        return timeWindows;
+    }
+
+	public double getServiceTime() {
+        return serviceTime;
+    }
+
+	public enum Type {
         PICKUP, DELIVERY, SERVICE, BREAK;
     }
 
-    public static class Builder {
+	public static class Builder {
 
         private final Type activityType;
 
@@ -57,36 +88,5 @@ public class Activity {
         public Activity build() {
             return new Activity(this);
         }
-    }
-
-    private Location location;
-
-    private Collection<TimeWindow> timeWindows;
-
-    private double serviceTime;
-
-    private Activity.Type activityType;
-
-    Activity(Builder builder) {
-        location = builder.location;
-        timeWindows = builder.timeWindows;
-        serviceTime = builder.serviceTime;
-        activityType = builder.activityType;
-    }
-
-    public Type getActivityType() {
-        return activityType;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public Collection<TimeWindow> getTimeWindows() {
-        return timeWindows;
-    }
-
-    public double getServiceTime() {
-        return serviceTime;
     }
 }

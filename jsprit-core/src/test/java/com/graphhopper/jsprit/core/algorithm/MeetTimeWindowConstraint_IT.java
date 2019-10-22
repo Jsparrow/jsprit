@@ -80,21 +80,17 @@ public class MeetTimeWindowConstraint_IT {
     public void whenEmployingVehicleWithDifferentWorkingShifts_certainJobsCanNeverBeAssignedToCertainVehicles() {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final List<Boolean> testFailed = new ArrayList<Boolean>();
+        final List<Boolean> testFailed = new ArrayList<>();
         vra.addListener(new JobInsertedListener() {
 
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                if (job2insert.getId().equals("1")) {
-                    if (inRoute.getVehicle().getId().equals("19")) {
-                        testFailed.add(true);
-                    }
-                }
-                if (job2insert.getId().equals("2")) {
-                    if (inRoute.getVehicle().getId().equals("21")) {
-                        testFailed.add(true);
-                    }
-                }
+                if ("1".equals(job2insert.getId()) && "19".equals(inRoute.getVehicle().getId())) {
+				    testFailed.add(true);
+				}
+                if ("2".equals(job2insert.getId()) && "21".equals(inRoute.getVehicle().getId())) {
+				    testFailed.add(true);
+				}
             }
 
         });
@@ -107,25 +103,19 @@ public class MeetTimeWindowConstraint_IT {
     public void whenEmployingVehicleWithDifferentWorkingShifts_certainVehiclesCanNeverBeAssignedToCertainRoutes() {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final List<Boolean> testFailed = new ArrayList<Boolean>();
+        final List<Boolean> testFailed = new ArrayList<>();
         vra.addListener(new VehicleSwitchedListener() {
 
             @Override
             public void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle) {
-                if (oldVehicle == null) return;
-                if (oldVehicle.getId().equals("21") && newVehicle.getId().equals("19")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("1")) {
-                            testFailed.add(true);
-                        }
-                    }
+                if (oldVehicle == null) {
+					return;
+				}
+                if ("21".equals(oldVehicle.getId()) && "19".equals(newVehicle.getId())) {
+                    vehicleRoute.getTourActivities().getJobs().stream().filter(j -> "1".equals(j.getId())).forEach(j -> testFailed.add(true));
                 }
-                if (oldVehicle.getId().equals("19") && newVehicle.getId().equals("21")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("2")) {
-                            testFailed.add(true);
-                        }
-                    }
+                if ("19".equals(oldVehicle.getId()) && "21".equals(newVehicle.getId())) {
+                    vehicleRoute.getTourActivities().getJobs().stream().filter(j -> "2".equals(j.getId())).forEach(j -> testFailed.add(true));
                 }
             }
 
@@ -176,21 +166,17 @@ public class MeetTimeWindowConstraint_IT {
     public void whenEmployingVehicleWithDifferentWorkingShifts_and_vehicleSwitchIsNotAllowed_certainJobsCanNeverBeAssignedToCertainVehicles() {
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.VEHICLE_SWITCH,"false").buildAlgorithm();
         vra.setMaxIterations(100);
-        final List<Boolean> testFailed = new ArrayList<Boolean>();
+        final List<Boolean> testFailed = new ArrayList<>();
         vra.addListener(new JobInsertedListener() {
 
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                if (job2insert.getId().equals("1")) {
-                    if (inRoute.getVehicle().getId().equals("19")) {
-                        testFailed.add(true);
-                    }
-                }
-                if (job2insert.getId().equals("2")) {
-                    if (inRoute.getVehicle().getId().equals("21")) {
-                        testFailed.add(true);
-                    }
-                }
+                if ("1".equals(job2insert.getId()) && "19".equals(inRoute.getVehicle().getId())) {
+				    testFailed.add(true);
+				}
+                if ("2".equals(job2insert.getId()) && "21".equals(inRoute.getVehicle().getId())) {
+				    testFailed.add(true);
+				}
             }
 
         });
@@ -204,25 +190,19 @@ public class MeetTimeWindowConstraint_IT {
     public void whenEmployingVehicleWithDifferentWorkingShifts_and_vehicleSwitchIsNotAllowed_certainVehiclesCanNeverBeAssignedToCertainRoutes() {
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.VEHICLE_SWITCH,"false").buildAlgorithm();
         vra.setMaxIterations(100);
-        final List<Boolean> testFailed = new ArrayList<Boolean>();
+        final List<Boolean> testFailed = new ArrayList<>();
         vra.addListener(new VehicleSwitchedListener() {
 
             @Override
             public void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle) {
-                if (oldVehicle == null) return;
-                if (oldVehicle.getId().equals("21") && newVehicle.getId().equals("19")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("1")) {
-                            testFailed.add(true);
-                        }
-                    }
+                if (oldVehicle == null) {
+					return;
+				}
+                if ("21".equals(oldVehicle.getId()) && "19".equals(newVehicle.getId())) {
+                    vehicleRoute.getTourActivities().getJobs().stream().filter(j -> "1".equals(j.getId())).forEach(j -> testFailed.add(true));
                 }
-                if (oldVehicle.getId().equals("19") && newVehicle.getId().equals("21")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("2")) {
-                            testFailed.add(true);
-                        }
-                    }
+                if ("19".equals(oldVehicle.getId()) && "21".equals(newVehicle.getId())) {
+                    vehicleRoute.getTourActivities().getJobs().stream().filter(j -> "2".equals(j.getId())).forEach(j -> testFailed.add(true));
                 }
             }
 
@@ -269,10 +249,10 @@ public class MeetTimeWindowConstraint_IT {
         VehicleRoutingAlgorithm algorithm = Jsprit.createAlgorithm(vrp);
         algorithm.setMaxIterations(1000);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(algorithm.searchSolutions());
-        for (VehicleRoute r : solution.getRoutes()) {
+        solution.getRoutes().forEach(r -> {
             assertTrue(r.getVehicle().getEarliestDeparture() <= r.getDepartureTime());
             assertTrue(r.getVehicle().getLatestArrival() >= r.getEnd().getArrTime());
-        }
+        });
     }
 
     private FastVehicleRoutingTransportCostsMatrix createMatrix() throws IOException {
@@ -289,22 +269,14 @@ public class MeetTimeWindowConstraint_IT {
 
 
     private boolean containsJob(Job job, VehicleRoute route) {
-        if (route == null) return false;
-        for (Job j : route.getTourActivities().getJobs()) {
-            if (job == j) {
-                return true;
-            }
-        }
-        return false;
+        if (route == null) {
+			return false;
+		}
+        return route.getTourActivities().getJobs().stream().anyMatch(j -> job == j);
     }
 
     private VehicleRoute getRoute(String vehicleId, VehicleRoutingProblemSolution vehicleRoutingProblemSolution) {
-        for (VehicleRoute r : vehicleRoutingProblemSolution.getRoutes()) {
-            if (r.getVehicle().getId().equals(vehicleId)) {
-                return r;
-            }
-        }
-        return null;
+        return vehicleRoutingProblemSolution.getRoutes().stream().filter(r -> r.getVehicle().getId().equals(vehicleId)).findFirst().orElse(null);
     }
 
     private VehicleRoutingProblem createTWBugProblem() throws IOException {

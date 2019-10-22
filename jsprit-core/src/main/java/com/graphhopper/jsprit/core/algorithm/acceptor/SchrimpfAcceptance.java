@@ -96,8 +96,11 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
             VehicleRoutingProblemSolution worst = null;
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
-                if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                if (worst == null) {
+					worst = solutionInMemory;
+				} else if (solutionInMemory.getCost() > worst.getCost()) {
+					worst = solutionInMemory;
+				}
             }
             if (worst == null) {
                 solutions.add(newSolution);
@@ -122,8 +125,11 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
             VehicleRoutingProblemSolution worst = null;
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
-                if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                if (worst == null) {
+					worst = solutionInMemory;
+				} else if (solutionInMemory.getCost() > worst.getCost()) {
+					worst = solutionInMemory;
+				}
             }
             if (worst == null) {
                 solutions.add(newSolution);
@@ -139,7 +145,7 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
 
     @Override
     public String toString() {
-        return "[name=SchrimpfAcceptance][alpha=" + alpha + "]";
+        return new StringBuilder().append("[name=SchrimpfAcceptance][alpha=").append(alpha).append("]").toString();
     }
 
     private double getThreshold(int iteration) {

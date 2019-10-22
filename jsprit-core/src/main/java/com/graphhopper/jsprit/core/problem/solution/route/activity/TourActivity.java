@@ -36,6 +36,89 @@ public interface TourActivity extends HasIndex {
     void setTheoreticalLatestOperationStartTime(double latest);
 
     /**
+     * Returns the name of this activity.
+     *
+     * @return name
+     */
+    String getName();
+
+	/**
+     * Returns location.
+     *
+     * @return location
+     */
+    Location getLocation();
+
+	/**
+     * Returns the theoretical earliest operation start time, which is the time that is just allowed
+     * (not earlier) to start this activity, that is for example <code>service.getTimeWindow().getStart()</code>.
+     *
+     * @return earliest start time
+     */
+    double getTheoreticalEarliestOperationStartTime();
+
+	/**
+     * Returns the theoretical latest operation start time, which is the time that is just allowed
+     * (not later) to start this activity, that is for example <code>service.getTimeWindow().getEnd()</code>.
+     *
+     * @return latest start time
+     */
+    double getTheoreticalLatestOperationStartTime();
+
+	/**
+     * Returns the operation-time this activity takes.
+     * <p>
+     * <p>Note that this is not necessarily the duration of this activity, but the
+     * service time a pickup/delivery actually takes, that is for example <code>service.getServiceTime()</code>.
+     *
+     * @return operation time
+     */
+    double getOperationTime();
+
+	/**
+     * Returns the arrival-time of this activity.
+     *
+     * @return arrival time
+     */
+    double getArrTime();
+
+	/**
+     * Returns end-time of this activity.
+     *
+     * @return end time
+     */
+    double getEndTime();
+
+	/**
+     * Sets the arrival time of that activity.
+     *
+     * @param arrTime
+     */
+    void setArrTime(double arrTime);
+
+	/**
+     * Sets the end-time of this activity.
+     *
+     * @param endTime
+     */
+    void setEndTime(double endTime);
+
+	/**
+     * Returns the capacity-demand of that activity, in terms of what needs to be loaded or unloaded at
+     * this activity.
+     *
+     * @return capacity
+     */
+    Capacity getSize();
+
+	/**
+     * Makes a deep copy of this activity.
+     *
+     * @return copied activity
+     */
+    TourActivity duplicate();
+
+	/**
      * Basic interface of job-activies.
      * <p>
      * <p>A job activity is related to a {@link Job}.
@@ -52,88 +135,5 @@ public interface TourActivity extends HasIndex {
         Job getJob();
 
     }
-
-    /**
-     * Returns the name of this activity.
-     *
-     * @return name
-     */
-    String getName();
-
-    /**
-     * Returns location.
-     *
-     * @return location
-     */
-    Location getLocation();
-
-    /**
-     * Returns the theoretical earliest operation start time, which is the time that is just allowed
-     * (not earlier) to start this activity, that is for example <code>service.getTimeWindow().getStart()</code>.
-     *
-     * @return earliest start time
-     */
-    double getTheoreticalEarliestOperationStartTime();
-
-    /**
-     * Returns the theoretical latest operation start time, which is the time that is just allowed
-     * (not later) to start this activity, that is for example <code>service.getTimeWindow().getEnd()</code>.
-     *
-     * @return latest start time
-     */
-    double getTheoreticalLatestOperationStartTime();
-
-    /**
-     * Returns the operation-time this activity takes.
-     * <p>
-     * <p>Note that this is not necessarily the duration of this activity, but the
-     * service time a pickup/delivery actually takes, that is for example <code>service.getServiceTime()</code>.
-     *
-     * @return operation time
-     */
-    double getOperationTime();
-
-    /**
-     * Returns the arrival-time of this activity.
-     *
-     * @return arrival time
-     */
-    double getArrTime();
-
-    /**
-     * Returns end-time of this activity.
-     *
-     * @return end time
-     */
-    double getEndTime();
-
-    /**
-     * Sets the arrival time of that activity.
-     *
-     * @param arrTime
-     */
-    void setArrTime(double arrTime);
-
-    /**
-     * Sets the end-time of this activity.
-     *
-     * @param endTime
-     */
-    void setEndTime(double endTime);
-
-    /**
-     * Returns the capacity-demand of that activity, in terms of what needs to be loaded or unloaded at
-     * this activity.
-     *
-     * @return capacity
-     */
-    Capacity getSize();
-
-    /**
-     * Makes a deep copy of this activity.
-     *
-     * @return copied activity
-     */
-    TourActivity duplicate();
 
 }

@@ -57,14 +57,7 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
 
     private final VehicleRoutingActivityCosts activityCosts;
 
-    private UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate vehiclesToUpdate = new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-
-        @Override
-        public Collection<Vehicle> get(VehicleRoute route) {
-            return Arrays.asList(route.getVehicle());
-        }
-
-    };
+    private UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate vehiclesToUpdate = (VehicleRoute route) -> Collections.singletonList(route.getVehicle());
 
 
     public UpdateMaxTimeInVehicle(StateManager stateManager, StateId slackTimeId, TransportTime transportTime, VehicleRoutingActivityCosts activityCosts, StateId openJobsId) {
@@ -90,21 +83,21 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
         actStartTimesPerVehicle.clear();
         vehicles = vehiclesToUpdate.get(route);
         this.route = route;
-        for(Vehicle v : vehicles){
+        vehicles.forEach(v -> {
             int vehicleIndex = v.getVehicleTypeIdentifier().getIndex();
-            openPickupEndTimesPerVehicle.put(vehicleIndex, new HashMap<Job, Double>());
-            slackTimesPerVehicle.put(vehicleIndex, new HashMap<TourActivity, Double>());
-            actStartTimesPerVehicle.put(vehicleIndex, new HashMap<TourActivity, Double>());
+            openPickupEndTimesPerVehicle.put(vehicleIndex, new HashMap<>());
+            slackTimesPerVehicle.put(vehicleIndex, new HashMap<>());
+            actStartTimesPerVehicle.put(vehicleIndex, new HashMap<>());
             prevActEndTimes[vehicleIndex] = v.getEarliestDeparture();
             prevActLocations[vehicleIndex] = v.getStartLocation();
-        }
+        });
     }
 
     @Override
     public void visit(TourActivity activity) {
         double maxTime = getMaxTimeInVehicle(activity);
 
-        for(Vehicle v : vehicles) {
+        vehicles.forEach(v -> {
             int vehicleIndex = v.getVehicleTypeIdentifier().getIndex();
             Location prevActLocation = prevActLocations[vehicleIndex];
             double prevActEndTime = prevActEndTimes[v.getVehicleTypeIdentifier().getIndex()];
@@ -121,13 +114,15 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
                 if (openPickups.containsKey(job)) {
                     pickupEnd = openPickups.get(job);
                     openPickups.remove(job);
-                } else pickupEnd = v.getEarliestDeparture();
+                } else {
+					pickupEnd = v.getEarliestDeparture();
+				}
                 double slackTime = maxTime - (activityStart - pickupEnd);
                 slackTimesPerVehicle.get(vehicleIndex).put(activity, slackTime);
             }
             prevActLocations[vehicleIndex] = activity.getLocation();
             prevActEndTimes[vehicleIndex] = activityEnd;
-        }
+        });
 
     }
 
@@ -145,27 +140,30 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
 
     @Override
     public void finish() {
-        for(Vehicle v : vehicles) {
+        vehicles.forEach(v -> {
             int vehicleIndex = v.getVehicleTypeIdentifier().getIndex();
 
             //!!! open routes !!!
             double routeEnd;
-            if(!v.isReturnToDepot()) routeEnd = prevActEndTimes[vehicleIndex];
-            else routeEnd = prevActEndTimes[vehicleIndex] + transportTime.getTransportTime(prevActLocations[vehicleIndex],v.getEndLocation(),prevActEndTimes[vehicleIndex],route.getDriver(),v);
+            if(!v.isReturnToDepot()) {
+				routeEnd = prevActEndTimes[vehicleIndex];
+			} else {
+				routeEnd = prevActEndTimes[vehicleIndex] + transportTime.getTransportTime(prevActLocations[vehicleIndex],v.getEndLocation(),prevActEndTimes[vehicleIndex],route.getDriver(),v);
+			}
 
             Map<Job, Double> openDeliveries = new HashMap<>();
-            for (Job job : openPickupEndTimesPerVehicle.get(vehicleIndex).keySet()) {
+            openPickupEndTimesPerVehicle.get(vehicleIndex).keySet().forEach(job -> {
                 double actEndTime = openPickupEndTimesPerVehicle.get(vehicleIndex).get(job);
                 double slackTime = job.getMaxTimeInVehicle() - (routeEnd - actEndTime);
                 openDeliveries.put(job, slackTime);
-            }
+            });
 
             double minSlackTimeAtEnd = minSlackTime(openDeliveries);
             stateManager.putRouteState(route, v, minSlackId, minSlackTimeAtEnd);
             stateManager.putRouteState(route, v, openJobsId, new HashMap<>(openDeliveries));
             List<TourActivity> acts = new ArrayList<>(this.route.getActivities());
             Collections.reverse(acts);
-            for (TourActivity act : acts) {
+            acts.forEach(act -> {
                 Job job = ((TourActivity.JobActivity) act).getJob();
                 if (act instanceof ServiceActivity || act instanceof PickupActivity) {
                     openDeliveries.remove(job);
@@ -183,8 +181,8 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
                     stateManager.putActivityState(act, v, openJobsId, new HashMap<>(openDeliveries));
                     stateManager.putActivityState(act, v, minSlackId, minSlackTime);
                 }
-            }
-        }
+            });
+        });
     }
 
     public void finish(List<TourActivity> activities, Job ignore) {
@@ -193,13 +191,17 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
 
             //!!! open routes !!!
             double routeEnd;
-            if (!v.isReturnToDepot()) routeEnd = prevActEndTimes[vehicleIndex];
-            else
-                routeEnd = prevActEndTimes[vehicleIndex] + transportTime.getTransportTime(prevActLocations[vehicleIndex], v.getEndLocation(), prevActEndTimes[vehicleIndex], route.getDriver(), v);
+            if (!v.isReturnToDepot()) {
+				routeEnd = prevActEndTimes[vehicleIndex];
+			} else {
+				routeEnd = prevActEndTimes[vehicleIndex] + transportTime.getTransportTime(prevActLocations[vehicleIndex], v.getEndLocation(), prevActEndTimes[vehicleIndex], route.getDriver(), v);
+			}
 
             Map<Job, Double> openDeliveries = new HashMap<>();
             for (Job job : openPickupEndTimesPerVehicle.get(vehicleIndex).keySet()) {
-                if (job == ignore) continue;
+                if (job == ignore) {
+					continue;
+				}
                 double actEndTime = openPickupEndTimesPerVehicle.get(vehicleIndex).get(job);
                 double slackTime = job.getMaxTimeInVehicle() - (routeEnd - actEndTime);
                 openDeliveries.put(job, slackTime);
@@ -209,7 +211,7 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
             stateManager.putRouteState(route, v, minSlackId, routeEnd + minSlackTimeAtEnd);
             List<TourActivity> acts = new ArrayList<>(activities);
             Collections.reverse(acts);
-            for (TourActivity act : acts) {
+            acts.forEach(act -> {
                 Job job = ((TourActivity.JobActivity) act).getJob();
                 if (act instanceof ServiceActivity || act instanceof PickupActivity) {
                     String jobId = job.getId();
@@ -226,7 +228,7 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
                     double latestStart = actStart(act, v) + minSlackTime;
                     stateManager.putActivityState(act, v, minSlackId, latestStart);
                 }
-            }
+            });
         }
     }
 
@@ -237,7 +239,9 @@ public class UpdateMaxTimeInVehicle implements StateUpdater, ActivityVisitor{
     private double minSlackTime(Map<Job, Double> openDeliveries) {
         double min = Double.MAX_VALUE;
         for(Double value : openDeliveries.values()){
-           if(value < min) min = value;
+           if(value < min) {
+			min = value;
+		}
         }
         return min;
     }

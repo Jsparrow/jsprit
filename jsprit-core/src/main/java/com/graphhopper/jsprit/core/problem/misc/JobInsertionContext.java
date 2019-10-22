@@ -41,58 +41,11 @@ public class JobInsertionContext {
 
     private double newDepTime;
 
-    private List<TourActivity> associatedActivities = new ArrayList<TourActivity>();
+    private List<TourActivity> associatedActivities = new ArrayList<>();
 
     private ActivityContext activityContext;
 
     private ActivityContext relatedActivityContext;
-
-    /**
-     * Returns the existing route where the .getJob() needs to be inserted in.
-     *
-     * @return the route
-     */
-    public VehicleRoute getRoute() {
-        return route;
-    }
-
-    /**
-     * Returns the job that needs to be inserted.
-     *
-     * @return the job
-     */
-    public Job getJob() {
-        return job;
-    }
-
-    /**
-     * Returns the vehicle that should operate the new route, i.e. route <code>this.getRoute()</code> + new job <code>this.getJob()</code>.
-     *
-     * @return the newVehicle
-     */
-    public Vehicle getNewVehicle() {
-        return newVehicle;
-    }
-
-    /**
-     * Returns the driver that should operate the new route, i.e. route <code>this.getRoute()</code> + new job <code>this.getJob()</code>.
-     * <p>
-     * <p>Currently the driver is just a mock, it has no functions</p>
-     *
-     * @return the newDriver
-     */
-    public Driver getNewDriver() {
-        return newDriver;
-    }
-
-    /**
-     * Returns the new departure time at the new vehicle's start location.
-     *
-     * @return the newDepTime
-     */
-    public double getNewDepTime() {
-        return newDepTime;
-    }
 
     /**
      * Constructs the context.
@@ -104,7 +57,6 @@ public class JobInsertionContext {
      * @param newDepTime the new departure time at the new vehicle's start location
      */
     public JobInsertionContext(VehicleRoute route, Job job, Vehicle newVehicle, Driver newDriver, double newDepTime) {
-        super();
         this.route = route;
         this.job = job;
         this.newVehicle = newVehicle;
@@ -112,11 +64,58 @@ public class JobInsertionContext {
         this.newDepTime = newDepTime;
     }
 
-    public List<TourActivity> getAssociatedActivities() {
+	/**
+     * Returns the existing route where the .getJob() needs to be inserted in.
+     *
+     * @return the route
+     */
+    public VehicleRoute getRoute() {
+        return route;
+    }
+
+	/**
+     * Returns the job that needs to be inserted.
+     *
+     * @return the job
+     */
+    public Job getJob() {
+        return job;
+    }
+
+	/**
+     * Returns the vehicle that should operate the new route, i.e. route <code>this.getRoute()</code> + new job <code>this.getJob()</code>.
+     *
+     * @return the newVehicle
+     */
+    public Vehicle getNewVehicle() {
+        return newVehicle;
+    }
+
+	/**
+     * Returns the driver that should operate the new route, i.e. route <code>this.getRoute()</code> + new job <code>this.getJob()</code>.
+     * <p>
+     * <p>Currently the driver is just a mock, it has no functions</p>
+     *
+     * @return the newDriver
+     */
+    public Driver getNewDriver() {
+        return newDriver;
+    }
+
+	/**
+     * Returns the new departure time at the new vehicle's start location.
+     *
+     * @return the newDepTime
+     */
+    public double getNewDepTime() {
+        return newDepTime;
+    }
+
+	public List<TourActivity> getAssociatedActivities() {
         return associatedActivities;
     }
 
-    /**
+	/**
      * Sets pickup context.
      *
      * @param relatedActivityContext pickup context
@@ -125,7 +124,7 @@ public class JobInsertionContext {
         this.relatedActivityContext = relatedActivityContext;
     }
 
-    /**
+	/**
      * Returns pickup context. If no context available, returns null.
      *
      * @return pickup context
@@ -134,11 +133,11 @@ public class JobInsertionContext {
         return this.relatedActivityContext;
     }
 
-    public void setActivityContext(ActivityContext activityContext){
+	public void setActivityContext(ActivityContext activityContext){
         this.activityContext = activityContext;
     }
 
-    public ActivityContext getActivityContext(){
+	public ActivityContext getActivityContext(){
         return this.activityContext;
     }
 }

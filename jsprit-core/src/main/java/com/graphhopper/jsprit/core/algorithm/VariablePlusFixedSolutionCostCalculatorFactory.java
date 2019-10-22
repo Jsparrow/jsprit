@@ -36,7 +36,6 @@ public class VariablePlusFixedSolutionCostCalculatorFactory {
     private RouteAndActivityStateGetter stateManager;
 
     public VariablePlusFixedSolutionCostCalculatorFactory(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
     }
 
@@ -55,8 +54,12 @@ public class VariablePlusFixedSolutionCostCalculatorFactory {
             }
 
             private double getFixedCosts(Vehicle vehicle) {
-                if (vehicle == null) return 0.0;
-                if (vehicle.getType() == null) return 0.0;
+                if (vehicle == null) {
+					return 0.0;
+				}
+                if (vehicle.getType() == null) {
+					return 0.0;
+				}
                 return vehicle.getType().getVehicleCostParams().fix;
             }
         };

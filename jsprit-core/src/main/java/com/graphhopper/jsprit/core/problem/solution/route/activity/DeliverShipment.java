@@ -38,7 +38,6 @@ public final class DeliverShipment extends AbstractActivity implements DeliveryA
     private double latest = Double.MAX_VALUE;
 
     public DeliverShipment(Shipment shipment) {
-        super();
         this.shipment = shipment;
         this.capacity = Capacity.invert(shipment.getSize());
     }
@@ -118,11 +117,10 @@ public final class DeliverShipment extends AbstractActivity implements DeliveryA
         return new DeliverShipment(this);
     }
 
-    public String toString() {
-        return "[type=" + getName() + "][locationId=" + getLocation().getId()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+    @Override
+	public String toString() {
+        return new StringBuilder().append("[type=").append(getName()).append("][locationId=").append(getLocation().getId()).append("][size=").append(getSize().toString())
+				.append("][twStart=").append(Activities.round(getTheoreticalEarliestOperationStartTime())).append("][twEnd=").append(Activities.round(getTheoreticalLatestOperationStartTime())).append("]").toString();
     }
 
     @Override

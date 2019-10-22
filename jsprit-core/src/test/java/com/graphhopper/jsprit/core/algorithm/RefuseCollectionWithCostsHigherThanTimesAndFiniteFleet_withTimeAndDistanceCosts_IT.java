@@ -37,11 +37,17 @@ import java.io.InputStreamReader;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_withTimeAndDistanceCosts_IT {
 
-    @Test
+    private static final Logger logger = LoggerFactory
+			.getLogger(RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_withTimeAndDistanceCosts_IT.class);
+
+
+	@Test
     public void testAlgo() {
 
 
@@ -75,10 +81,8 @@ public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_withTimeAndD
         try {
             readDemandQuantities(vrpBuilder);
             readDistances(matrixBuilder);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
 
         vrpBuilder.setRoutingCost(matrixBuilder.build());

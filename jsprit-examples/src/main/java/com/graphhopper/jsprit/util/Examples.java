@@ -18,17 +18,24 @@
 package com.graphhopper.jsprit.util;
 
 import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Examples {
 
-    public static void createOutputFolder() {
+    private static final Logger logger = LoggerFactory.getLogger(Examples.class);
+
+	public static void createOutputFolder() {
         File dir = new File("output");
         // if the directory does not exist, create it
-        if (!dir.exists()) {
-            System.out.println("creating directory ./output");
-            boolean result = dir.mkdir();
-            if (result) System.out.println("./output created");
-        }
+		if (dir.exists()) {
+			return;
+		}
+		logger.info("creating directory ./output");
+		boolean result = dir.mkdir();
+		if (result) {
+			logger.info("./output created");
+		}
     }
 
 }

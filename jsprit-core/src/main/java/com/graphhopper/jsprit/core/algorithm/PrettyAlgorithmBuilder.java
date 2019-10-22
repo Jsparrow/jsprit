@@ -54,10 +54,6 @@ public class PrettyAlgorithmBuilder {
 
     private SolutionCostCalculator objectiveFunction = null;
 
-    public static PrettyAlgorithmBuilder newInstance(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        return new PrettyAlgorithmBuilder(vrp, fleetManager, stateManager, constraintManager);
-    }
-
     PrettyAlgorithmBuilder(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
         this.vrp = vrp;
         this.fleetManager = fleetManager;
@@ -66,23 +62,27 @@ public class PrettyAlgorithmBuilder {
         this.searchStrategyManager = new SearchStrategyManager();
     }
 
-    public PrettyAlgorithmBuilder setRandom(Random random) {
+	public static PrettyAlgorithmBuilder newInstance(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
+        return new PrettyAlgorithmBuilder(vrp, fleetManager, stateManager, constraintManager);
+    }
+
+	public PrettyAlgorithmBuilder setRandom(Random random) {
         searchStrategyManager.setRandom(random);
         return this;
     }
 
-    public PrettyAlgorithmBuilder withStrategy(SearchStrategy strategy, double weight) {
+	public PrettyAlgorithmBuilder withStrategy(SearchStrategy strategy, double weight) {
         searchStrategyManager.addStrategy(strategy, weight);
         return this;
     }
 
-    public PrettyAlgorithmBuilder constructInitialSolutionWith(InsertionStrategy insertionStrategy, SolutionCostCalculator objFunction) {
+	public PrettyAlgorithmBuilder constructInitialSolutionWith(InsertionStrategy insertionStrategy, SolutionCostCalculator objFunction) {
         this.iniInsertionStrategy = insertionStrategy;
         this.iniObjFunction = objFunction;
         return this;
     }
 
-    public VehicleRoutingAlgorithm build() {
+	public VehicleRoutingAlgorithm build() {
         if (coreStuff) {
             AlgorithmUtil.addCoreConstraints(constraintManager,stateManager,vrp);
         }
@@ -95,14 +95,18 @@ public class PrettyAlgorithmBuilder {
         vra.addListener(resetAndIniFleetManager);
         vra.addListener(vehicleSwitched);
         if (iniInsertionStrategy != null) {
-            if (!iniInsertionStrategy.getListeners().contains(removeEmptyVehicles))
-                iniInsertionStrategy.addListener(removeEmptyVehicles);
-            if (!iniInsertionStrategy.getListeners().contains(resetAndIniFleetManager))
-                iniInsertionStrategy.addListener(resetAndIniFleetManager);
-            if (!iniInsertionStrategy.getListeners().contains(vehicleSwitched))
-                iniInsertionStrategy.addListener(vehicleSwitched);
-            if (!iniInsertionStrategy.getListeners().contains(stateManager))
-                iniInsertionStrategy.addListener(stateManager);
+            if (!iniInsertionStrategy.getListeners().contains(removeEmptyVehicles)) {
+				iniInsertionStrategy.addListener(removeEmptyVehicles);
+			}
+            if (!iniInsertionStrategy.getListeners().contains(resetAndIniFleetManager)) {
+				iniInsertionStrategy.addListener(resetAndIniFleetManager);
+			}
+            if (!iniInsertionStrategy.getListeners().contains(vehicleSwitched)) {
+				iniInsertionStrategy.addListener(vehicleSwitched);
+			}
+            if (!iniInsertionStrategy.getListeners().contains(stateManager)) {
+				iniInsertionStrategy.addListener(stateManager);
+			}
             vra.addListener((AlgorithmStartsListener) (problem, algorithm, solutions) -> {
                 if (solutions.isEmpty()) {
                     solutions.add(new InsertionInitialSolutionFactory(iniInsertionStrategy, iniObjFunction).createSolution(vrp));
@@ -113,30 +117,28 @@ public class PrettyAlgorithmBuilder {
         return vra;
     }
 
-    private void addArbitraryListener(VehicleRoutingAlgorithm vra) {
+	private void addArbitraryListener(VehicleRoutingAlgorithm vra) {
         searchSchrimpfAndRegister(vra);
     }
 
-    private void searchSchrimpfAndRegister(VehicleRoutingAlgorithm vra) {
+	private void searchSchrimpfAndRegister(VehicleRoutingAlgorithm vra) {
         boolean schrimpfAdded = false;
         for (SearchStrategy strategy : vra.getSearchStrategyManager().getStrategies()) {
             SolutionAcceptor acceptor = strategy.getSolutionAcceptor();
-            if (acceptor instanceof SchrimpfAcceptance) {
-                if (!schrimpfAdded) {
-                    vra.addListener((SchrimpfAcceptance) acceptor);
-                    schrimpfAdded = true;
-                }
-            }
+            boolean condition = acceptor instanceof SchrimpfAcceptance && !schrimpfAdded;
+			if (condition) {
+			    vra.addListener((SchrimpfAcceptance) acceptor);
+			    schrimpfAdded = true;
+			}
         }
     }
 
-    public PrettyAlgorithmBuilder addCoreStateAndConstraintStuff() {
+	public PrettyAlgorithmBuilder addCoreStateAndConstraintStuff() {
         this.coreStuff = true;
         return this;
     }
 
-
-    public PrettyAlgorithmBuilder withObjectiveFunction(SolutionCostCalculator objectiveFunction) {
+	public PrettyAlgorithmBuilder withObjectiveFunction(SolutionCostCalculator objectiveFunction) {
         this.objectiveFunction = objectiveFunction;
         return this;
     }

@@ -38,7 +38,6 @@ public class VehicleTypeKey extends AbstractVehicle.AbstractTypeKey {
     public final boolean returnToDepot;
 
     public VehicleTypeKey(String typeId, String startLocationId, String endLocationId, double earliestStart, double latestEnd, Skills skills, boolean returnToDepot) {
-        super();
         this.type = typeId;
         this.startLocationId = startLocationId;
         this.endLocationId = endLocationId;
@@ -50,18 +49,36 @@ public class VehicleTypeKey extends AbstractVehicle.AbstractTypeKey {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+			return true;
+		}
+        if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
         VehicleTypeKey that = (VehicleTypeKey) o;
 
-        if (Double.compare(that.earliestStart, earliestStart) != 0) return false;
-        if (Double.compare(that.latestEnd, latestEnd) != 0) return false;
-        if (returnToDepot != that.returnToDepot) return false;
-        if (!endLocationId.equals(that.endLocationId)) return false;
-        if (!skills.equals(that.skills)) return false;
-        if (!startLocationId.equals(that.startLocationId)) return false;
-        if (!type.equals(that.type)) return false;
+        if (Double.compare(that.earliestStart, earliestStart) != 0) {
+			return false;
+		}
+        if (Double.compare(that.latestEnd, latestEnd) != 0) {
+			return false;
+		}
+        if (returnToDepot != that.returnToDepot) {
+			return false;
+		}
+        if (!endLocationId.equals(that.endLocationId)) {
+			return false;
+		}
+        if (!skills.equals(that.skills)) {
+			return false;
+		}
+        if (!startLocationId.equals(that.startLocationId)) {
+			return false;
+		}
+        if (!type.equals(that.type)) {
+			return false;
+		}
 
         return true;
     }
@@ -84,8 +101,8 @@ public class VehicleTypeKey extends AbstractVehicle.AbstractTypeKey {
 
     @Override
     public String toString() {
-        return type + "_" + startLocationId + "_" + endLocationId +
-            "_" + Double.toString(earliestStart) + "_" + Double.toString(latestEnd);
+        return new StringBuilder().append(type).append("_").append(startLocationId).append("_").append(endLocationId).append("_")
+				.append(Double.toString(earliestStart)).append("_").append(Double.toString(latestEnd)).toString();
     }
 
 

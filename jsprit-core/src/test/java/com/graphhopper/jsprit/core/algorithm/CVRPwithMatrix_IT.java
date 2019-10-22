@@ -36,10 +36,13 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CVRPwithMatrix_IT {
 
-    private int index = 0;
+    private static final Logger logger = LoggerFactory.getLogger(CVRPwithMatrix_IT.class);
+	private int index = 0;
 
 
     @Test
@@ -65,7 +68,8 @@ public class CVRPwithMatrix_IT {
             Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
             assertTrue(true);
         } catch (Exception e) {
-            assertFalse(true);
+            logger.error(e.getMessage(), e);
+			assertFalse(true);
         }
     }
 
@@ -83,8 +87,8 @@ public class CVRPwithMatrix_IT {
 
     private VehicleRoutingProblem createVrpWithLocationIndecesAndMatrix(VehicleRoutingProblem vrp_, boolean return_to_depot) {
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
-        List<Location> locations = new ArrayList<Location>();
-        for (Vehicle v : vrp_.getVehicles()) {
+        List<Location> locations = new ArrayList<>();
+        vrp_.getVehicles().forEach(v -> {
             Location l = Location.Builder.newInstance().setIndex(getIndex()).setId(v.getStartLocation().getId())
                 .setCoordinate(v.getStartLocation().getCoordinate()).build();
             VehicleImpl.Builder newVehicleBuilder = VehicleImpl.Builder.newInstance(v.getId()).setType(v.getType())
@@ -93,25 +97,22 @@ public class CVRPwithMatrix_IT {
             VehicleImpl newVehicle = newVehicleBuilder.build();
             vrpBuilder.addVehicle(newVehicle);
             locations.add(l);
-        }
-        for (Job j : vrp_.getJobs().values()) {
-            Service s = (Service) j;
-            Location l = Location.Builder.newInstance().setIndex(getIndex())
+        });
+        vrp_.getJobs().values().stream().map(j -> (Service) j).forEach(s -> {
+			Location l = Location.Builder.newInstance().setIndex(getIndex())
                 .setId(s.getLocation().getId()).setCoordinate(s.getLocation().getCoordinate()).build();
-            Service newService = Service.Builder.newInstance(s.getId()).setServiceTime(s.getServiceDuration())
+			Service newService = Service.Builder.newInstance(s.getId()).setServiceTime(s.getServiceDuration())
                 .addSizeDimension(0, s.getSize().get(0))
                 .setLocation(l).build();
-            vrpBuilder.addJob(newService);
-            locations.add(l);
-        }
+			vrpBuilder.addJob(newService);
+			locations.add(l);
+		});
         FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(locations.size(), true);
-        for (Location from : locations) {
-            for (Location to : locations) {
-                double distance = EuclideanDistanceCalculator.calculateDistance(from.getCoordinate(), to.getCoordinate());
-                matrixBuilder.addTransportDistance(from.getIndex(), to.getIndex(), distance);
-                matrixBuilder.addTransportTime(from.getIndex(), to.getIndex(), distance);
-            }
-        }
+        locations.forEach(from -> locations.forEach(to -> {
+			double distance = EuclideanDistanceCalculator.calculateDistance(from.getCoordinate(), to.getCoordinate());
+			matrixBuilder.addTransportDistance(from.getIndex(), to.getIndex(), distance);
+			matrixBuilder.addTransportTime(from.getIndex(), to.getIndex(), distance);
+		}));
         vrpBuilder.setRoutingCost(matrixBuilder.build());
         return vrpBuilder.build();
     }

@@ -43,7 +43,6 @@ class UpdatePracticalTimeWindows implements ReverseActivityVisitor, StateUpdater
     private TourActivity prevAct;
 
     public UpdatePracticalTimeWindows(StateManager states, VehicleRoutingTransportCosts tpCosts, VehicleRoutingActivityCosts activityCosts) {
-        super();
         this.states = states;
         this.transportCosts = tpCosts;
         this.activityCosts = activityCosts;

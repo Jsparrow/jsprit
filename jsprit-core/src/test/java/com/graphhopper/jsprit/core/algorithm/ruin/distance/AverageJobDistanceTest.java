@@ -37,17 +37,12 @@ public class AverageJobDistanceTest {
 
     @Before
     public void doBefore() {
-        Locations locations = new Locations() {
-
-            @Override
-            public Coordinate getCoord(String id) {
-                //assume: locationId="x,y"
-                String[] splitted = id.split(",");
-                return Coordinate.newInstance(Double.parseDouble(splitted[0]),
-                    Double.parseDouble(splitted[1]));
-            }
-
-        };
+        Locations locations = (String id) -> {
+		    //assume: locationId="x,y"
+		    String[] splitted = id.split(",");
+		    return Coordinate.newInstance(Double.parseDouble(splitted[0]),
+		        Double.parseDouble(splitted[1]));
+		};
         routingCosts = new CrowFlyCosts(locations);
 
     }
@@ -61,7 +56,7 @@ public class AverageJobDistanceTest {
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                Shipment other1 = Shipment.Builder.newInstance("s1").addSizeDimension(0, 1).setPickupLocation(Location.Builder.newInstance().setId("0,0").build()).setDeliveryLocation(Location.newInstance(i + "," + j)).build();
+                Shipment other1 = Shipment.Builder.newInstance("s1").addSizeDimension(0, 1).setPickupLocation(Location.Builder.newInstance().setId("0,0").build()).setDeliveryLocation(Location.newInstance(new StringBuilder().append(i).append(",").append(j).toString())).build();
                 Shipment other2 = Shipment.Builder.newInstance("s2").addSizeDimension(0, 1).setPickupLocation(Location.Builder.newInstance().setId("0,0").build()).setDeliveryLocation(Location.newInstance("10,10")).build();
                 double dist2 = new AvgServiceAndShipmentDistance(routingCosts).getDistance(other1, other2);
                 assertTrue(dist <= dist2 + dist2 * 0.001);

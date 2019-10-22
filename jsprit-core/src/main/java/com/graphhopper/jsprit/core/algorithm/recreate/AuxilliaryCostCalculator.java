@@ -35,7 +35,6 @@ final class AuxilliaryCostCalculator {
     private final VehicleRoutingActivityCosts activityCosts;
 
     public AuxilliaryCostCalculator(final VehicleRoutingTransportCosts routingCosts, final VehicleRoutingActivityCosts actCosts) {
-        super();
         this.routingCosts = routingCosts;
         this.activityCosts = actCosts;
     }
@@ -59,11 +58,10 @@ final class AuxilliaryCostCalculator {
         double departureTimePrevAct = depTime;
         while (actIter.hasNext()) {
             TourActivity act = actIter.next();
-            if (act instanceof End) {
-                if (!vehicle.isReturnToDepot()) {
-                    return cost;
-                }
-            }
+            boolean condition = act instanceof End && !vehicle.isReturnToDepot();
+			if (condition) {
+			    return cost;
+			}
             double transportCost = routingCosts.getTransportCost(prevAct.getLocation(), act.getLocation(), departureTimePrevAct, driver, vehicle);
             double transportTime = routingCosts.getTransportTime(prevAct.getLocation(), act.getLocation(), departureTimePrevAct, driver, vehicle);
             cost += transportCost;

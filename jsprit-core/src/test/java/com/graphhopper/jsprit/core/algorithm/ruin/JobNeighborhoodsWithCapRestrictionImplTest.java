@@ -70,7 +70,7 @@ public class JobNeighborhoodsWithCapRestrictionImplTest {
         JobNeighborhoodsImplWithCapRestriction jn = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, 2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -82,7 +82,7 @@ public class JobNeighborhoodsWithCapRestrictionImplTest {
         JobNeighborhoodsImplWithCapRestriction jn = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, 2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -94,7 +94,7 @@ public class JobNeighborhoodsWithCapRestrictionImplTest {
         JobNeighborhoodsImplWithCapRestriction jn = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, 2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -106,7 +106,7 @@ public class JobNeighborhoodsWithCapRestrictionImplTest {
         JobNeighborhoodsImplWithCapRestriction jn = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, 4);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(4, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -118,7 +118,7 @@ public class JobNeighborhoodsWithCapRestrictionImplTest {
         JobNeighborhoodsImplWithCapRestriction jn = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, 2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(100, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }

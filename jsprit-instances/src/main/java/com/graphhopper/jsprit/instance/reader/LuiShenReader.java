@@ -44,7 +44,6 @@ public class LuiShenReader {
     private double coordProjectionFactor = 1;
 
     public LuiShenReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
@@ -76,7 +75,9 @@ public class LuiShenReader {
             String[] tokens = line.split(" +");
             counter++;
             if (counter > 9) {
-                if (tokens.length < 7) continue;
+                if (tokens.length < 7) {
+					continue;
+				}
                 Coordinate coord = makeCoord(tokens[1], tokens[2]);
                 String customerId = tokens[0];
                 int demand = Integer.parseInt(tokens[3]);
@@ -86,7 +87,7 @@ public class LuiShenReader {
                 if (counter == 10) {
                     createVehicles(vehicleFile, costScenario, customerId, coord, start, end);
                 } else {
-                    Service service = Service.Builder.newInstance("" + (counter - 10)).addSizeDimension(0, demand)
+                    Service service = Service.Builder.newInstance(Integer.toString((counter - 10))).addSizeDimension(0, demand)
                         .setLocation(Location.Builder.newInstance().setCoordinate(coord).setId(customerId).build()).setServiceTime(serviceTime)
                         .setTimeWindow(TimeWindow.newInstance(start, end)).build();
                     vrpBuilder.addJob(service);
@@ -132,14 +133,14 @@ public class LuiShenReader {
     }
 
     private int getCostScenarioColumn(String costScenario) {
-        if (costScenario.equals("a")) {
+        if ("a".equals(costScenario)) {
             return 2;
-        } else if (costScenario.equals("b")) {
+        } else if ("b".equals(costScenario)) {
             return 3;
-        } else if (costScenario.equals("c")) {
+        } else if ("c".equals(costScenario)) {
             return 4;
         }
-        throw new IllegalStateException("costScenario " + costScenario + " not known");
+        throw new IllegalStateException(new StringBuilder().append("costScenario ").append(costScenario).append(" not known").toString());
     }
 
     public void setCoordProjectionFactor(double coordProjectionFactor) {

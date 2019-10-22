@@ -41,12 +41,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RefuseCollection_IT {
 
 
-    @Test
+    private static final Logger logger = LoggerFactory.getLogger(RefuseCollection_IT.class);
+
+
+	@Test
     public void whenReadingServices_itShouldCalculateCorrectly() {
 
 		/*
@@ -293,7 +298,7 @@ public class RefuseCollection_IT {
         try {
             line = reader.readLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return line;
     }
@@ -302,7 +307,7 @@ public class RefuseCollection_IT {
         try {
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 

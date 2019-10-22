@@ -46,10 +46,11 @@ public class UpdateSkills implements StateUpdater, ActivityVisitor {
 
     @Override
     public void visit(TourActivity activity) {
-        if (activity instanceof TourActivity.JobActivity) {
-            Skills skills = ((TourActivity.JobActivity) activity).getJob().getRequiredSkills();
-            skillBuilder.addAllSkills(skills.values());
-        }
+        if (!(activity instanceof TourActivity.JobActivity)) {
+			return;
+		}
+		Skills skills = ((TourActivity.JobActivity) activity).getJob().getRequiredSkills();
+		skillBuilder.addAllSkills(skills.values());
     }
 
     @Override

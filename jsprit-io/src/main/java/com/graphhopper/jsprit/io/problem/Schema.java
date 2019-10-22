@@ -30,11 +30,19 @@ final class Schema {
     public static final String TYPE = "type";
 
 
-    public void dot() {
+    private Schema() {
 
     }
 
-    public static class PathBuilder {
+	public void dot() {
+
+    }
+
+	public static PathBuilder builder() {
+        return new PathBuilder();
+    }
+
+	public static class PathBuilder {
 
         StringBuilder stringBuilder = new StringBuilder();
         boolean justCreated = true;
@@ -53,14 +61,6 @@ final class Schema {
         public String build() {
             return stringBuilder.toString();
         }
-
-    }
-
-    public static PathBuilder builder() {
-        return new PathBuilder();
-    }
-
-    private Schema() {
 
     }
 }

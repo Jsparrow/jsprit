@@ -36,7 +36,86 @@ import java.util.*;
 public class StrategyAnalyser implements AlgorithmEndsListener, StrategySelectedListener, IterationStartsListener {
 
 
-    public static class Strategy {
+    private Map<String, Strategy> strategyMap = new HashMap<>();
+
+	private Collection<VehicleRoutingProblemSolution> last;
+
+	private Writer out;
+
+	@Override
+    public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+        last = new ArrayList<>(solutions);
+    }
+
+	@Override
+    public void informSelectedStrategy(SearchStrategy.DiscoveredSolution discoveredSolution, VehicleRoutingProblem vehicleRoutingProblem, Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions) {
+        String strategyId = discoveredSolution.getStrategyId();
+        strategyMap.putIfAbsent(strategyId, new Strategy(strategyId));
+        Strategy strategy = strategyMap.get(strategyId);
+        strategy.selected();
+        if (discoveredSolution.isAccepted()) {
+			strategy.newSolution();
+		}
+        if (isBetter(vehicleRoutingProblemSolutions, last)) {
+            strategy.improvedSolution(getImprovement(vehicleRoutingProblemSolutions, last));
+
+        }
+    }
+
+	public void setOutWriter(Writer out) {
+        this.out = out;
+    }
+
+	@Override
+    public void informAlgorithmEnds(VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+        if (out == null) {
+			out = new PrintWriter(System.out);
+		}
+        try {
+            for (String stratId : strategyMap.keySet()) {
+                StrategyAnalyser.Strategy strategy = strategyMap.get(stratId);
+                out.write(new StringBuilder().append("id: ").append(stratId).append(", #selected: ").append(strategy.getCountSelected()).append(", #newSolutions: ").append(strategy.getCountNewSolution())
+						.append(", #improvedSolutions: ").append(strategy.getCountImproved()).append(", improvements: ").append(strategy.getImprovements().toString()).append("\n").toString());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                out.flush();
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+	private double getImprovement(Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions, Collection<VehicleRoutingProblemSolution> last) {
+        for (VehicleRoutingProblemSolution solution : vehicleRoutingProblemSolutions) {
+            for (VehicleRoutingProblemSolution lastSolution : last) {
+                if (solution.getCost() < lastSolution.getCost()) {
+					return Math.round(lastSolution.getCost() - solution.getCost());
+				}
+            }
+        }
+        return 0;
+    }
+
+	private boolean isBetter(Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions, Collection<VehicleRoutingProblemSolution> last) {
+        for (VehicleRoutingProblemSolution solution : vehicleRoutingProblemSolutions) {
+            for (VehicleRoutingProblemSolution lastSolution : last) {
+                if (solution.getCost() < lastSolution.getCost()) {
+					return true;
+				}
+            }
+        }
+        return false;
+    }
+
+	public Map<String, Strategy> getStrategies() {
+        return strategyMap;
+    }
+
+	public static class Strategy {
 
         private final String id;
 
@@ -84,79 +163,5 @@ public class StrategyAnalyser implements AlgorithmEndsListener, StrategySelected
         public List<Double> getImprovements() {
             return improvements;
         }
-    }
-
-    private Map<String, Strategy> strategyMap = new HashMap<>();
-
-    private Collection<VehicleRoutingProblemSolution> last;
-
-    private Writer out;
-
-    @Override
-    public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-        last = new ArrayList<>(solutions);
-    }
-
-    @Override
-    public void informSelectedStrategy(SearchStrategy.DiscoveredSolution discoveredSolution, VehicleRoutingProblem vehicleRoutingProblem, Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions) {
-        String strategyId = discoveredSolution.getStrategyId();
-        if (!strategyMap.containsKey(strategyId)) {
-            strategyMap.put(strategyId, new Strategy(strategyId));
-        }
-        Strategy strategy = strategyMap.get(strategyId);
-        strategy.selected();
-        if (discoveredSolution.isAccepted()) strategy.newSolution();
-        if (isBetter(vehicleRoutingProblemSolutions, last)) {
-            strategy.improvedSolution(getImprovement(vehicleRoutingProblemSolutions, last));
-
-        }
-    }
-
-    public void setOutWriter(Writer out) {
-        this.out = out;
-    }
-
-    @Override
-    public void informAlgorithmEnds(VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-        if (out == null) out = new PrintWriter(System.out);
-        try {
-            for (String stratId : strategyMap.keySet()) {
-                StrategyAnalyser.Strategy strategy = strategyMap.get(stratId);
-                out.write("id: " + stratId + ", #selected: " + strategy.getCountSelected() + ", #newSolutions: " + strategy.getCountNewSolution()
-                    + ", #improvedSolutions: " + strategy.getCountImproved() + ", improvements: " + strategy.getImprovements().toString() + "\n");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                out.flush();
-                out.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private double getImprovement(Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions, Collection<VehicleRoutingProblemSolution> last) {
-        for (VehicleRoutingProblemSolution solution : vehicleRoutingProblemSolutions) {
-            for (VehicleRoutingProblemSolution lastSolution : last) {
-                if (solution.getCost() < lastSolution.getCost())
-                    return Math.round(lastSolution.getCost() - solution.getCost());
-            }
-        }
-        return 0;
-    }
-
-    private boolean isBetter(Collection<VehicleRoutingProblemSolution> vehicleRoutingProblemSolutions, Collection<VehicleRoutingProblemSolution> last) {
-        for (VehicleRoutingProblemSolution solution : vehicleRoutingProblemSolutions) {
-            for (VehicleRoutingProblemSolution lastSolution : last) {
-                if (solution.getCost() < lastSolution.getCost()) return true;
-            }
-        }
-        return false;
-    }
-
-    public Map<String, Strategy> getStrategies() {
-        return strategyMap;
     }
 }

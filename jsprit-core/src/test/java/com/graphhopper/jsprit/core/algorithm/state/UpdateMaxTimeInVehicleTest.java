@@ -36,6 +36,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Created by schroeder on 15/09/16.
@@ -104,7 +105,7 @@ public class UpdateMaxTimeInVehicleTest {
 
         stateManager = new StateManager(vrp);
         stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(),vrp.getActivityCosts()));
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         minSlackId = stateManager.createStateId("min-slack-id");
         openJobsId = stateManager.createStateId("open-jobs-id");
@@ -113,12 +114,7 @@ public class UpdateMaxTimeInVehicleTest {
 //        maxTimes.put("s",40d);
 //        maxTimes.put("shipment",20d);
         maxTimeInVehicleConstraint = new UpdateMaxTimeInVehicle(stateManager, minSlackId, vrp.getTransportCosts(), vrp.getActivityCosts(), openJobsId);
-        maxTimeInVehicleConstraint.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-            @Override
-            public Collection<Vehicle> get(VehicleRoute route) {
-                return Arrays.asList((Vehicle)vehicle,(Vehicle)vehicle2,v);
-            }
-        });
+        maxTimeInVehicleConstraint.setVehiclesToUpdate((VehicleRoute route) -> Arrays.asList((Vehicle) vehicle, (Vehicle) vehicle2, v));
         stateManager.addStateUpdater(maxTimeInVehicleConstraint);
     }
 
@@ -178,14 +174,14 @@ public class UpdateMaxTimeInVehicleTest {
 
     @Test
     public void testWithShipment(){
-        stateManager.informInsertionStarts(Arrays.asList(route2), null);
-        for(TourActivity act : route2.getActivities()){
+        stateManager.informInsertionStarts(Collections.singletonList(route2), null);
+        route2.getActivities().forEach(act -> {
             String jobId = ((TourActivity.JobActivity)act).getJob().getId();
-            if(jobId.equals("d1")){
+            if("d1".equals(jobId)){
                 Double slackTime = stateManager.getActivityState(act, v, minSlackId, Double.class);
                 Assert.assertEquals(Double.MAX_VALUE, slackTime, 0.001);
             }
-            if(jobId.equals("shipment")){
+            if("shipment".equals(jobId)){
                 if(act instanceof PickupActivity){
                     Double slackTime = stateManager.getActivityState(act, v, minSlackId, Double.class);
                     Assert.assertEquals(Double.MAX_VALUE, slackTime, 0.001);
@@ -196,7 +192,7 @@ public class UpdateMaxTimeInVehicleTest {
                 }
 
             }
-        }
+        });
     }
 
 

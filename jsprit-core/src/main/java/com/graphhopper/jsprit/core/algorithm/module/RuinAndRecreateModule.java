@@ -44,7 +44,6 @@ public class RuinAndRecreateModule implements SearchStrategyModule {
     private double proportionOfUnassignedJobsToBeReinserted = 1d;
 
     public RuinAndRecreateModule(String moduleName, InsertionStrategy insertion, RuinStrategy ruin) {
-        super();
         this.insertion = insertion;
         this.ruin = ruin;
         this.moduleName = moduleName;
@@ -118,12 +117,13 @@ public class RuinAndRecreateModule implements SearchStrategyModule {
                 insertion.addListener(iListener);
             }
         }
-        if (moduleListener instanceof RuinListener) {
-            RuinListener rListener = (RuinListener) moduleListener;
-            if (!ruin.getListeners().contains(rListener)) {
-                ruin.addListener(rListener);
-            }
-        }
+        if (!(moduleListener instanceof RuinListener)) {
+			return;
+		}
+		RuinListener rListener = (RuinListener) moduleListener;
+		if (!ruin.getListeners().contains(rListener)) {
+		    ruin.addListener(rListener);
+		}
 
     }
 

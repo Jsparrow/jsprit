@@ -67,7 +67,9 @@ public class IterationsWithoutImprovementTest {
         int terminatedAfter = 0;
         for (int i = 0; i < 200; i++) {
             when(discoveredSolution.isAccepted()).thenReturn(false);
-            if (i == 49) when(discoveredSolution.isAccepted()).thenReturn(true);
+            if (i == 49) {
+				when(discoveredSolution.isAccepted()).thenReturn(true);
+			}
             boolean terminate = termination.isPrematureBreak(discoveredSolution);
             if (terminate) {
                 terminatedAfter = i;

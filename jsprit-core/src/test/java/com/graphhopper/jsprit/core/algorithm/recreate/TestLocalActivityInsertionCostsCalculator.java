@@ -43,11 +43,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Collections;
 
 public class TestLocalActivityInsertionCostsCalculator {
 
@@ -637,7 +636,7 @@ public class TestLocalActivityInsertionCostsCalculator {
 
         StateManager stateManager = getStateManager(vrp, route);
         stateManager.updateTimeWindowStates();
-        stateManager.informInsertionStarts(Arrays.asList(route),new ArrayList<Job>());
+        stateManager.informInsertionStarts(Collections.singletonList(route),new ArrayList<Job>());
 
         LocalActivityInsertionCostsCalculator calc = new LocalActivityInsertionCostsCalculator(CostFactory.createEuclideanCosts(), new WaitingTimeCosts(), stateManager);
         calc.setSolutionCompletenessRatio(1.);
@@ -658,7 +657,7 @@ public class TestLocalActivityInsertionCostsCalculator {
         stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), vrp.getActivityCosts()));
         stateManager.addStateUpdater(new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.getTransportCosts(), actCosts));
         stateManager.addStateUpdater(new UpdateFutureWaitingTimes(stateManager, vrp.getTransportCosts()));
-        stateManager.informInsertionStarts(Arrays.asList(route), new ArrayList<Job>());
+        stateManager.informInsertionStarts(Collections.singletonList(route), new ArrayList<Job>());
         return stateManager;
     }
 }

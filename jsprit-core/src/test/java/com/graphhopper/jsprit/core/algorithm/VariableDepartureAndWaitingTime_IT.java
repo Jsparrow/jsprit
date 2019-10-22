@@ -46,15 +46,11 @@ import org.junit.experimental.categories.Category;
  */
 public class VariableDepartureAndWaitingTime_IT {
 
-    static interface AlgorithmFactory {
-        VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
-    }
-
     VehicleRoutingActivityCosts activityCosts;
 
-    AlgorithmFactory algorithmFactory;
+	AlgorithmFactory algorithmFactory;
 
-    @Before
+	@Before
     public void doBefore() {
         activityCosts = new VehicleRoutingActivityCosts() {
 
@@ -69,28 +65,22 @@ public class VariableDepartureAndWaitingTime_IT {
             }
 
         };
-        algorithmFactory = new AlgorithmFactory() {
-            @Override
-            public VehicleRoutingAlgorithm createAlgorithm(final VehicleRoutingProblem vrp) {
-                StateManager stateManager = new StateManager(vrp);
-                ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
+        algorithmFactory = (final VehicleRoutingProblem vrp) -> {
+		    StateManager stateManager = new StateManager(vrp);
+		    ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
 
-                return Jsprit.Builder.newInstance(vrp)
-                    .addCoreStateAndConstraintStuff(true)
-                    .setStateAndConstraintManager(stateManager, constraintManager)
-                    .setObjectiveFunction(new SolutionCostCalculator() {
-                        @Override
-                        public double getCosts(VehicleRoutingProblemSolution solution) {
-                            SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
-                            return sa.getWaitingTime() + sa.getDistance();
-                        }
-                    })
-                    .buildAlgorithm();
-            }
-        };
+		    return Jsprit.Builder.newInstance(vrp)
+		        .addCoreStateAndConstraintStuff(true)
+		        .setStateAndConstraintManager(stateManager, constraintManager)
+		        .setObjectiveFunction((VehicleRoutingProblemSolution solution) -> {
+				    SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+				    return sa.getWaitingTime() + sa.getDistance();
+				})
+		        .buildAlgorithm();
+		};
     }
 
-    @Test
+	@Test
     public void plainSetupShouldWork() {
         VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
         Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(10, 0)).build();
@@ -106,7 +96,7 @@ public class VariableDepartureAndWaitingTime_IT {
         Assert.assertEquals(40., solution.getCost());
     }
 
-    @Test
+	@Test
     public void withTimeWindowsShouldWork() {
         VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
         Service s1 = Service.Builder.newInstance("s1").setTimeWindow(TimeWindow.newInstance(1010, 1100)).setLocation(Location.newInstance(10, 0)).build();
@@ -120,6 +110,10 @@ public class VariableDepartureAndWaitingTime_IT {
         VehicleRoutingAlgorithm vra = algorithmFactory.createAlgorithm(vrp);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
         Assert.assertEquals(40. + 1000., solution.getCost());
+    }
+
+	static interface AlgorithmFactory {
+        VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
     }
 
 

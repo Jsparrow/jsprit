@@ -38,10 +38,14 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenRoutesTest {
 
-    @Test
+    private static final Logger logger = LoggerFactory.getLogger(OpenRoutesTest.class);
+
+	@Test
     public void whenDealingWithOpenRouteAndShipments_insertionShouldNotRequireRouteToBeClosed() {
         VehicleType type = VehicleTypeImpl.Builder.newInstance("type").build();
 
@@ -61,7 +65,8 @@ public class OpenRoutesTest {
             Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
             assertTrue(true);
         } catch (NoSolutionFoundException e) {
-            assertFalse(true);
+            logger.error(e.getMessage(), e);
+			assertFalse(true);
         }
 
     }
@@ -88,7 +93,8 @@ public class OpenRoutesTest {
             Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
             assertTrue(true);
         } catch (NoSolutionFoundException e) {
-            assertFalse(true);
+            logger.error(e.getMessage(), e);
+			assertFalse(true);
         }
 
     }
@@ -162,7 +168,8 @@ public class OpenRoutesTest {
             Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
             assertTrue(true);
         } catch (Exception e) {
-            assertTrue(false);
+            logger.error(e.getMessage(), e);
+			assertTrue(false);
         }
 
 

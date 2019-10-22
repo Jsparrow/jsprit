@@ -48,67 +48,38 @@ import java.util.Map;
 
 public class LiLimReader {
 
-    static class CustomerData {
-        public Coordinate coord;
-        public double start;
-        public double end;
-        public double serviceTime;
-
-        public CustomerData(Coordinate coord, double start, double end, double serviceTime) {
-            super();
-            this.coord = coord;
-            this.start = start;
-            this.end = end;
-            this.serviceTime = serviceTime;
-        }
-    }
-
-    static class Relation {
-        public String from;
-        public String to;
-        public int demand;
-
-        public Relation(String from, String to, int demand) {
-            super();
-            this.from = from;
-            this.to = to;
-            this.demand = demand;
-        }
-
-    }
-
     private static Logger logger = LoggerFactory.getLogger(LiLimReader.class);
 
-    private Builder vrpBuilder;
+	private Builder vrpBuilder;
 
-    private int vehicleCapacity;
+	private int vehicleCapacity;
 
-    private String depotId;
+	private String depotId;
 
-    private Map<String, CustomerData> customers;
+	private Map<String, CustomerData> customers;
 
-    private Collection<Relation> relations;
+	private Collection<Relation> relations;
 
-    private double depotOpeningTime;
+	private double depotOpeningTime;
 
-    private double depotClosingTime;
+	private double depotClosingTime;
 
-    private int fixCosts = 0;
+	private int fixCosts = 0;
 
-    public LiLimReader(Builder vrpBuilder) {
-        customers = new HashMap<String, CustomerData>();
-        relations = new ArrayList<Relation>();
+	public LiLimReader(Builder vrpBuilder) {
+        customers = new HashMap<>();
+        relations = new ArrayList<>();
         this.vrpBuilder = vrpBuilder;
     }
 
-    public LiLimReader(Builder builder, int fixCosts) {
-        customers = new HashMap<String, CustomerData>();
-        relations = new ArrayList<Relation>();
+	public LiLimReader(Builder builder, int fixCosts) {
+        customers = new HashMap<>();
+        relations = new ArrayList<>();
         this.vrpBuilder = builder;
         this.fixCosts = fixCosts;
     }
 
-    public void read(InputStream inputStream) {
+	public void read(InputStream inputStream) {
         readShipments(inputStream);
         buildShipments();
         VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0, vehicleCapacity)
@@ -119,7 +90,7 @@ public class LiLimReader {
         vrpBuilder.addVehicle(vehicle);
     }
 
-    private void buildShipments() {
+	private void buildShipments() {
         Integer counter = 0;
         for (Relation rel : relations) {
             counter++;
@@ -136,11 +107,11 @@ public class LiLimReader {
 
     }
 
-    private BufferedReader getReader(InputStream inputStream) {
+	private BufferedReader getReader(InputStream inputStream) {
         return new BufferedReader(new InputStreamReader(inputStream));
     }
 
-    private void readShipments(InputStream inputStream) {
+	private void readShipments(InputStream inputStream) {
         BufferedReader reader = getReader(inputStream);
         String line = null;
         boolean firstLine = true;
@@ -163,7 +134,7 @@ public class LiLimReader {
                     double serviceTime = getDouble(tokens[6]);
 //					vrpBuilder.addLocation(customerId, coord);
                     customers.put(customerId, new CustomerData(coord, startTimeWindow, endTimeWindow, serviceTime));
-                    if (customerId.equals("0")) {
+                    if ("0".equals(customerId)) {
                         depotId = customerId;
                         depotOpeningTime = startTimeWindow;
                         depotClosingTime = endTimeWindow;
@@ -175,23 +146,50 @@ public class LiLimReader {
             }
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
 
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+	private Coordinate makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
         return new Coordinate(x, y);
     }
 
-    private double getDouble(String string) {
+	private double getDouble(String string) {
         return Double.parseDouble(string);
     }
 
-    private int getInt(String string) {
+	private int getInt(String string) {
         return Integer.parseInt(string);
+    }
+
+	static class CustomerData {
+        public Coordinate coord;
+        public double start;
+        public double end;
+        public double serviceTime;
+
+        public CustomerData(Coordinate coord, double start, double end, double serviceTime) {
+            this.coord = coord;
+            this.start = start;
+            this.end = end;
+            this.serviceTime = serviceTime;
+        }
+    }
+
+    static class Relation {
+        public String from;
+        public String to;
+        public int demand;
+
+        public Relation(String from, String to, int demand) {
+            this.from = from;
+            this.to = to;
+            this.demand = demand;
+        }
+
     }
 
 

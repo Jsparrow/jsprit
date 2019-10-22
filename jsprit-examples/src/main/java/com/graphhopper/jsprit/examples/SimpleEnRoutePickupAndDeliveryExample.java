@@ -35,8 +35,8 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
 import com.graphhopper.jsprit.util.Examples;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 
 public class SimpleEnRoutePickupAndDeliveryExample {
@@ -118,7 +118,7 @@ public class SimpleEnRoutePickupAndDeliveryExample {
 		/*
 		 * plot problem with solution
 		 */
-        Plotter solutionPlotter = new Plotter(problem, Arrays.asList(Solutions.bestOf(solutions).getRoutes().iterator().next()));
+        Plotter solutionPlotter = new Plotter(problem, Collections.singletonList(Solutions.bestOf(solutions).getRoutes().iterator().next()));
         solutionPlotter.plotShipments(true);
         solutionPlotter.plot("output/simpleEnRoutePickupAndDeliveryExample_solution.png", "en-route pickup and delivery");
 

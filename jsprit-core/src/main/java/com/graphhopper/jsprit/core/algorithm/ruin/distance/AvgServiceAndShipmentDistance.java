@@ -23,6 +23,8 @@ import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.util.EuclideanDistanceCalculator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -34,10 +36,10 @@ import com.graphhopper.jsprit.core.util.EuclideanDistanceCalculator;
  */
 public class AvgServiceAndShipmentDistance implements JobDistance {
 
-    private VehicleRoutingTransportCosts costs;
+    private static final Logger logger = LoggerFactory.getLogger(AvgServiceAndShipmentDistance.class);
+	private VehicleRoutingTransportCosts costs;
 
     public AvgServiceAndShipmentDistance(VehicleRoutingTransportCosts costs) {
-        super();
         this.costs = costs;
 
     }
@@ -49,7 +51,9 @@ public class AvgServiceAndShipmentDistance implements JobDistance {
      */
     @Override
     public double getDistance(Job i, Job j) {
-        if (i.equals(j)) return 0.0;
+        if (i.equals(j)) {
+			return 0.0;
+		}
 
         if (i instanceof Service && j instanceof Service) {
             return calcDist((Service) i, (Service) j);
@@ -86,6 +90,7 @@ public class AvgServiceAndShipmentDistance implements JobDistance {
         try {
             return costs.getTransportCost(location_i, location_j, 0.0, null, null);
         } catch (IllegalStateException e) {
+			logger.error(e.getMessage(), e);
             // now try the euclidean distance between these two services
         }
         return EuclideanDistanceCalculator.calculateDistance(location_i.getCoordinate(), location_j.getCoordinate());

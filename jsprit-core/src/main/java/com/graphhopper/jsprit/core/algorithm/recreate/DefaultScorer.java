@@ -71,8 +71,11 @@ public class DefaultScorer implements ScoringFunction  {
     private TimeWindow getLargestTimeWindow(Activity act) {
         TimeWindow timeWindow = null;
         for (TimeWindow tw : act.getTimeWindows()) {
-            if (timeWindow == null) timeWindow = tw;
-            else if (tw.larger(timeWindow)) timeWindow = tw;
+            if (timeWindow == null) {
+				timeWindow = tw;
+			} else if (tw.larger(timeWindow)) {
+				timeWindow = tw;
+			}
         }
         return TimeWindow.newInstance(0, Double.MAX_VALUE);
     }
@@ -84,6 +87,6 @@ public class DefaultScorer implements ScoringFunction  {
 
     @Override
     public String toString() {
-        return "[name=defaultScorer][twParam=" + timeWindowParam + "][depotDistanceParam=" + depotDistanceParam + "]";
+        return new StringBuilder().append("[name=defaultScorer][twParam=").append(timeWindowParam).append("][depotDistanceParam=").append(depotDistanceParam).append("]").toString();
     }
 }

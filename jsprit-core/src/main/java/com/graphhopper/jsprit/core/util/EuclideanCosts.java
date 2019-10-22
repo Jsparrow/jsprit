@@ -24,6 +24,8 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -31,7 +33,9 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 public class EuclideanCosts extends AbstractForwardVehicleRoutingTransportCosts {
 
-    public int speed = 1;
+    private static final Logger logger = LoggerFactory.getLogger(EuclideanCosts.class);
+
+	public int speed = 1;
 
     public double detourFactor = 1.0;
 
@@ -57,7 +61,8 @@ public class EuclideanCosts extends AbstractForwardVehicleRoutingTransportCosts 
         try {
             return EuclideanDistanceCalculator.calculateDistance(from, to) * detourFactor;
         } catch (NullPointerException e) {
-            throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
+            logger.error(e.getMessage(), e);
+			throw new NullPointerException("cannot calculate euclidean distance. coordinates are missing. either add coordinates or use another transport-cost-calculator.");
         }
     }
 

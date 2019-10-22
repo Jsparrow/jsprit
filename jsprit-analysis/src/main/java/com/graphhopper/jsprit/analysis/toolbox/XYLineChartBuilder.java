@@ -29,13 +29,31 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author schroeder
  */
 public class XYLineChartBuilder {
 
-    /**
+    private static final Logger logger = LoggerFactory.getLogger(XYLineChartBuilder.class);
+
+	private ConcurrentHashMap<String, XYSeries> seriesMap = new ConcurrentHashMap<>();
+
+	private final String xDomain;
+
+	private final String yDomain;
+
+	private final String chartName;
+
+	private XYLineChartBuilder(String chartName, String xDomainName, String yDomainName) {
+        this.xDomain = xDomainName;
+        this.yDomain = yDomainName;
+        this.chartName = chartName;
+    }
+
+	/**
      * Helper that just saves the chart as specified png-file. The width of the image is 1000 and height 600.
      *
      * @param chart
@@ -45,11 +63,11 @@ public class XYLineChartBuilder {
         try {
             ChartUtilities.saveChartAsPNG(new File(pngFilename), chart, 1000, 600);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 
-    /**
+	/**
      * Returns a new instance of the builder.
      *
      * @param chartTitle  appears on top of the XYLineChart
@@ -61,21 +79,7 @@ public class XYLineChartBuilder {
         return new XYLineChartBuilder(chartTitle, xDomainName, yDomainName);
     }
 
-    private ConcurrentHashMap<String, XYSeries> seriesMap = new ConcurrentHashMap<String, XYSeries>();
-
-    private final String xDomain;
-
-    private final String yDomain;
-
-    private final String chartName;
-
-    private XYLineChartBuilder(String chartName, String xDomainName, String yDomainName) {
-        this.xDomain = xDomainName;
-        this.yDomain = yDomainName;
-        this.chartName = chartName;
-    }
-
-    /**
+	/**
      * Adds data to the according series (i.e. XYLine).
      *
      * @param seriesName
@@ -89,16 +93,14 @@ public class XYLineChartBuilder {
         seriesMap.get(seriesName).add(xVal, yVal);
     }
 
-    /**
+	/**
      * Builds and returns JFreeChart.
      *
      * @return
      */
     public JFreeChart build() {
         XYSeriesCollection collection = new XYSeriesCollection();
-        for (XYSeries s : seriesMap.values()) {
-            collection.addSeries(s);
-        }
+        seriesMap.values().forEach(collection::addSeries);
         JFreeChart chart = ChartFactory.createXYLineChart(chartName, xDomain, yDomain, collection, PlotOrientation.VERTICAL, true, true, false);
         XYPlot plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.WHITE);

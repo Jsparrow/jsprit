@@ -70,7 +70,7 @@ public class VrpXMLWriterTest {
         VehicleRoutingProblem vrp = builder.addJob(s1).build();
         VehicleRoutingProblem readVrp = writeAndRereadXml(vrp);
         Service s1_read = (Service) readVrp.getJobs().get("1");
-        assertTrue(s1_read.getName().equals("cleaning"));
+        assertTrue("cleaning".equals(s1_read.getName()));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class VrpXMLWriterTest {
         VehicleRoutingProblem vrp = builder.addJob(s1).build();
         VehicleRoutingProblem readVrp = writeAndRereadXml(vrp);
         Shipment s1_read = (Shipment) readVrp.getJobs().get("1");
-        assertTrue(s1_read.getName().equals("cleaning"));
+        assertTrue("cleaning".equals(s1_read.getName()));
         Assert.assertEquals(1, s1_read.getPickupLocation().getIndex());
     }
 
@@ -256,10 +256,7 @@ public class VrpXMLWriterTest {
     }
 
     private Vehicle getVehicle(String v1, VehicleRoutingProblem readVrp) {
-        for (Vehicle v : readVrp.getVehicles()) {
-            if (v.getId().equals(v1)) return v;
-        }
-        return null;
+        return readVrp.getVehicles().stream().filter(v -> v.getId().equals(v1)).findFirst().orElse(null);
     }
 
     @Test
@@ -535,8 +532,7 @@ public class VrpXMLWriterTest {
     }
 
     private Vehicle getVehicle(String string, Collection<Vehicle> vehicles) {
-        for (Vehicle v : vehicles) if (string.equals(v.getId())) return v;
-        return null;
+        return vehicles.stream().filter(v -> string.equals(v.getId())).findFirst().orElse(null);
     }
 
     @Test
@@ -553,10 +549,10 @@ public class VrpXMLWriterTest {
         VehicleRoutingProblem vrp = builder.addJob(s1).addJob(s2).build();
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v1).addService(s1).addService(s2).build();
-        List<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        List<VehicleRoute> routes = new ArrayList<>();
         routes.add(route);
         VehicleRoutingProblemSolution solution = new VehicleRoutingProblemSolution(routes, 10.);
-        List<VehicleRoutingProblemSolution> solutions = new ArrayList<VehicleRoutingProblemSolution>();
+        List<VehicleRoutingProblemSolution> solutions = new ArrayList<>();
         solutions.add(solution);
 
         List<VehicleRoutingProblemSolution> solutionsToRead = writeAndRereadXmlWithSolutions(vrp, solutions);
@@ -580,11 +576,11 @@ public class VrpXMLWriterTest {
         VehicleRoutingProblem vrp = builder.addJob(s1).addJob(s2).build();
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v1).addService(s1).build();
-        List<VehicleRoute> routes = new ArrayList<VehicleRoute>();
+        List<VehicleRoute> routes = new ArrayList<>();
         routes.add(route);
         VehicleRoutingProblemSolution solution = new VehicleRoutingProblemSolution(routes, 10.);
         solution.getUnassignedJobs().add(s2);
-        List<VehicleRoutingProblemSolution> solutions = new ArrayList<VehicleRoutingProblemSolution>();
+        List<VehicleRoutingProblemSolution> solutions = new ArrayList<>();
         solutions.add(solution);
 
         List<VehicleRoutingProblemSolution> solutionsToRead = writeAndRereadXmlWithSolutions(vrp, solutions);
@@ -624,7 +620,7 @@ public class VrpXMLWriterTest {
         ByteArrayOutputStream os = (ByteArrayOutputStream) vrpXMLWriter.write();
         ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
         VehicleRoutingProblem.Builder vrpToReadBuilder = VehicleRoutingProblem.Builder.newInstance();
-        List<VehicleRoutingProblemSolution> solutionsToRead = new ArrayList<VehicleRoutingProblemSolution>();
+        List<VehicleRoutingProblemSolution> solutionsToRead = new ArrayList<>();
         new VrpXMLReader(vrpToReadBuilder, solutionsToRead).read(is);
         return solutionsToRead;
     }

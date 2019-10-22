@@ -44,37 +44,35 @@ import java.io.InputStreamReader;
 
 public class SolomonReader {
 
-    /**
+    private static Logger logger = LoggerFactory.getLogger(SolomonReader.class);
+
+	private final VehicleRoutingProblem.Builder vrpBuilder;
+
+	private double coordProjectionFactor = 1;
+
+	private double timeProjectionFactor = 1;
+
+	private double variableCostProjectionFactor = 1;
+
+	private double fixedCostPerVehicle = 0.0;
+
+	public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder) {
+        this.vrpBuilder = vrpBuilder;
+    }
+
+	public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder, double fixedCostPerVehicle) {
+        this.vrpBuilder = vrpBuilder;
+        this.fixedCostPerVehicle = fixedCostPerVehicle;
+    }
+
+	/**
      * @param costProjectionFactor the costProjectionFactor to set
      */
     public void setVariableCostProjectionFactor(double costProjectionFactor) {
         this.variableCostProjectionFactor = costProjectionFactor;
     }
 
-    private static Logger logger = LoggerFactory.getLogger(SolomonReader.class);
-
-    private final VehicleRoutingProblem.Builder vrpBuilder;
-
-    private double coordProjectionFactor = 1;
-
-    private double timeProjectionFactor = 1;
-
-    private double variableCostProjectionFactor = 1;
-
-    private double fixedCostPerVehicle = 0.0;
-
-    public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
-        this.vrpBuilder = vrpBuilder;
-    }
-
-    public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder, double fixedCostPerVehicle) {
-        super();
-        this.vrpBuilder = vrpBuilder;
-        this.fixedCostPerVehicle = fixedCostPerVehicle;
-    }
-
-    public void read(InputStream inputStream) {
+	public void read(InputStream inputStream) {
         vrpBuilder.setFleetSize(FleetSize.INFINITE);
         BufferedReader reader = getReader(inputStream);
         int vehicleCapacity = 0;
@@ -91,7 +89,9 @@ public class SolomonReader {
                 continue;
             }
             if (counter > 9) {
-                if (tokens.length < 7) continue;
+                if (tokens.length < 7) {
+					continue;
+				}
                 Coordinate coord = makeCoord(tokens[1], tokens[2]);
                 String customerId = tokens[0];
                 int demand = Integer.parseInt(tokens[3]);
@@ -119,11 +119,11 @@ public class SolomonReader {
         close(reader);
     }
 
-    public void setCoordProjectionFactor(double coordProjectionFactor) {
+	public void setCoordProjectionFactor(double coordProjectionFactor) {
         this.coordProjectionFactor = coordProjectionFactor;
     }
 
-    private void close(BufferedReader reader) {
+	private void close(BufferedReader reader) {
         try {
             reader.close();
         } catch (IOException e) {
@@ -131,7 +131,7 @@ public class SolomonReader {
         }
     }
 
-    private String readLine(BufferedReader reader) {
+	private String readLine(BufferedReader reader) {
         try {
             return reader.readLine();
         } catch (IOException e) {
@@ -139,17 +139,17 @@ public class SolomonReader {
         }
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+	private Coordinate makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
         return new Coordinate(x * coordProjectionFactor, y * coordProjectionFactor);
     }
 
-    private BufferedReader getReader(InputStream inputStream) {
+	private BufferedReader getReader(InputStream inputStream) {
         return new BufferedReader(new InputStreamReader(inputStream));
     }
 
-    public void setTimeProjectionFactor(double timeProjection) {
+	public void setTimeProjectionFactor(double timeProjection) {
         this.timeProjectionFactor = timeProjection;
 
     }

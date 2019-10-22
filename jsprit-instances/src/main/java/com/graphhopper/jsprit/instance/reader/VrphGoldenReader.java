@@ -40,34 +40,16 @@ import java.io.*;
  */
 public class VrphGoldenReader {
 
-    /**
-     * <b>FSMD</b> - Fleet Size and Mix with Dependent costs
-     * <p><b>FSMF</b> - Fleet Size and Mix with Fixed costs
-     * <p><b>FSMFD</b> - Fleet Size and Mix with Fixed and Dependent costs
-     * <p><b>HVRPD</b> - Heterogeneous Vehicle Routing Problem with Dependent costs and finite (limited) fleet
-     * <p><b>HVRPFD</b> - Heterogeneous Vehicle Routing Problem with Fixed and Dependent costs and finite (limited) fleet
-     *
-     * @author schroeder
-     */
-    public enum VrphType {
-        FSMD,
-        HVRPD,
-        FSMF,
-        FSMFD,
-        HVRPFD
-    }
-
     private final VehicleRoutingProblem.Builder vrpBuilder;
 
-    private final VrphType vrphType;
+	private final VrphType vrphType;
 
-    public VrphGoldenReader(Builder vrpBuilder, VrphType vrphType) {
-        super();
+	public VrphGoldenReader(Builder vrpBuilder, VrphType vrphType) {
         this.vrpBuilder = vrpBuilder;
         this.vrphType = vrphType;
     }
 
-    public void read(String filename) {
+	public void read(String filename) {
         BufferedReader reader = getReader(filename);
         String line;
         boolean firstline = true;
@@ -76,7 +58,9 @@ public class VrphGoldenReader {
         Integer nuOfCustomer = 0;
         while ((line = readLine(reader)) != null) {
             String trimedLine = line.trim();
-            if (trimedLine.startsWith("//")) continue;
+            if (trimedLine.startsWith("//")) {
+				continue;
+			}
             String[] tokens = trimedLine.split("\\s+");
             if (firstline) {
                 nuOfCustomer = Integer.parseInt(tokens[0]);
@@ -94,38 +78,42 @@ public class VrphGoldenReader {
             } else if (trimedLine.startsWith("v")) {
                 VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("type_" + tokens[1]).addCapacityDimension(0, Integer.parseInt(tokens[2]));
                 int nuOfVehicles = 1;
-                if (vrphType.equals(VrphType.FSMF)) {
+                if (vrphType == VrphType.FSMF) {
                     typeBuilder.setFixedCost(Double.parseDouble(tokens[3]));
-                } else if (vrphType.equals(VrphType.FSMFD)) {
+                } else if (vrphType == VrphType.FSMFD) {
                     typeBuilder.setFixedCost(Double.parseDouble(tokens[3]));
                     if (tokens.length > 4) {
                         typeBuilder.setCostPerDistance(Double.parseDouble(tokens[4]));
-                    } else
-                        throw new IllegalStateException("option " + vrphType + " cannot be applied with this instance");
-                } else if (vrphType.equals(VrphType.FSMD)) {
+                    } else {
+						throw new IllegalStateException(new StringBuilder().append("option ").append(vrphType).append(" cannot be applied with this instance").toString());
+					}
+                } else if (vrphType == VrphType.FSMD) {
                     if (tokens.length > 4) {
                         typeBuilder.setCostPerDistance(Double.parseDouble(tokens[4]));
-                    } else
-                        throw new IllegalStateException("option " + vrphType + " cannot be applied with this instance");
-                } else if (vrphType.equals(VrphType.HVRPD)) {
+                    } else {
+						throw new IllegalStateException(new StringBuilder().append("option ").append(vrphType).append(" cannot be applied with this instance").toString());
+					}
+                } else if (vrphType == VrphType.HVRPD) {
                     if (tokens.length > 4) {
                         typeBuilder.setCostPerDistance(Double.parseDouble(tokens[4]));
                         nuOfVehicles = Integer.parseInt(tokens[5]);
                         vrpBuilder.setFleetSize(FleetSize.FINITE);
-                    } else
-                        throw new IllegalStateException("option " + vrphType + " cannot be applied with this instance");
-                } else if (vrphType.equals(VrphType.HVRPFD)) {
+                    } else {
+						throw new IllegalStateException(new StringBuilder().append("option ").append(vrphType).append(" cannot be applied with this instance").toString());
+					}
+                } else if (vrphType == VrphType.HVRPFD) {
                     if (tokens.length > 4) {
                         typeBuilder.setFixedCost(Double.parseDouble(tokens[3]));
                         typeBuilder.setCostPerDistance(Double.parseDouble(tokens[4]));
                         nuOfVehicles = Integer.parseInt(tokens[5]);
                         vrpBuilder.setFleetSize(FleetSize.FINITE);
-                    } else
-                        throw new IllegalStateException("option " + vrphType + " cannot be applied with this instance");
+                    } else {
+						throw new IllegalStateException(new StringBuilder().append("option ").append(vrphType).append(" cannot be applied with this instance").toString());
+					}
                 }
                 for (int i = 0; i < nuOfVehicles; i++) {
                     VehicleTypeImpl type = typeBuilder.build();
-                    VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle_" + tokens[1] + "_" + i)
+                    VehicleImpl vehicle = VehicleImpl.Builder.newInstance(new StringBuilder().append("vehicle_").append(tokens[1]).append("_").append(i).toString())
                         .setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).setType(type).build();
                     vrpBuilder.addVehicle(vehicle);
                 }
@@ -134,7 +122,7 @@ public class VrphGoldenReader {
         closeReader(reader);
     }
 
-    private void closeReader(BufferedReader reader) {
+	private void closeReader(BufferedReader reader) {
         try {
             reader.close();
         } catch (IOException e) {
@@ -142,7 +130,7 @@ public class VrphGoldenReader {
         }
     }
 
-    private String readLine(BufferedReader reader) {
+	private String readLine(BufferedReader reader) {
         String readLine = null;
         try {
             readLine = reader.readLine();
@@ -152,7 +140,7 @@ public class VrphGoldenReader {
         return readLine;
     }
 
-    private BufferedReader getReader(String filename) {
+	private BufferedReader getReader(String filename) {
         BufferedReader bufferedReader = null;
         try {
             bufferedReader = new BufferedReader(new FileReader(new File(filename)));
@@ -160,6 +148,23 @@ public class VrphGoldenReader {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+	/**
+     * <b>FSMD</b> - Fleet Size and Mix with Dependent costs
+     * <p><b>FSMF</b> - Fleet Size and Mix with Fixed costs
+     * <p><b>FSMFD</b> - Fleet Size and Mix with Fixed and Dependent costs
+     * <p><b>HVRPD</b> - Heterogeneous Vehicle Routing Problem with Dependent costs and finite (limited) fleet
+     * <p><b>HVRPFD</b> - Heterogeneous Vehicle Routing Problem with Fixed and Dependent costs and finite (limited) fleet
+     *
+     * @author schroeder
+     */
+    public enum VrphType {
+        FSMD,
+        HVRPD,
+        FSMF,
+        FSMFD,
+        HVRPFD
     }
 
 

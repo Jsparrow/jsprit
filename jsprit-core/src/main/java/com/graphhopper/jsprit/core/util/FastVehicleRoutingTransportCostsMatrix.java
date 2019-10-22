@@ -33,7 +33,84 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
  */
 public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRoutingTransportCosts {
 
-    /**
+    private final boolean isSymmetric;
+
+	private final double[][][] matrix;
+
+	private int noLocations;
+
+	private FastVehicleRoutingTransportCostsMatrix(Builder builder) {
+        this.isSymmetric = builder.isSymmetric;
+        matrix = builder.matrix;
+        noLocations = builder.noLocations;
+    }
+
+	/**
+     * First dim is from, second to and third indicates whether it is a distance value (index=0) or time value (index=1).
+     *
+     * @return
+     */
+    public double[][][] getMatrix() {
+        return matrix;
+    }
+
+	@Override
+    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (from.getIndex() < 0 || to.getIndex() < 0) {
+			throw new IllegalArgumentException(new StringBuilder().append("index of from ").append(from).append(" to ").append(to).append(" < 0 ").toString());
+		}
+        int timeIndex = 1;
+        return get(from.getIndex(), to.getIndex(), timeIndex);
+    }
+
+	private double get(int from, int to, int indicatorIndex) {
+        double value;
+        if (isSymmetric) {
+            if (from < to) {
+				value = matrix[from][to][indicatorIndex];
+			} else {
+				value = matrix[to][from][indicatorIndex];
+			}
+        } else {
+            value = matrix[from][to][indicatorIndex];
+        }
+        return value;
+    }
+
+	/**
+     * Returns the distance from to to.
+     *
+     * @param fromIndex from location index
+     * @param toIndex   to location index
+     * @return the distance
+     */
+    public double getDistance(int fromIndex, int toIndex) {
+        int distanceIndex = 0;
+        return get(fromIndex, toIndex, distanceIndex);
+    }
+
+	@Override
+    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
+        return getDistance(from.getIndex(), to.getIndex());
+    }
+
+	@Override
+    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (from.getIndex() < 0 || to.getIndex() < 0) {
+			throw new IllegalArgumentException(new StringBuilder().append("index of from ").append(from).append(" to ").append(to).append(" < 0 ").toString());
+		}
+        if (vehicle == null) {
+			return getDistance(from.getIndex(), to.getIndex());
+		}
+        VehicleTypeImpl.VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
+        return costParams.perDistanceUnit * getDistance(from.getIndex(), to.getIndex()) + costParams.perTransportTimeUnit * getTransportTime(from, to, departureTime, driver, vehicle);
+    }
+
+	public int getNoLocations() {
+        return noLocations;
+    }
+
+	/**
      * Builder that builds the matrix.
      *
      * @author schroeder
@@ -46,7 +123,13 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
 
         private final int noLocations;
 
-        /**
+        private Builder(int noLocations, boolean isSymmetric) {
+            this.isSymmetric = isSymmetric;
+            matrix = new double[noLocations][noLocations][2];
+            this.noLocations = noLocations;
+        }
+
+		/**
          * Creates a new builder returning the matrix-builder.
          * <p>If you want to consider symmetric matrices, set isSymmetric to true.
          *
@@ -57,13 +140,7 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
             return new Builder(noLocations, isSymmetric);
         }
 
-        private Builder(int noLocations, boolean isSymmetric) {
-            this.isSymmetric = isSymmetric;
-            matrix = new double[noLocations][noLocations][2];
-            this.noLocations = noLocations;
-        }
-
-        /**
+		/**
          * Adds a transport-distance for a particular relation.
          *
          * @param fromIndex from location index
@@ -76,14 +153,19 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
             return this;
         }
 
-        private void add(int fromIndex, int toIndex, int indicatorIndex, double value) {
+		private void add(int fromIndex, int toIndex, int indicatorIndex, double value) {
             if (isSymmetric) {
-                if (fromIndex < toIndex) matrix[fromIndex][toIndex][indicatorIndex] = value;
-                else matrix[toIndex][fromIndex][indicatorIndex] = value;
-            } else matrix[fromIndex][toIndex][indicatorIndex] = value;
+                if (fromIndex < toIndex) {
+					matrix[fromIndex][toIndex][indicatorIndex] = value;
+				} else {
+					matrix[toIndex][fromIndex][indicatorIndex] = value;
+				}
+            } else {
+				matrix[fromIndex][toIndex][indicatorIndex] = value;
+			}
         }
 
-        /**
+		/**
          * Adds transport-time for a particular relation.
          *
          * @param fromIndex from location index
@@ -96,12 +178,13 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
             return this;
         }
 
-        public Builder addTransportTimeAndDistance(int fromIndex, int toIndex, double time, double distance) {
+		public Builder addTransportTimeAndDistance(int fromIndex, int toIndex, double time, double distance) {
             addTransportTime(fromIndex, toIndex, time);
             addTransportDistance(fromIndex, toIndex, distance);
             return this;
         }
-        /**
+
+		/**
          * Builds the matrix.
          *
          * @return matrix
@@ -111,76 +194,6 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
         }
 
 
-    }
-
-    private final boolean isSymmetric;
-
-    private final double[][][] matrix;
-
-    private int noLocations;
-
-    private FastVehicleRoutingTransportCostsMatrix(Builder builder) {
-        this.isSymmetric = builder.isSymmetric;
-        matrix = builder.matrix;
-        noLocations = builder.noLocations;
-    }
-
-    /**
-     * First dim is from, second to and third indicates whether it is a distance value (index=0) or time value (index=1).
-     *
-     * @return
-     */
-    public double[][][] getMatrix() {
-        return matrix;
-    }
-
-    @Override
-    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (from.getIndex() < 0 || to.getIndex() < 0)
-            throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
-        int timeIndex = 1;
-        return get(from.getIndex(), to.getIndex(), timeIndex);
-    }
-
-    private double get(int from, int to, int indicatorIndex) {
-        double value;
-        if (isSymmetric) {
-            if (from < to) value = matrix[from][to][indicatorIndex];
-            else value = matrix[to][from][indicatorIndex];
-        } else {
-            value = matrix[from][to][indicatorIndex];
-        }
-        return value;
-    }
-
-    /**
-     * Returns the distance from to to.
-     *
-     * @param fromIndex from location index
-     * @param toIndex   to location index
-     * @return the distance
-     */
-    public double getDistance(int fromIndex, int toIndex) {
-        int distanceIndex = 0;
-        return get(fromIndex, toIndex, distanceIndex);
-    }
-
-    @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
-        return getDistance(from.getIndex(), to.getIndex());
-    }
-
-    @Override
-    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (from.getIndex() < 0 || to.getIndex() < 0)
-            throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
-        if (vehicle == null) return getDistance(from.getIndex(), to.getIndex());
-        VehicleTypeImpl.VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-        return costParams.perDistanceUnit * getDistance(from.getIndex(), to.getIndex()) + costParams.perTransportTimeUnit * getTransportTime(from, to, departureTime, driver, vehicle);
-    }
-
-    public int getNoLocations() {
-        return noLocations;
     }
 
 

@@ -38,7 +38,6 @@ public class ServiceLoadActivityLevelConstraint implements HardActivityConstrain
     private Capacity defaultValue;
 
     public ServiceLoadActivityLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
         defaultValue = Capacity.Builder.newInstance().build();
     }
@@ -49,26 +48,32 @@ public class ServiceLoadActivityLevelConstraint implements HardActivityConstrain
         Capacity prevMaxLoad;
         if (prevAct instanceof Start) {
             futureMaxLoad = stateManager.getRouteState(iFacts.getRoute(), InternalStates.MAXLOAD, Capacity.class);
-            if (futureMaxLoad == null) futureMaxLoad = defaultValue;
+            if (futureMaxLoad == null) {
+				futureMaxLoad = defaultValue;
+			}
             prevMaxLoad = stateManager.getRouteState(iFacts.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-            if (prevMaxLoad == null) prevMaxLoad = defaultValue;
+            if (prevMaxLoad == null) {
+				prevMaxLoad = defaultValue;
+			}
         } else {
             futureMaxLoad = stateManager.getActivityState(prevAct, InternalStates.FUTURE_MAXLOAD, Capacity.class);
-            if (futureMaxLoad == null) futureMaxLoad = defaultValue;
+            if (futureMaxLoad == null) {
+				futureMaxLoad = defaultValue;
+			}
             prevMaxLoad = stateManager.getActivityState(prevAct, InternalStates.PAST_MAXLOAD, Capacity.class);
-            if (prevMaxLoad == null) prevMaxLoad = defaultValue;
+            if (prevMaxLoad == null) {
+				prevMaxLoad = defaultValue;
+			}
 
         }
-        if (newAct instanceof PickupService || newAct instanceof ServiceActivity) {
-            if (!Capacity.addup(newAct.getSize(), futureMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
-                return ConstraintsStatus.NOT_FULFILLED;
-            }
-        }
-        if (newAct instanceof DeliverService) {
-            if (!Capacity.addup(Capacity.invert(newAct.getSize()), prevMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
-                return ConstraintsStatus.NOT_FULFILLED_BREAK;
-            }
-        }
+        boolean condition = (newAct instanceof PickupService || newAct instanceof ServiceActivity) && !Capacity.addup(newAct.getSize(), futureMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions());
+		if (condition) {
+		    return ConstraintsStatus.NOT_FULFILLED;
+		}
+        boolean condition1 = newAct instanceof DeliverService && !Capacity.addup(Capacity.invert(newAct.getSize()), prevMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions());
+		if (condition1) {
+		    return ConstraintsStatus.NOT_FULFILLED_BREAK;
+		}
         return ConstraintsStatus.FULFILLED;
     }
 }

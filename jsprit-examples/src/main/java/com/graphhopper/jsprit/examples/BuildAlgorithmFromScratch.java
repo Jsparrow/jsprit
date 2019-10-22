@@ -51,60 +51,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuildAlgorithmFromScratch {
 
 
-    public static class MyBestStrategy extends AbstractInsertionStrategy {
+    private static final Logger logger = LoggerFactory.getLogger(BuildAlgorithmFromScratch.class);
 
-        private JobInsertionCostsCalculatorLight insertionCalculator;
-
-
-        public MyBestStrategy(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-            super(vrp);
-            insertionCalculator = JobInsertionCostsCalculatorLightFactory.createStandardCalculator(vrp, fleetManager, stateManager, constraintManager);
-        }
-
-        @Override
-        public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
-            List<Job> badJobs = new ArrayList<Job>();
-            List<Job> unassigned = new ArrayList<Job>(unassignedJobs);
-            Collections.shuffle(unassigned, random);
-
-            for (Job j : unassigned) {
-
-                InsertionData bestInsertionData = InsertionData.createEmptyInsertionData();
-                VehicleRoute bestRoute = null;
-                //look for inserting unassigned job into existing route
-                for (VehicleRoute r : vehicleRoutes) {
-                    InsertionData insertionData = insertionCalculator.getInsertionData(j, r, bestInsertionData.getInsertionCost());
-                    if (insertionData instanceof InsertionData.NoInsertionFound) continue;
-                    if (insertionData.getInsertionCost() < bestInsertionData.getInsertionCost()) {
-                        bestInsertionData = insertionData;
-                        bestRoute = r;
-                    }
-                }
-                //try whole new route
-                VehicleRoute empty = VehicleRoute.emptyRoute();
-                InsertionData insertionData = insertionCalculator.getInsertionData(j, empty, bestInsertionData.getInsertionCost());
-                if (!(insertionData instanceof InsertionData.NoInsertionFound)) {
-                    if (insertionData.getInsertionCost() < bestInsertionData.getInsertionCost()) {
-                        vehicleRoutes.add(empty);
-                        insertJob(j, insertionData, empty);
-                    }
-                } else {
-                    if (bestRoute != null) insertJob(j, bestInsertionData, bestRoute);
-                    else badJobs.add(j);
-                }
-            }
-            return badJobs;
-        }
-
-
-    }
-
-
-    public static void main(String[] args) {
+	public static void main(String[] args) {
         Examples.createOutputFolder();
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
@@ -128,7 +83,7 @@ public class BuildAlgorithmFromScratch {
     }
 
 
-    public static VehicleRoutingAlgorithm createAlgorithm(final VehicleRoutingProblem vrp) {
+	public static VehicleRoutingAlgorithm createAlgorithm(final VehicleRoutingProblem vrp) {
 
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
         StateManager stateManager = new StateManager(vrp);
@@ -180,35 +135,80 @@ public class BuildAlgorithmFromScratch {
         //if you want to switch on/off strategies or adapt their weight within the search, you can do the following
         //e.g. from iteration 50 on, switch off first strategy
         //switch on again at iteration 90 with slightly higher weight
-        IterationStartsListener strategyAdaptor = new IterationStartsListener() {
-            @Override
-            public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-                if (i == 50) {
-                    vra.getSearchStrategyManager().informStrategyWeightChanged("firstStrategy", 0.0);
-                    System.out.println("switched off firstStrategy");
-                }
-                if (i == 90) {
-                    vra.getSearchStrategyManager().informStrategyWeightChanged("firstStrategy", 0.7);
-                    System.out.println("switched on firstStrategy again with higher weight");
-                }
-            }
-        };
+        IterationStartsListener strategyAdaptor = (int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) -> {
+		    if (i == 50) {
+		        vra.getSearchStrategyManager().informStrategyWeightChanged("firstStrategy", 0.0);
+		        logger.info("switched off firstStrategy");
+		    }
+		    if (i == 90) {
+		        vra.getSearchStrategyManager().informStrategyWeightChanged("firstStrategy", 0.7);
+		        logger.info("switched on firstStrategy again with higher weight");
+		    }
+		};
         vra.addListener(strategyAdaptor);
         return vra;
 
     }
 
-    private static SolutionCostCalculator getObjectiveFunction(final VehicleRoutingProblem vrp) {
-        return new SolutionCostCalculator() {
+
+	private static SolutionCostCalculator getObjectiveFunction(final VehicleRoutingProblem vrp) {
+        return (VehicleRoutingProblemSolution solution) -> {
+		    SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+		    return analyser.getVariableTransportCosts() + solution.getUnassignedJobs().size() * 500.;
+		};
+    }
+
+	public static class MyBestStrategy extends AbstractInsertionStrategy {
+
+        private JobInsertionCostsCalculatorLight insertionCalculator;
 
 
-            @Override
-            public double getCosts(VehicleRoutingProblemSolution solution) {
-                SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
-                return analyser.getVariableTransportCosts() + solution.getUnassignedJobs().size() * 500.;
+        public MyBestStrategy(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
+            super(vrp);
+            insertionCalculator = JobInsertionCostsCalculatorLightFactory.createStandardCalculator(vrp, fleetManager, stateManager, constraintManager);
+        }
+
+        @Override
+        public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
+            List<Job> badJobs = new ArrayList<>();
+            List<Job> unassigned = new ArrayList<>(unassignedJobs);
+            Collections.shuffle(unassigned, random);
+
+            for (Job j : unassigned) {
+
+                InsertionData bestInsertionData = InsertionData.createEmptyInsertionData();
+                VehicleRoute bestRoute = null;
+                //look for inserting unassigned job into existing route
+                for (VehicleRoute r : vehicleRoutes) {
+                    InsertionData insertionData = insertionCalculator.getInsertionData(j, r, bestInsertionData.getInsertionCost());
+                    if (insertionData instanceof InsertionData.NoInsertionFound) {
+						continue;
+					}
+                    if (insertionData.getInsertionCost() < bestInsertionData.getInsertionCost()) {
+                        bestInsertionData = insertionData;
+                        bestRoute = r;
+                    }
+                }
+                //try whole new route
+                VehicleRoute empty = VehicleRoute.emptyRoute();
+                InsertionData insertionData = insertionCalculator.getInsertionData(j, empty, bestInsertionData.getInsertionCost());
+                if (!(insertionData instanceof InsertionData.NoInsertionFound)) {
+                    if (insertionData.getInsertionCost() < bestInsertionData.getInsertionCost()) {
+                        vehicleRoutes.add(empty);
+                        insertJob(j, insertionData, empty);
+                    }
+                } else {
+                    if (bestRoute != null) {
+						insertJob(j, bestInsertionData, bestRoute);
+					} else {
+						badJobs.add(j);
+					}
+                }
             }
+            return badJobs;
+        }
 
-        };
+
     }
 
 

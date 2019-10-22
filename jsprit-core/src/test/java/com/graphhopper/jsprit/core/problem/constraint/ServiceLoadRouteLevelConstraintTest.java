@@ -35,12 +35,11 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Collections;
 
 public class ServiceLoadRouteLevelConstraintTest {
 
@@ -329,7 +328,7 @@ public class ServiceLoadRouteLevelConstraintTest {
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.getJobActivityFactory()).addService(pickup2).build();
 
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
         JobInsertionContext iContext = new JobInsertionContext(route, pickup, vehicle, null, 0.);
         assertFalse(new ServiceLoadRouteLevelConstraint(stateManager).fulfilled(iContext));
     }
@@ -342,7 +341,7 @@ public class ServiceLoadRouteLevelConstraintTest {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setType(type).setStartLocation(Location.newInstance("loc")).build();
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(vehicle).addJob(service).addJob(serviceInRoute).build();
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.getJobActivityFactory()).addService(serviceInRoute).build();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
         JobInsertionContext iContext = new JobInsertionContext(route, service, vehicle, null, 0.);
 
         assertFalse(new ServiceLoadRouteLevelConstraint(stateManager).fulfilled(iContext));

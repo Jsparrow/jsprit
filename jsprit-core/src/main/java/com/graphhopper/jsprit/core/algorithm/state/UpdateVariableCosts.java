@@ -61,7 +61,6 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
      * @param states
      */
     public UpdateVariableCosts(VehicleRoutingActivityCosts activityCost, VehicleRoutingTransportCosts transportCost, StateManager states) {
-        super();
         this.activityCost = activityCost;
         this.transportCost = transportCost;
         this.states = states;

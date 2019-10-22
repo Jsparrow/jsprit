@@ -56,7 +56,8 @@ public interface Vehicle extends HasId, HasIndex {
      *
      * @return id
      */
-    String getId();
+    @Override
+	String getId();
 
     /**
      * Returns true if vehicle returns to depot, false otherwise.

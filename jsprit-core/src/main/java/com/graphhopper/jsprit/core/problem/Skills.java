@@ -28,9 +28,71 @@ import java.util.Set;
  */
 public class Skills {
 
-    public static class Builder {
+    private Set<String> skills = new HashSet<>();
 
-        /**
+	private Skills(Builder builder) {
+        skills.addAll(builder.skills);
+    }
+
+	/**
+     * Returns an unmodifiable set of skills. All skills are inLowerCase.
+     *
+     * @return set of skills in this containter
+     */
+    public Set<String> values() {
+        return Collections.unmodifiableSet(skills);
+    }
+
+	@Override
+	public String toString() {
+        StringBuilder s = new StringBuilder("[");
+        boolean first = true;
+        for (String skill : values()) {
+            if (first) {
+                s.append(skill);
+                first = false;
+            } else {
+				s.append(", ").append(skill);
+			}
+        }
+        s.append("]");
+        return s.toString();
+    }
+
+	/**
+     * Not case sensitive.
+     *
+     * @param skill which is checked whether it is in skill container or not
+     * @return true if skill is included, false otherwise
+     */
+    public boolean containsSkill(String skill) {
+        return skills.contains(skill.trim().toLowerCase());// trim to be consistent with addSkill()
+    }
+
+	@Override
+    public boolean equals(Object o) {
+        if (this == o) {
+			return true;
+		}
+        if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+        Skills skills1 = (Skills) o;
+
+        return skills != null ? skills.equals(skills1.skills) : skills1.skills == null;
+    }
+
+	@Override
+    public int hashCode() {
+        return skills != null ? skills.hashCode() : 0;
+    }
+
+	public static class Builder {
+
+        private Set<String> skills = new HashSet<>();
+
+		/**
          * Returns new instance of skill-builder.
          *
          * @return builder
@@ -39,9 +101,7 @@ public class Skills {
             return new Builder();
         }
 
-        private Set<String> skills = new HashSet<>();
-
-        /**
+		/**
          * Adds skill. Skill is transformed into lowerCase.
          *
          * @param skill skill to be added
@@ -52,18 +112,18 @@ public class Skills {
             return this;
         }
 
-        /**
+		/**
          * Adds a collection of skills.
          *
          * @param skills collection of skills to be added
          * @return builder
          */
         public Builder addAllSkills(Collection<String> skills) {
-            for (String skill : skills) addSkill(skill);
+            skills.forEach(this::addSkill);
             return this;
         }
 
-        /**
+		/**
          * Builds the skill container and returns it.
          *
          * @return skills
@@ -72,58 +132,5 @@ public class Skills {
             return new Skills(this);
         }
 
-    }
-
-    private Set<String> skills = new HashSet<>();
-
-    private Skills(Builder builder) {
-        skills.addAll(builder.skills);
-    }
-
-    /**
-     * Returns an unmodifiable set of skills. All skills are inLowerCase.
-     *
-     * @return set of skills in this containter
-     */
-    public Set<String> values() {
-        return Collections.unmodifiableSet(skills);
-    }
-
-    public String toString() {
-        StringBuilder s = new StringBuilder("[");
-        boolean first = true;
-        for (String skill : values()) {
-            if (first) {
-                s.append(skill);
-                first = false;
-            } else s.append(", ").append(skill);
-        }
-        s.append("]");
-        return s.toString();
-    }
-
-    /**
-     * Not case sensitive.
-     *
-     * @param skill which is checked whether it is in skill container or not
-     * @return true if skill is included, false otherwise
-     */
-    public boolean containsSkill(String skill) {
-        return skills.contains(skill.trim().toLowerCase());// trim to be consistent with addSkill()
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Skills skills1 = (Skills) o;
-
-        return skills != null ? skills.equals(skills1.skills) : skills1.skills == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return skills != null ? skills.hashCode() : 0;
     }
 }

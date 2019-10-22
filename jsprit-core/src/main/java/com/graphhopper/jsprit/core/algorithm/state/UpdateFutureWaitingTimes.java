@@ -39,7 +39,6 @@ public class UpdateFutureWaitingTimes implements ReverseActivityVisitor, StateUp
     private double futureWaiting;
 
     public UpdateFutureWaitingTimes(StateManager states, VehicleRoutingTransportCosts tpCosts) {
-        super();
         this.states = states;
         this.transportCosts = tpCosts;
     }

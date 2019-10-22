@@ -63,7 +63,11 @@ public class VehicleDependentTraveledDistanceTest {
 
     VehicleRoutingProblem vrp;
 
-    Delivery d1, d2, newDelivery;
+    Delivery d1;
+
+	Delivery d2;
+
+	Delivery newDelivery;
 
     Pickup pickup;
 
@@ -104,7 +108,7 @@ public class VehicleDependentTraveledDistanceTest {
             new VehicleDependentTraveledDistance(vrp.getTransportCosts(), stateManager, traveledDistanceId, Arrays.asList(vehicle, vehicle2));
 
         stateManager.addStateUpdater(traveledDistance);
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
     }
 
     @Test

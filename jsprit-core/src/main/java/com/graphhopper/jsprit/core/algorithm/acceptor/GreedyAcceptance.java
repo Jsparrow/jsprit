@@ -51,8 +51,11 @@ public class GreedyAcceptance implements SolutionAcceptor {
         } else {
             VehicleRoutingProblemSolution worstSolution = null;
             for (VehicleRoutingProblemSolution s : solutions) {
-                if (worstSolution == null) worstSolution = s;
-                else if (s.getCost() > worstSolution.getCost()) worstSolution = s;
+                if (worstSolution == null) {
+					worstSolution = s;
+				} else if (s.getCost() > worstSolution.getCost()) {
+					worstSolution = s;
+				}
             }
             if (newSolution.getCost() < worstSolution.getCost()) {
                 solutions.remove(worstSolution);

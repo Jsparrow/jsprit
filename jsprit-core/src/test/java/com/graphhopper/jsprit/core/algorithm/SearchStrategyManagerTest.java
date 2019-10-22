@@ -211,13 +211,13 @@ public class SearchStrategyManagerTest {
 
         managerUnderTest.addStrategy(mockedStrategy1, 0.2);
         managerUnderTest.addStrategy(mockedStrategy2, 0.8);
-        List<String> firstRecord = new ArrayList<String>();
+        List<String> firstRecord = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             firstRecord.add(managerUnderTest.getRandomStrategy().getId());
         }
 
         RandomNumberGeneration.reset();
-        List<String> secondRecord = new ArrayList<String>();
+        List<String> secondRecord = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             secondRecord.add(managerUnderTest.getRandomStrategy().getId());
         }

@@ -40,7 +40,6 @@ public class ServiceLoadRouteLevelConstraint implements HardRouteConstraint {
     private Capacity defaultValue;
 
     public ServiceLoadRouteLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
         this.defaultValue = Capacity.Builder.newInstance().build();
     }
@@ -48,20 +47,26 @@ public class ServiceLoadRouteLevelConstraint implements HardRouteConstraint {
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
         Capacity maxLoadAtRoute = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.MAXLOAD, Capacity.class);
-        if (maxLoadAtRoute == null) maxLoadAtRoute = defaultValue;
+        if (maxLoadAtRoute == null) {
+			maxLoadAtRoute = defaultValue;
+		}
         Capacity capacityDimensions = insertionContext.getNewVehicle().getType().getCapacityDimensions();
         if (!maxLoadAtRoute.isLessOrEqual(capacityDimensions)) {
             return false;
         }
         if (insertionContext.getJob() instanceof Delivery) {
             Capacity loadAtDepot = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-            if (loadAtDepot == null) loadAtDepot = defaultValue;
+            if (loadAtDepot == null) {
+				loadAtDepot = defaultValue;
+			}
             if (!Capacity.addup(loadAtDepot, insertionContext.getJob().getSize()).isLessOrEqual(capacityDimensions)) {
                 return false;
             }
         } else if (insertionContext.getJob() instanceof Pickup || insertionContext.getJob() instanceof Service) {
             Capacity loadAtEnd = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.LOAD_AT_END, Capacity.class);
-            if (loadAtEnd == null) loadAtEnd = defaultValue;
+            if (loadAtEnd == null) {
+				loadAtEnd = defaultValue;
+			}
             if (!Capacity.addup(loadAtEnd, insertionContext.getJob().getSize()).isLessOrEqual(capacityDimensions)) {
                 return false;
             }

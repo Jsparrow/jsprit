@@ -41,7 +41,9 @@ public class CordeauReaderTest {
 
     private String getPath(String string) {
         URL resource = this.getClass().getClassLoader().getResource(string);
-        if (resource == null) throw new IllegalStateException("resource " + string + " does not exist");
+        if (resource == null) {
+			throw new IllegalStateException(new StringBuilder().append("resource ").append(string).append(" does not exist").toString());
+		}
         return resource.getPath();
     }
 
@@ -67,9 +69,7 @@ public class CordeauReaderTest {
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
         new CordeauReader(vrpBuilder).read(getPath("p01"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            assertEquals(80, v.getType().getCapacityDimensions().get(0));
-        }
+        vrp.getVehicles().forEach(v -> assertEquals(80, v.getType().getCapacityDimensions().get(0)));
     }
 
     @Test
@@ -77,10 +77,10 @@ public class CordeauReaderTest {
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
         new CordeauReader(vrpBuilder).read(getPath("p08"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        for (Vehicle v : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(v -> {
             assertEquals(0.0, v.getEarliestDeparture(), 0.1);
             assertEquals(310.0, v.getLatestArrival() - v.getEarliestDeparture(), 0.1);
-        }
+        });
     }
 
     @Test
@@ -131,15 +131,21 @@ public class CordeauReaderTest {
         boolean loc3ok = false;
         boolean loc4ok = false;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getCapacityDimensions().get(0) != 80) capacityOk = false;
-            if (v.getStartLocation().getCoordinate().getX() == 20.0 && v.getStartLocation().getCoordinate().getY() == 20.0)
-                loc1ok = true;
-            if (v.getStartLocation().getCoordinate().getX() == 30.0 && v.getStartLocation().getCoordinate().getY() == 40.0)
-                loc2ok = true;
-            if (v.getStartLocation().getCoordinate().getX() == 50.0 && v.getStartLocation().getCoordinate().getY() == 30.0)
-                loc3ok = true;
-            if (v.getStartLocation().getCoordinate().getX() == 60.0 && v.getStartLocation().getCoordinate().getY() == 50.0)
-                loc4ok = true;
+            if (v.getType().getCapacityDimensions().get(0) != 80) {
+				capacityOk = false;
+			}
+            if (v.getStartLocation().getCoordinate().getX() == 20.0 && v.getStartLocation().getCoordinate().getY() == 20.0) {
+				loc1ok = true;
+			}
+            if (v.getStartLocation().getCoordinate().getX() == 30.0 && v.getStartLocation().getCoordinate().getY() == 40.0) {
+				loc2ok = true;
+			}
+            if (v.getStartLocation().getCoordinate().getX() == 50.0 && v.getStartLocation().getCoordinate().getY() == 30.0) {
+				loc3ok = true;
+			}
+            if (v.getStartLocation().getCoordinate().getX() == 60.0 && v.getStartLocation().getCoordinate().getY() == 50.0) {
+				loc4ok = true;
+			}
         }
         assertTrue(capacityOk);
         assertTrue(loc1ok);

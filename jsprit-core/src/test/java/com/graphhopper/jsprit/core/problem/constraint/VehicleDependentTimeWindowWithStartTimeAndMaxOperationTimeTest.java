@@ -97,18 +97,11 @@ public class VehicleDependentTimeWindowWithStartTimeAndMaxOperationTimeTest {
         vrpBuilder.addJob(service).addJob(service2).addJob(service3);
         final VehicleRoutingProblem vrp = vrpBuilder.build();
 
-        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(new JobActivityFactory() {
-
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-
-        }).addService(service).addService(service2).addService(service3).build();
+        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp::copyAndGetActivities).addService(service).addService(service2).addService(service3).build();
 
         stateManager = new StateManager(vrp);
 
-        Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
+        Collection<Vehicle> vehicles = new ArrayList<>();
         vehicles.add(vehicle);
         vehicles.add(v2);
         vehicles.add(v3);
@@ -119,20 +112,15 @@ public class VehicleDependentTimeWindowWithStartTimeAndMaxOperationTimeTest {
         final VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(vehicles).createFleetManager();
 //        stateManager.updateTimeWindowStates();
         UpdateVehicleDependentPracticalTimeWindows timeWindow_updater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, routingCosts, activityCosts);
-        timeWindow_updater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-
-            @Override
-            public Collection<Vehicle> get(VehicleRoute route) {
-                List<Vehicle> vehicles = new ArrayList<Vehicle>();
-                vehicles.add(route.getVehicle());
-                vehicles.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
-                return vehicles;
-            }
-
-        });
+        timeWindow_updater.setVehiclesToUpdate((VehicleRoute route) -> {
+		    List<Vehicle> vehicles1 = new ArrayList<>();
+		    vehicles1.add(route.getVehicle());
+		    vehicles1.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
+		    return vehicles1;
+		});
         stateManager.addStateUpdater(timeWindow_updater);
         stateManager.addStateUpdater(new UpdateActivityTimes(routingCosts,activityCosts));
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
     }
 
     @Test

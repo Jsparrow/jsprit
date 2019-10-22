@@ -34,23 +34,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class TSPLIB95Reader {
 
-    private VehicleRoutingProblem.Builder vrpBuilder;
+    private static final Logger logger = LoggerFactory.getLogger(TSPLIB95Reader.class);
+
+	private VehicleRoutingProblem.Builder vrpBuilder;
 
     private boolean switchCoordinates = false;
-
-    public void setSwitchCoordinates(boolean switchCoordinates) {
-        this.switchCoordinates = switchCoordinates;
-    }
 
     public TSPLIB95Reader(VehicleRoutingProblem.Builder vrpBuilder) {
         this.vrpBuilder = vrpBuilder;
     }
 
-    public void read(String filename) {
+	public void setSwitchCoordinates(boolean switchCoordinates) {
+        this.switchCoordinates = switchCoordinates;
+    }
+
+	public void read(String filename) {
         BufferedReader reader = getBufferedReader(filename);
         String line_;
         Coordinate[] coords = null;
@@ -58,15 +62,15 @@ public class TSPLIB95Reader {
         Integer capacity = null;
         String edgeType = null;
         String edgeWeightFormat = null;
-        List<Integer> depotIds = new ArrayList<Integer>();
+        List<Integer> depotIds = new ArrayList<>();
         boolean isCoordSection = false;
         boolean isDemandSection = false;
         boolean isDepotSection = false;
         boolean isEdgeWeightSection = false;
-        List<Double> edgeWeights = new ArrayList<Double>();
+        List<Double> edgeWeights = new ArrayList<>();
         int dimensions = 0;
         int coordIndex = 0;
-        Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> indexMap = new HashMap<>();
         while ((line_ = getLine(reader)) != null) {
             String line = line_.trim();
             if (line.startsWith("EOF") || line.contains("EOF")) {
@@ -131,19 +135,24 @@ public class TSPLIB95Reader {
                 continue;
             }
             if (isCoordSection) {
-                if (coords == null) throw new IllegalStateException("DIMENSION tag missing");
+                if (coords == null) {
+					throw new IllegalStateException("DIMENSION tag missing");
+				}
                 String[] tokens = line.trim().split("\\s+");
                 Integer id = Integer.parseInt(tokens[0]);
                 if (switchCoordinates) {
                     coords[coordIndex] = Coordinate.newInstance(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[1]));
-                } else
-                    coords[coordIndex] = Coordinate.newInstance(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
+                } else {
+					coords[coordIndex] = Coordinate.newInstance(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
+				}
                 indexMap.put(id, coordIndex);
                 coordIndex++;
                 continue;
             }
             if (isDemandSection) {
-                if (demands == null) throw new IllegalStateException("DIMENSION tag missing");
+                if (demands == null) {
+					throw new IllegalStateException("DIMENSION tag missing");
+				}
                 String[] tokens = line.trim().split("\\s+");
                 Integer id = Integer.parseInt(tokens[0]);
                 int index = indexMap.get(id);
@@ -151,7 +160,7 @@ public class TSPLIB95Reader {
                 continue;
             }
             if (isDepotSection) {
-                if (line.equals("-1")) {
+                if ("-1".equals(line)) {
                     isDepotSection = false;
                 } else {
                     depotIds.add(Integer.parseInt(line));
@@ -160,7 +169,9 @@ public class TSPLIB95Reader {
             }
             if (isEdgeWeightSection) {
                 String[] tokens = line.trim().split("\\s+");
-                for (String s : tokens) edgeWeights.add(Double.parseDouble(s));
+                for (String s : tokens) {
+					edgeWeights.add(Double.parseDouble(s));
+				}
                 continue;
             }
         }
@@ -177,81 +188,80 @@ public class TSPLIB95Reader {
         for (Integer id_ : indexMap.keySet()) {
             String id = id_.toString();
             int index = indexMap.get(id_);
-            if (depotIds.isEmpty()) {
-                if (index == 0) {
-                    VehicleImpl vehicle = VehicleImpl.Builder.newInstance("traveling_salesman")
-                        .setStartLocation(Location.Builder.newInstance().setId(id)
-                            .setCoordinate(coords[index]).setIndex(index).build())
-                        .build();
-                    vrpBuilder.addVehicle(vehicle);
-                    continue;
-                }
-            }
+            boolean condition = depotIds.isEmpty() && index == 0;
+			if (condition) {
+			    VehicleImpl vehicle = VehicleImpl.Builder.newInstance("traveling_salesman")
+			        .setStartLocation(Location.Builder.newInstance().setId(id)
+			            .setCoordinate(coords[index]).setIndex(index).build())
+			        .build();
+			    vrpBuilder.addVehicle(vehicle);
+			    continue;
+			}
             Service service = Service.Builder.newInstance(id)
                 .setLocation(Location.Builder.newInstance().setId(id)
                     .setCoordinate(coords[index]).setIndex(index).build())
                 .addSizeDimension(0, demands[index]).build();
             vrpBuilder.addJob(service);
         }
-        if (edgeType.equals("GEO")) {
-            List<Location> locations = new ArrayList<Location>();
-            for (Vehicle v : vrpBuilder.getAddedVehicles()) locations.add(v.getStartLocation());
-            for (Job j : vrpBuilder.getAddedJobs()) locations.add(((Service) j).getLocation());
+        if ("GEO".equals(edgeType)) {
+            List<Location> locations = new ArrayList<>();
+            vrpBuilder.getAddedVehicles().forEach(v -> locations.add(v.getStartLocation()));
+            vrpBuilder.getAddedJobs().forEach(j -> locations.add(((Service) j).getLocation()));
             vrpBuilder.setRoutingCost(getGEOMatrix(locations));
-        } else if (edgeType.equals("EXPLICIT")) {
-            if (edgeWeightFormat.equals("UPPER_ROW")) {
+        } else if ("EXPLICIT".equals(edgeType)) {
+            if ("UPPER_ROW".equals(edgeWeightFormat)) {
                 FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 1;
-                for (int i = 0; i < edgeWeights.size(); i++) {
+                for (Double edgeWeight : edgeWeights) {
                     if (toIndex == dimensions) {
                         fromIndex++;
                         toIndex = fromIndex + 1;
                     }
-                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeights.get(i));
-                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeights.get(i));
+                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeight);
+                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeight);
                     toIndex++;
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
-            } else if (edgeWeightFormat.equals("UPPER_DIAG_ROW")) {
+            } else if ("UPPER_DIAG_ROW".equals(edgeWeightFormat)) {
                 FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 0;
-                for (int i = 0; i < edgeWeights.size(); i++) {
+                for (Double edgeWeight : edgeWeights) {
                     if (toIndex == dimensions) {
                         fromIndex++;
                         toIndex = fromIndex;
                     }
-                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeights.get(i));
-                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeights.get(i));
+                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeight);
+                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeight);
                     toIndex++;
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
-            } else if (edgeWeightFormat.equals("LOWER_DIAG_ROW")) {
+            } else if ("LOWER_DIAG_ROW".equals(edgeWeightFormat)) {
                 FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 0;
-                for (int i = 0; i < edgeWeights.size(); i++) {
+                for (Double edgeWeight : edgeWeights) {
                     if (toIndex > fromIndex) {
                         fromIndex++;
                         toIndex = 0;
                     }
-                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeights.get(i));
-                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeights.get(i));
+                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeight);
+                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeight);
                     toIndex++;
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
-            } else if (edgeWeightFormat.equals("FULL_MATRIX")) {
+            } else if ("FULL_MATRIX".equals(edgeWeightFormat)) {
                 FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, false);
                 int fromIndex = 0;
                 int toIndex = 0;
-                for (int i = 0; i < edgeWeights.size(); i++) {
+                for (Double edgeWeight : edgeWeights) {
                     if (toIndex == dimensions) {
                         fromIndex++;
                         toIndex = 0;
                     }
-                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeights.get(i));
-                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeights.get(i));
+                    matrixBuilder.addTransportDistance(fromIndex, toIndex, edgeWeight);
+                    matrixBuilder.addTransportTime(fromIndex, toIndex, edgeWeight);
                     toIndex++;
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
@@ -263,18 +273,16 @@ public class TSPLIB95Reader {
 
     }
 
-    private VehicleRoutingTransportCosts getGEOMatrix(List<Location> noLocations) {
+	private VehicleRoutingTransportCosts getGEOMatrix(List<Location> noLocations) {
         FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(noLocations.size(), true);
-        for (Location i : noLocations) {
-            for (Location j : noLocations) {
-                matrixBuilder.addTransportDistance(i.getIndex(), j.getIndex(), getDistance(i, j));
-                matrixBuilder.addTransportTime(i.getIndex(), j.getIndex(), getDistance(i, j));
-            }
-        }
+        noLocations.forEach(i -> noLocations.forEach(j -> {
+			matrixBuilder.addTransportDistance(i.getIndex(), j.getIndex(), getDistance(i, j));
+			matrixBuilder.addTransportTime(i.getIndex(), j.getIndex(), getDistance(i, j));
+		}));
         return matrixBuilder.build();
     }
 
-    private double getDistance(Location from, Location to) {
+	private double getDistance(Location from, Location to) {
         double longitude_from = getLongitude(from);
         double longitude_to = getLongitude(to);
         double latitude_from = getLatitude(from);
@@ -285,44 +293,42 @@ public class TSPLIB95Reader {
         return 6378.388 * Math.acos(.5 * ((1. + q1) * q2 - (1. - q1) * q3)) + 1.;
     }
 
-    private double getLatitude(Location loc) {
+	private double getLatitude(Location loc) {
         int deg = (int) loc.getCoordinate().getX();
         double min = loc.getCoordinate().getX() - deg;
         return Math.PI * (deg + 5. * min / 3.) / 180.;
     }
 
-    private double getLongitude(Location loc) {
+	private double getLongitude(Location loc) {
         int deg = (int) loc.getCoordinate().getY();
         double min = loc.getCoordinate().getY() - deg;
         return Math.PI * (deg + 5. * min / 3.) / 180.;
     }
 
-
-    private void close(BufferedReader reader) {
+	private void close(BufferedReader reader) {
         try {
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
-        ;
     }
 
-    private String getLine(BufferedReader reader) {
+	private String getLine(BufferedReader reader) {
         String s = null;
         try {
             s = reader.readLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return s;
     }
 
-    private BufferedReader getBufferedReader(String filename) {
+	private BufferedReader getBufferedReader(String filename) {
         BufferedReader bufferedReader = null;
         try {
             bufferedReader = new BufferedReader(new FileReader(new File(filename)));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return bufferedReader;
     }
