@@ -35,14 +35,18 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by schroeder on 27.11.14.
  */
 public class CircleExample {
 
-    public static Collection<Coordinate> createCoordinates(double center_x, double center_y, double radius, double step) {
-        Collection<Coordinate> coords = new ArrayList<Coordinate>();
+    private static final Logger logger = LoggerFactory.getLogger(CircleExample.class);
+
+	public static Collection<Coordinate> createCoordinates(double center_x, double center_y, double radius, double step) {
+        Collection<Coordinate> coords = new ArrayList<>();
         for (double theta = 0; theta < 2 * Math.PI; theta += step) {
             double x = center_x + radius * Math.cos(theta);
             double y = center_y - radius * Math.sin(theta);
@@ -55,9 +59,11 @@ public class CircleExample {
         File dir = new File("output");
         // if the directory does not exist, create it
         if (!dir.exists()) {
-            System.out.println("creating directory ./output");
+            logger.info("creating directory ./output");
             boolean result = dir.mkdir();
-            if (result) System.out.println("./output created");
+            if (result) {
+				logger.info("./output created");
+			}
         }
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();

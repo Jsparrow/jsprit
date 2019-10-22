@@ -25,9 +25,17 @@ package com.graphhopper.jsprit.core.problem.job;
  */
 public class Pickup extends Service {
 
-    public static class Builder extends Service.Builder<Pickup> {
+    Pickup(Builder builder) {
+        super(builder);
+    }
 
-        /**
+	public static class Builder extends Service.Builder<Pickup> {
+
+        Builder(String id) {
+            super(id);
+        }
+
+		/**
          * Returns a new instance of builder that builds a pickup.
          *
          * @param id the id of the pickup
@@ -37,18 +45,15 @@ public class Pickup extends Service {
             return new Builder(id);
         }
 
-        Builder(String id) {
-            super(id);
-        }
-
-        public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
+		@Override
+		public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
             throw new UnsupportedOperationException("maxTimeInVehicle is not yet supported for Pickups and Services (only for Deliveries and Shipments)");
 //            if(maxTimeInVehicle < 0) throw new IllegalArgumentException("maxTimeInVehicle should be positive");
 //            this.maxTimeInVehicle = maxTimeInVehicle;
 //            return this;
         }
 
-        /**
+		/**
          * Builds Pickup.
          * <p>
          * <p>Pickup type is "pickup"
@@ -56,8 +61,11 @@ public class Pickup extends Service {
          * @return pickup
          * @throws IllegalArgumentException if neither locationId nor coordinate has been set
          */
-        public Pickup build() {
-            if (location == null) throw new IllegalArgumentException("location is missing");
+        @Override
+		public Pickup build() {
+            if (location == null) {
+				throw new IllegalArgumentException("location is missing");
+			}
             this.setType("pickup");
             super.capacity = super.capacityBuilder.build();
             super.skills = super.skillBuilder.build();
@@ -65,10 +73,6 @@ public class Pickup extends Service {
             return new Pickup(this);
         }
 
-    }
-
-    Pickup(Builder builder) {
-        super(builder);
     }
 
 }

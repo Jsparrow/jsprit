@@ -40,7 +40,7 @@ public class GreedyAcceptanceTest {
         when(sol1.getCost()).thenReturn(1.0);
         when(sol2.getCost()).thenReturn(2.0);
 
-        List<VehicleRoutingProblemSolution> solList = new ArrayList<VehicleRoutingProblemSolution>();
+        List<VehicleRoutingProblemSolution> solList = new ArrayList<>();
         solList.add(sol1);
         solList.add(sol2);
 

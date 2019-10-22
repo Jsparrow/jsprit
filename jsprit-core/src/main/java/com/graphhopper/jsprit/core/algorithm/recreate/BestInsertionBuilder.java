@@ -66,7 +66,6 @@ public class BestInsertionBuilder {
     private boolean addDefaultCostCalc = true;
 
     public BestInsertionBuilder(VehicleRoutingProblem vrp, VehicleFleetManager vehicleFleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        super();
         this.vrp = vrp;
         this.stateManager = stateManager;
         this.constraintManager = constraintManager;
@@ -133,8 +132,8 @@ public class BestInsertionBuilder {
 
 
     public InsertionStrategy build() {
-        List<InsertionListener> iListeners = new ArrayList<InsertionListener>();
-        List<PrioritizedVRAListener> algorithmListeners = new ArrayList<PrioritizedVRAListener>();
+        List<InsertionListener> iListeners = new ArrayList<>();
+        List<PrioritizedVRAListener> algorithmListeners = new ArrayList<>();
         JobInsertionCostsCalculatorBuilder calcBuilder = new JobInsertionCostsCalculatorBuilder(iListeners, algorithmListeners);
         if (local) {
             calcBuilder.setLocalLevel(addDefaultCostCalc);
@@ -160,7 +159,7 @@ public class BestInsertionBuilder {
         } else {
             bestInsertion = new BestInsertionConcurrent(jobInsertions, executor, nuOfThreads, vrp);
         }
-        for (InsertionListener l : iListeners) bestInsertion.addListener(l);
+        iListeners.forEach(bestInsertion::addListener);
         return bestInsertion;
     }
 

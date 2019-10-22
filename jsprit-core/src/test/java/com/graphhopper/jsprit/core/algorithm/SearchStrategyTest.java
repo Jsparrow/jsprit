@@ -58,7 +58,7 @@ public class SearchStrategyTest {
 
         when(select.selectSolution(null)).thenReturn(newSol);
 
-        final Collection<Integer> runs = new ArrayList<Integer>();
+        final Collection<Integer> runs = new ArrayList<>();
 
         SearchStrategy strat = new SearchStrategy("strat", select, accept, calc);
         SearchStrategyModule mod = new SearchStrategyModule() {
@@ -97,7 +97,7 @@ public class SearchStrategyTest {
 
         when(select.selectSolution(null)).thenReturn(newSol);
 
-        final Collection<Integer> runs = new ArrayList<Integer>();
+        final Collection<Integer> runs = new ArrayList<>();
 
         SearchStrategy strat = new SearchStrategy("strat", select, accept, calc);
 
@@ -159,7 +159,7 @@ public class SearchStrategyTest {
 
         int N = new Random().nextInt(1000);
 
-        final Collection<Integer> runs = new ArrayList<Integer>();
+        final Collection<Integer> runs = new ArrayList<>();
 
         SearchStrategy strat = new SearchStrategy("strat", select, accept, calc);
 
@@ -201,7 +201,7 @@ public class SearchStrategyTest {
 
         int N = new Random().nextInt(1000);
 
-        final Collection<Integer> runs = new ArrayList<Integer>();
+        final Collection<Integer> runs = new ArrayList<>();
 
         SearchStrategy strat = new SearchStrategy("strat", select, accept, calc);
 

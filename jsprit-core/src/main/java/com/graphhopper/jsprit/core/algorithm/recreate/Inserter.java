@@ -31,7 +31,38 @@ import java.util.List;
 
 class Inserter {
 
-    interface JobInsertionHandler {
+    private InsertionListeners insertionListeners;
+
+	private JobInsertionHandler jobInsertionHandler;
+
+	private VehicleRoutingProblem vehicleRoutingProblem;
+
+	public Inserter(InsertionListeners insertionListeners, VehicleRoutingProblem vehicleRoutingProblem) {
+        this.insertionListeners = insertionListeners;
+        new DefaultTourActivityFactory();
+        jobInsertionHandler = new ServiceInsertionHandler(vehicleRoutingProblem);
+        jobInsertionHandler.setNextHandler(new ShipmentInsertionHandler(vehicleRoutingProblem));
+    }
+
+	public void insertJob(Job job, InsertionData insertionData, VehicleRoute vehicleRoute) {
+        insertionListeners.informBeforeJobInsertion(job, insertionData, vehicleRoute);
+
+        if (insertionData == null || (insertionData instanceof NoInsertionFound)) {
+			throw new IllegalStateException("insertionData null. cannot insert job.");
+		}
+        if (job == null) {
+			throw new IllegalStateException("cannot insert null-job");
+		}
+        if (!(vehicleRoute.getVehicle().getId().equals(insertionData.getSelectedVehicle().getId()))) {
+            insertionListeners.informVehicleSwitched(vehicleRoute, vehicleRoute.getVehicle(), insertionData.getSelectedVehicle());
+            vehicleRoute.setVehicleAndDepartureTime(insertionData.getSelectedVehicle(), insertionData.getVehicleDepartureTime());
+        }
+        jobInsertionHandler.handleJobInsertion(job, insertionData, vehicleRoute);
+
+        insertionListeners.informJobInserted(job, vehicleRoute, insertionData.getInsertionCost(), insertionData.getAdditionalTime());
+    }
+
+	interface JobInsertionHandler {
 
         void handleJobInsertion(Job job, InsertionData iData, VehicleRoute route);
 
@@ -69,21 +100,23 @@ class Inserter {
         public void handleJobInsertion(Job job, InsertionData iData, VehicleRoute route) {
             if (job instanceof Service) {
                 route.setVehicleAndDepartureTime(iData.getSelectedVehicle(), iData.getVehicleDepartureTime());
-                if (!iData.getSelectedVehicle().isReturnToDepot()) {
-                    if (iData.getDeliveryInsertionIndex() >= route.getTourActivities().getActivities().size()) {
-                        setEndLocation(route, (Service) job);
-                    }
-                }
+                boolean condition = !iData.getSelectedVehicle().isReturnToDepot() && iData.getDeliveryInsertionIndex() >= route.getTourActivities().getActivities().size();
+				if (condition) {
+				    setEndLocation(route, (Service) job);
+				}
                 TourActivity activity = vehicleRoutingProblem.copyAndGetActivities(job).get(0);
                 route.getTourActivities().addActivity(iData.getDeliveryInsertionIndex(), activity);
-            } else delegator.handleJobInsertion(job, iData, route);
+            } else {
+				delegator.handleJobInsertion(job, iData, route);
+			}
         }
 
         private void setEndLocation(VehicleRoute route, Service service) {
             route.getEnd().setLocation(service.getLocation());
         }
 
-        public void setNextHandler(JobInsertionHandler jobInsertionHandler) {
+        @Override
+		public void setNextHandler(JobInsertionHandler jobInsertionHandler) {
             this.delegator = jobInsertionHandler;
         }
 
@@ -108,51 +141,25 @@ class Inserter {
                 TourActivity pickupShipment = acts.get(0);
                 TourActivity deliverShipment = acts.get(1);
                 route.setVehicleAndDepartureTime(iData.getSelectedVehicle(), iData.getVehicleDepartureTime());
-                if (!iData.getSelectedVehicle().isReturnToDepot()) {
-                    if (iData.getDeliveryInsertionIndex() >= route.getActivities().size()) {
-                        setEndLocation(route, (Shipment) job);
-                    }
-                }
+                boolean condition = !iData.getSelectedVehicle().isReturnToDepot() && iData.getDeliveryInsertionIndex() >= route.getActivities().size();
+				if (condition) {
+				    setEndLocation(route, (Shipment) job);
+				}
                 route.getTourActivities().addActivity(iData.getDeliveryInsertionIndex(), deliverShipment);
                 route.getTourActivities().addActivity(iData.getPickupInsertionIndex(), pickupShipment);
-            } else delegator.handleJobInsertion(job, iData, route);
+            } else {
+				delegator.handleJobInsertion(job, iData, route);
+			}
         }
 
         private void setEndLocation(VehicleRoute route, Shipment shipment) {
             route.getEnd().setLocation(shipment.getDeliveryLocation());
         }
 
-        public void setNextHandler(JobInsertionHandler jobInsertionHandler) {
+        @Override
+		public void setNextHandler(JobInsertionHandler jobInsertionHandler) {
             this.delegator = jobInsertionHandler;
         }
 
-    }
-
-    private InsertionListeners insertionListeners;
-
-    private JobInsertionHandler jobInsertionHandler;
-
-    private VehicleRoutingProblem vehicleRoutingProblem;
-
-    public Inserter(InsertionListeners insertionListeners, VehicleRoutingProblem vehicleRoutingProblem) {
-        this.insertionListeners = insertionListeners;
-        new DefaultTourActivityFactory();
-        jobInsertionHandler = new ServiceInsertionHandler(vehicleRoutingProblem);
-        jobInsertionHandler.setNextHandler(new ShipmentInsertionHandler(vehicleRoutingProblem));
-    }
-
-    public void insertJob(Job job, InsertionData insertionData, VehicleRoute vehicleRoute) {
-        insertionListeners.informBeforeJobInsertion(job, insertionData, vehicleRoute);
-
-        if (insertionData == null || (insertionData instanceof NoInsertionFound))
-            throw new IllegalStateException("insertionData null. cannot insert job.");
-        if (job == null) throw new IllegalStateException("cannot insert null-job");
-        if (!(vehicleRoute.getVehicle().getId().equals(insertionData.getSelectedVehicle().getId()))) {
-            insertionListeners.informVehicleSwitched(vehicleRoute, vehicleRoute.getVehicle(), insertionData.getSelectedVehicle());
-            vehicleRoute.setVehicleAndDepartureTime(insertionData.getSelectedVehicle(), insertionData.getVehicleDepartureTime());
-        }
-        jobInsertionHandler.handleJobInsertion(job, insertionData, vehicleRoute);
-
-        insertionListeners.informJobInserted(job, vehicleRoute, insertionData.getInsertionCost(), insertionData.getAdditionalTime());
     }
 }

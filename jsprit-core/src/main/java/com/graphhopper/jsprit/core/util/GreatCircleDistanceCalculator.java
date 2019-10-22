@@ -51,8 +51,8 @@ public class GreatCircleDistanceCalculator {
         double a = Math.sin(delta_Lat / 2) * Math.sin(delta_Lat / 2) + Math.sin(delta_Lon / 2) * Math.sin(delta_Lon / 2) * Math.cos(lat1) * Math.cos(lat2);
         double c = 2 * Math.asin(Math.sqrt(a));
         double distance = R * c;
-        if (distanceUnit.equals(DistanceUnit.Meter)) {
-            distance = distance * 1000.;
+        if (distanceUnit == DistanceUnit.Meter) {
+            distance *= 1000.;
         }
         return distance;
     }

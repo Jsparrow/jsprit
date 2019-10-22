@@ -62,7 +62,9 @@ class ConcurrentInsertionNoiseMaker implements SoftActivityConstraint, Iteration
     public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
         if (random.nextDouble() < noiseProbability) {
             makeNoise = true;
-        } else makeNoise = false;
+        } else {
+			makeNoise = false;
+		}
     }
 
     @Override

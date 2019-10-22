@@ -38,76 +38,73 @@ import java.util.List;
 public class ConstraintManager implements HardActivityConstraint, HardRouteConstraint, SoftActivityConstraint, SoftRouteConstraint {
 
 
-    public static enum Priority {
-        CRITICAL, HIGH, LOW
-    }
-
     private static Logger log = LoggerFactory.getLogger(ConstraintManager.class);
 
-    private HardActivityLevelConstraintManager actLevelConstraintManager = new HardActivityLevelConstraintManager();
+	private HardActivityLevelConstraintManager actLevelConstraintManager = new HardActivityLevelConstraintManager();
 
-    private HardRouteLevelConstraintManager hardRouteConstraintManager = new HardRouteLevelConstraintManager();
+	private HardRouteLevelConstraintManager hardRouteConstraintManager = new HardRouteLevelConstraintManager();
 
-    private SoftActivityConstraintManager softActivityConstraintManager = new SoftActivityConstraintManager();
+	private SoftActivityConstraintManager softActivityConstraintManager = new SoftActivityConstraintManager();
 
-    private SoftRouteConstraintManager softRouteConstraintManager = new SoftRouteConstraintManager();
+	private SoftRouteConstraintManager softRouteConstraintManager = new SoftRouteConstraintManager();
 
-    private VehicleRoutingProblem vrp;
+	private VehicleRoutingProblem vrp;
 
-    private RouteAndActivityStateGetter stateManager;
+	private RouteAndActivityStateGetter stateManager;
 
-    private boolean loadConstraintsSet = false;
+	private boolean loadConstraintsSet = false;
 
-    private boolean timeWindowConstraintsSet = false;
+	private boolean timeWindowConstraintsSet = false;
 
-    private boolean skillconstraintSet = false;
+	private boolean skillconstraintSet = false;
 
-    private final DependencyType[] dependencyTypes;
+	private final DependencyType[] dependencyTypes;
 
-    public ConstraintManager(VehicleRoutingProblem vrp, RouteAndActivityStateGetter stateManager) {
+	public ConstraintManager(VehicleRoutingProblem vrp, RouteAndActivityStateGetter stateManager) {
         this.vrp = vrp;
         this.stateManager = stateManager;
         dependencyTypes = new DependencyType[vrp.getJobs().size() + 1];
     }
 
-    public ConstraintManager(VehicleRoutingProblem vrp, RouteAndActivityStateGetter stateManager, Collection<Constraint> constraints) {
+	public ConstraintManager(VehicleRoutingProblem vrp, RouteAndActivityStateGetter stateManager, Collection<Constraint> constraints) {
         this.vrp = vrp;
         this.stateManager = stateManager;
         dependencyTypes = new DependencyType[vrp.getJobs().size() + 1];
         resolveConstraints(constraints);
     }
 
-    public Collection<HardRouteConstraint> getHardRouteConstraints() {
+	public Collection<HardRouteConstraint> getHardRouteConstraints() {
         return hardRouteConstraintManager.getConstraints();
     }
 
-    public Collection<HardActivityConstraint> getCriticalHardActivityConstraints() {
+	public Collection<HardActivityConstraint> getCriticalHardActivityConstraints() {
         return actLevelConstraintManager.getCriticalConstraints();
     }
 
-    public Collection<HardActivityConstraint> getHighPrioHardActivityConstraints() {
+	public Collection<HardActivityConstraint> getHighPrioHardActivityConstraints() {
         return actLevelConstraintManager.getHighPrioConstraints();
     }
 
-    public Collection<HardActivityConstraint> getLowPrioHardActivityConstraints() {
+	public Collection<HardActivityConstraint> getLowPrioHardActivityConstraints() {
         return actLevelConstraintManager.getLowPrioConstraints();
     }
-//    public Collection<HardActivityConstraint> getHardActivityConstraints() {
-//        return actLevelConstraintManager.g;
-//    }
 
-    public DependencyType[] getDependencyTypes() {
-        return dependencyTypes;
-    }
+	//    public Collection<HardActivityConstraint> getHardActivityConstraints() {
+	//        return actLevelConstraintManager.g;
+	//    }
+	
+	    public DependencyType[] getDependencyTypes() {
+	        return dependencyTypes;
+	    }
 
-    public void setDependencyType(String jobId, DependencyType dependencyType){
+	public void setDependencyType(String jobId, DependencyType dependencyType){
         Job job = vrp.getJobs().get(jobId);
         if(job != null) {
             dependencyTypes[job.getIndex()] = dependencyType;
         }
     }
 
-    public DependencyType getDependencyType(String jobId){
+	public DependencyType getDependencyType(String jobId){
         Job job = vrp.getJobs().get(jobId);
         if(job != null){
             return dependencyTypes[job.getIndex()];
@@ -115,8 +112,8 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
         return DependencyType.NO_TYPE;
     }
 
-    private void resolveConstraints(Collection<Constraint> constraints) {
-        for (Constraint c : constraints) {
+	private void resolveConstraints(Collection<Constraint> constraints) {
+        constraints.forEach(c -> {
             boolean constraintTypeKnown = false;
             if (c instanceof HardActivityConstraint) {
                 actLevelConstraintManager.addConstraint((HardActivityConstraint) c, Priority.HIGH);
@@ -135,66 +132,68 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
                 constraintTypeKnown = true;
             }
             if (!constraintTypeKnown) {
-                log.warn("constraint " + c + " unknown thus ignores the constraint. currently, a constraint must implement either HardActivityStateLevelConstraint or HardRouteStateLevelConstraint");
+                log.warn(new StringBuilder().append("constraint ").append(c).append(" unknown thus ignores the constraint. currently, a constraint must implement either HardActivityStateLevelConstraint or HardRouteStateLevelConstraint").toString());
             }
-        }
+        });
 
     }
 
-    public void addTimeWindowConstraint() {
-        if (!timeWindowConstraintsSet) {
-            addConstraint(new VehicleDependentTimeWindowConstraints(stateManager, vrp.getTransportCosts(), vrp.getActivityCosts()), Priority.HIGH);
-            timeWindowConstraintsSet = true;
-        }
+	public void addTimeWindowConstraint() {
+        if (timeWindowConstraintsSet) {
+			return;
+		}
+		addConstraint(new VehicleDependentTimeWindowConstraints(stateManager, vrp.getTransportCosts(), vrp.getActivityCosts()), Priority.HIGH);
+		timeWindowConstraintsSet = true;
     }
 
-
-    public void addLoadConstraint() {
-        if (!loadConstraintsSet) {
-            addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
-            addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
-            addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
-            loadConstraintsSet = true;
-        }
+	public void addLoadConstraint() {
+        if (loadConstraintsSet) {
+			return;
+		}
+		addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
+		addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
+		addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
+		loadConstraintsSet = true;
     }
 
-    public void addSkillsConstraint() {
-        if (!skillconstraintSet) {
-            addConstraint(new HardSkillConstraint(stateManager));
-            skillconstraintSet = true;
-        }
+	public void addSkillsConstraint() {
+        if (skillconstraintSet) {
+			return;
+		}
+		addConstraint(new HardSkillConstraint(stateManager));
+		skillconstraintSet = true;
     }
 
-//	public void add
+	//	public void add
+	
+	    public void addConstraint(HardActivityConstraint actLevelConstraint, Priority priority) {
+	        actLevelConstraintManager.addConstraint(actLevelConstraint, priority);
+	    }
 
-    public void addConstraint(HardActivityConstraint actLevelConstraint, Priority priority) {
-        actLevelConstraintManager.addConstraint(actLevelConstraint, priority);
-    }
-
-    public void addConstraint(HardRouteConstraint routeLevelConstraint) {
+	public void addConstraint(HardRouteConstraint routeLevelConstraint) {
         hardRouteConstraintManager.addConstraint(routeLevelConstraint);
     }
 
-    public void addConstraint(SoftActivityConstraint softActivityConstraint) {
+	public void addConstraint(SoftActivityConstraint softActivityConstraint) {
         softActivityConstraintManager.addConstraint(softActivityConstraint);
     }
 
-    public void addConstraint(SoftRouteConstraint softRouteConstraint) {
+	public void addConstraint(SoftRouteConstraint softRouteConstraint) {
         softRouteConstraintManager.addConstraint(softRouteConstraint);
     }
 
-    @Override
+	@Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
         return hardRouteConstraintManager.fulfilled(insertionContext);
     }
 
-    @Override
+	@Override
     public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
         return actLevelConstraintManager.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
     }
 
-    public Collection<Constraint> getConstraints() {
-        List<Constraint> constraints = new ArrayList<Constraint>();
+	public Collection<Constraint> getConstraints() {
+        List<Constraint> constraints = new ArrayList<>();
         constraints.addAll(actLevelConstraintManager.getAllConstraints());
         constraints.addAll(hardRouteConstraintManager.getConstraints());
         constraints.addAll(softActivityConstraintManager.getConstraints());
@@ -202,14 +201,18 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
         return Collections.unmodifiableCollection(constraints);
     }
 
-    @Override
+	@Override
     public double getCosts(JobInsertionContext insertionContext) {
         return softRouteConstraintManager.getCosts(insertionContext);
     }
 
-    @Override
+	@Override
     public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
         return softActivityConstraintManager.getCosts(iFacts, prevAct, newAct, nextAct, prevActDepTime);
+    }
+
+	public static enum Priority {
+        CRITICAL, HIGH, LOW
     }
 
 

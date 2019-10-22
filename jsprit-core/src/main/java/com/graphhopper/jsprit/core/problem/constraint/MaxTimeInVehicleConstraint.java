@@ -85,7 +85,9 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
             }
             double timeInVehicle = newActStart - pickupEnd;
             double maxTimeInVehicle = ((TourActivity.JobActivity)newAct).getJob().getMaxTimeInVehicle();
-            if(timeInVehicle > maxTimeInVehicle) return ConstraintsStatus.NOT_FULFILLED;
+            if(timeInVehicle > maxTimeInVehicle) {
+				return ConstraintsStatus.NOT_FULFILLED;
+			}
 
         }
         else if(newActIsPickup){
@@ -95,7 +97,9 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
                 double nextActDeparture = nextActStart + activityCosts.getActivityDuration(nextAct, nextActArrival, iFacts.getNewDriver(), iFacts.getNewVehicle());
 //                if(!nextAct instanceof End)
                 double timeToEnd = 0; //newAct.end + tt(newAct,nextAct) + t@nextAct + t_to_end
-                if(timeToEnd > maxTimeInVehicle) return ConstraintsStatus.NOT_FULFILLED;
+                if(timeToEnd > maxTimeInVehicle) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
             }
         }
 
@@ -109,27 +113,36 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
         double directNextActStart = Math.max(directArrTimeNextAct, nextAct.getTheoreticalEarliestOperationStartTime());
         double additionalTimeOfNewAct = (nextActStart - prevActDepTime) - (directNextActStart - prevActDepTime);
         if (additionalTimeOfNewAct > minSlack) {
-            if (newActIsPickup) return ConstraintsStatus.NOT_FULFILLED;
-            else return ConstraintsStatus.NOT_FULFILLED;
+            if (newActIsPickup) {
+				return ConstraintsStatus.NOT_FULFILLED;
+			} else {
+				return ConstraintsStatus.NOT_FULFILLED;
+			}
         }
         if (newActIsDelivery) {
             Map<Job, Double> openJobsAtNext;
-            if (nextAct instanceof End)
-                openJobsAtNext = stateManager.getRouteState(iFacts.getRoute(), iFacts.getNewVehicle(), openJobsId, Map.class);
-            else openJobsAtNext = stateManager.getActivityState(nextAct, iFacts.getNewVehicle(), openJobsId, Map.class);
-            if (openJobsAtNext == null) openJobsAtNext = Collections.emptyMap();
+            if (nextAct instanceof End) {
+				openJobsAtNext = stateManager.getRouteState(iFacts.getRoute(), iFacts.getNewVehicle(), openJobsId, Map.class);
+			} else {
+				openJobsAtNext = stateManager.getActivityState(nextAct, iFacts.getNewVehicle(), openJobsId, Map.class);
+			}
+            if (openJobsAtNext == null) {
+				openJobsAtNext = Collections.emptyMap();
+			}
             for (Job openJob : openJobsAtNext.keySet()) {
                 double slack = openJobsAtNext.get(openJob);
                 double additionalTimeOfNewJob = additionalTimeOfNewAct;
                 if (openJob instanceof Shipment) {
                     Map<Job, Double> openJobsAtNextOfPickup = Collections.emptyMap();
                     TourActivity nextAfterPickup;
-                    if (iFacts.getAssociatedActivities().size() == 1 && !iFacts.getRoute().isEmpty())
-                        nextAfterPickup = iFacts.getRoute().getActivities().get(0);
-                    else
-                        nextAfterPickup = iFacts.getRoute().getActivities().get(iFacts.getRelatedActivityContext().getInsertionIndex());
-                    if (nextAfterPickup != null)
-                        openJobsAtNextOfPickup = stateManager.getActivityState(nextAfterPickup, iFacts.getNewVehicle(), openJobsId, Map.class);
+                    if (iFacts.getAssociatedActivities().size() == 1 && !iFacts.getRoute().isEmpty()) {
+						nextAfterPickup = iFacts.getRoute().getActivities().get(0);
+					} else {
+						nextAfterPickup = iFacts.getRoute().getActivities().get(iFacts.getRelatedActivityContext().getInsertionIndex());
+					}
+                    if (nextAfterPickup != null) {
+						openJobsAtNextOfPickup = stateManager.getActivityState(nextAfterPickup, iFacts.getNewVehicle(), openJobsId, Map.class);
+					}
                     if (openJobsAtNextOfPickup.containsKey(openJob)) {
                         TourActivity pickupAct = iFacts.getAssociatedActivities().get(0);
                         double pickupActArrTime = iFacts.getRelatedActivityContext().getArrivalTime();

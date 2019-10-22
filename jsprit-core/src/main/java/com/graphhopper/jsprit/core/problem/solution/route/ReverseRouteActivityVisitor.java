@@ -27,38 +27,36 @@ import java.util.Iterator;
 
 public class ReverseRouteActivityVisitor implements RouteVisitor {
 
-    private Collection<ReverseActivityVisitor> visitors = new ArrayList<ReverseActivityVisitor>();
+    private Collection<ReverseActivityVisitor> visitors = new ArrayList<>();
 
     @Override
     public void visit(VehicleRoute route) {
-        if (visitors.isEmpty()) return;
-        if (route.isEmpty()) return;
+        if (visitors.isEmpty()) {
+			return;
+		}
+        if (route.isEmpty()) {
+			return;
+		}
         begin(route);
         Iterator<TourActivity> revIterator = route.getTourActivities().reverseActivityIterator();
         while (revIterator.hasNext()) {
             TourActivity act = revIterator.next();
             visit(act);
         }
-        finish(route);
+        finish();
     }
 
-    private void finish(VehicleRoute route) {
-        for (ReverseActivityVisitor visitor : visitors) {
-            visitor.finish();
-        }
+    private void finish() {
+        visitors.forEach(ReverseActivityVisitor::finish);
 
     }
 
     private void visit(TourActivity act) {
-        for (ReverseActivityVisitor visitor : visitors) {
-            visitor.visit(act);
-        }
+        visitors.forEach(visitor -> visitor.visit(act));
     }
 
     private void begin(VehicleRoute route) {
-        for (ReverseActivityVisitor visitor : visitors) {
-            visitor.begin(route);
-        }
+        visitors.forEach(visitor -> visitor.begin(route));
 
     }
 

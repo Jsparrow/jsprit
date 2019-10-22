@@ -84,16 +84,14 @@ public class RegretInsertionFast extends AbstractInsertionStrategy {
     }
 
     private Set<String> getInitialVehicleIds(VehicleRoutingProblem vehicleRoutingProblem) {
-        Set<String> ids = new HashSet<String>();
-        for(VehicleRoute r : vehicleRoutingProblem.getInitialVehicleRoutes()){
-            ids.add(r.getVehicle().getId());
-        }
+        Set<String> ids = new HashSet<>();
+        vehicleRoutingProblem.getInitialVehicleRoutes().forEach(r -> ids.add(r.getVehicle().getId()));
         return ids;
     }
 
     @Override
     public String toString() {
-        return "[name=regretInsertion][additionalScorer=" + scoringFunction + "]";
+        return new StringBuilder().append("[name=regretInsertion][additionalScorer=").append(scoringFunction).append("]").toString();
     }
 
 
@@ -104,7 +102,7 @@ public class RegretInsertionFast extends AbstractInsertionStrategy {
      */
     @Override
     public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
-        List<Job> badJobs = new ArrayList<Job>(unassignedJobs.size());
+        List<Job> badJobs = new ArrayList<>(unassignedJobs.size());
 
 //        Iterator<Job> jobIterator = unassignedJobs.iterator();
 //        while (jobIterator.hasNext()){
@@ -126,7 +124,7 @@ public class RegretInsertionFast extends AbstractInsertionStrategy {
 //            }
 //        }
 
-        List<Job> jobs = new ArrayList<Job>(unassignedJobs);
+        List<Job> jobs = new ArrayList<>(unassignedJobs);
         TreeSet<VersionedInsertionData>[] priorityQueues = new TreeSet[vrp.getJobs().values().size() + 2];
         VehicleRoute lastModified = null;
         boolean firstRun = true;
@@ -135,7 +133,9 @@ public class RegretInsertionFast extends AbstractInsertionStrategy {
         while (!jobs.isEmpty()) {
             List<Job> unassignedJobList = new ArrayList<>(jobs);
             List<ScoredJob> badJobList = new ArrayList<>();
-            if(!firstRun && lastModified == null) throw new IllegalStateException("last modified route is null. this should not be.");
+            if(!firstRun && lastModified == null) {
+				throw new IllegalStateException("last modified route is null. this should not be.");
+			}
             if(firstRun){
                 updateInsertionData(priorityQueues, routes, unassignedJobList, updateRound, firstRun, lastModified, updates);
                 firstRun = false;
@@ -154,44 +154,45 @@ public class RegretInsertionFast extends AbstractInsertionStrategy {
                 insertJob(bestScoredJob.getJob(), bestScoredJob.getInsertionData(), bestScoredJob.getRoute());
                 jobs.remove(bestScoredJob.getJob());
                 lastModified = bestScoredJob.getRoute();
-            }
-            else lastModified = null;
-            for (ScoredJob bad : badJobList) {
+            } else {
+				lastModified = null;
+			}
+            badJobList.forEach(bad -> {
                 Job unassigned = bad.getJob();
                 jobs.remove(unassigned);
                 badJobs.add(unassigned);
                 markUnassigned(unassigned, bad.getInsertionData().getFailedConstraintNames());
-            }
+            });
         }
         return badJobs;
     }
 
     private void updateInsertionData(TreeSet<VersionedInsertionData>[] priorityQueues, Collection<VehicleRoute> routes, List<Job> unassignedJobList, int updateRound, boolean firstRun, VehicleRoute lastModified, Map<VehicleRoute, Integer> updates) {
-        for (Job unassignedJob : unassignedJobList) {
+        unassignedJobList.forEach(unassignedJob -> {
             if(priorityQueues[unassignedJob.getIndex()] == null){
                 priorityQueues[unassignedJob.getIndex()] = new TreeSet<>(InsertionDataUpdater.getComparator());
             }
             if(firstRun) {
                 InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, routes);
-                for(VehicleRoute r : routes) updates.put(r,updateRound);
+                routes.forEach(r -> updates.put(r, updateRound));
             }
             else{
                 if(dependencyTypes == null || dependencyTypes[unassignedJob.getIndex()] == null){
-                    InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, Arrays.asList(lastModified));
+                    InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, Collections.singletonList(lastModified));
                     updates.put(lastModified,updateRound);
                 }
                 else {
                     DependencyType dependencyType = dependencyTypes[unassignedJob.getIndex()];
-                    if (dependencyType.equals(DependencyType.INTER_ROUTE) || dependencyType.equals(DependencyType.INTRA_ROUTE)) {
+                    if (dependencyType == DependencyType.INTER_ROUTE || dependencyType == DependencyType.INTRA_ROUTE) {
                         InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, routes);
-                        for(VehicleRoute r : routes) updates.put(r,updateRound);
+                        routes.forEach(r -> updates.put(r, updateRound));
                     } else {
-                        InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, Arrays.asList(lastModified));
+                        InsertionDataUpdater.update(switchAllowed, initialVehicleIds, fleetManager, insertionCostsCalculator, priorityQueues[unassignedJob.getIndex()], updateRound, unassignedJob, Collections.singletonList(lastModified));
                         updates.put(lastModified,updateRound);
                     }
                 }
             }
-        }
+        });
     }
 
 

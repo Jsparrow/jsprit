@@ -26,17 +26,20 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DellAmicoFixCostCalculator implements SoftRouteConstraint, InsertionStartsListener, JobInsertedListener {
 
-    private int nuOfJobsToRecreate;
+    private static final Logger logger = LoggerFactory.getLogger(DellAmicoFixCostCalculator.class);
+
+	private int nuOfJobsToRecreate;
 
     private final IncreasingAbsoluteFixedCosts calculator;
 
     private final int nuOfJobs;
 
     public DellAmicoFixCostCalculator(final int nuOfJobs, final RouteAndActivityStateGetter stateGetter) {
-        super();
         this.nuOfJobs = nuOfJobs;
         calculator = new IncreasingAbsoluteFixedCosts(nuOfJobs);
     }
@@ -58,7 +61,7 @@ public class DellAmicoFixCostCalculator implements SoftRouteConstraint, Insertio
         nuOfJobsToRecreate--;
         double completenessRatio = (1 - ((double) nuOfJobsToRecreate / (double) nuOfJobs));
         calculator.setSolutionCompletenessRatio(completenessRatio);
-        System.out.println(completenessRatio);
+        logger.info(String.valueOf(completenessRatio));
     }
 
 }

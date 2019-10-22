@@ -26,35 +26,29 @@ import java.util.Collection;
 
 public class RouteActivityVisitor implements RouteVisitor {
 
-    private Collection<ActivityVisitor> visitors = new ArrayList<ActivityVisitor>();
+    private Collection<ActivityVisitor> visitors = new ArrayList<>();
 
     @Override
     public void visit(VehicleRoute route) {
-        if (visitors.isEmpty()) return;
+        if (visitors.isEmpty()) {
+			return;
+		}
         begin(route);
-        for (TourActivity act : route.getTourActivities().getActivities()) {
-            visit(act);
-        }
-        end(route);
+        route.getTourActivities().getActivities().forEach(this::visit);
+        end();
     }
 
-    private void end(VehicleRoute route) {
-        for (ActivityVisitor visitor : visitors) {
-            visitor.finish();
-        }
+    private void end() {
+        visitors.forEach(ActivityVisitor::finish);
 
     }
 
     private void visit(TourActivity act) {
-        for (ActivityVisitor visitor : visitors) {
-            visitor.visit(act);
-        }
+        visitors.forEach(visitor -> visitor.visit(act));
     }
 
     private void begin(VehicleRoute route) {
-        for (ActivityVisitor visitor : visitors) {
-            visitor.begin(route);
-        }
+        visitors.forEach(visitor -> visitor.begin(route));
 
     }
 

@@ -91,19 +91,11 @@ public class MultipleDepotWithInitialRoutesExample {
     }
 
     private static Service getService(String serviceId, Builder vrpBuilder) {
-        for (Job j : vrpBuilder.getAddedJobs()) {
-            if (j.getId().equals(serviceId)) {
-                return (Service) j;
-            }
-        }
-        return null;
+        return vrpBuilder.getAddedJobs().stream().filter(j -> j.getId().equals(serviceId)).findFirst().map(j -> (Service) j).orElse(null);
     }
 
     private static Vehicle getVehicle(String vehicleId, Builder vrpBuilder) {
-        for (Vehicle v : vrpBuilder.getAddedVehicles()) {
-            if (v.getId().equals(vehicleId)) return v;
-        }
-        return null;
+        return vrpBuilder.getAddedVehicles().stream().filter(v -> v.getId().equals(vehicleId)).findFirst().orElse(null);
     }
 
 }

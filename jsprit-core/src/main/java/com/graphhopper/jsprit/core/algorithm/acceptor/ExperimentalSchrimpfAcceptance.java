@@ -35,7 +35,7 @@ import java.util.Collection;
 
 public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, IterationStartsListener, AlgorithmStartsListener {
 
-    final static Logger logger = LoggerFactory.getLogger(ExperimentalSchrimpfAcceptance.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(ExperimentalSchrimpfAcceptance.class.getName());
 
     private final double alpha;
 
@@ -51,7 +51,6 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 
 
     public ExperimentalSchrimpfAcceptance(int solutionMemory, double alpha, int nOfWarmupIterations) {
-        super();
         this.alpha = alpha;
         this.nOfRandomWalks = nOfWarmupIterations;
         this.solutionMemory = solutionMemory;
@@ -69,8 +68,11 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
             VehicleRoutingProblemSolution worst = null;
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
-                if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                if (worst == null) {
+					worst = solutionInMemory;
+				} else if (solutionInMemory.getCost() > worst.getCost()) {
+					worst = solutionInMemory;
+				}
             }
             if (newSolution.getRoutes().size() < worst.getRoutes().size()) {
                 solutions.remove(worst);
@@ -87,7 +89,7 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 
     @Override
     public String toString() {
-        return "[name=schrimpfAcceptanceFunction][alpha=" + alpha + "][warmup=" + nOfRandomWalks + "]";
+        return new StringBuilder().append("[name=schrimpfAcceptanceFunction][alpha=").append(alpha).append("][warmup=").append(nOfRandomWalks).append("]").toString();
     }
 
     private double getThreshold(int iteration) {

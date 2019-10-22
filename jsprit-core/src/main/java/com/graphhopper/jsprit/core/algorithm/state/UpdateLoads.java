@@ -55,7 +55,6 @@ class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListe
     private VehicleRoute route;
 
     public UpdateLoads(StateManager stateManager) {
-        super();
         this.stateManager = stateManager;
         defaultValue = Capacity.Builder.newInstance().build();
     }
@@ -63,7 +62,9 @@ class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListe
     @Override
     public void begin(VehicleRoute route) {
         currentLoad = stateManager.getRouteState(route, InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-        if (currentLoad == null) currentLoad = defaultValue;
+        if (currentLoad == null) {
+			currentLoad = defaultValue;
+		}
         this.route = route;
     }
 
@@ -96,20 +97,22 @@ class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListe
 
     @Override
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
-        for (VehicleRoute route : vehicleRoutes) {
-            insertionStarts(route);
-        }
+        vehicleRoutes.forEach(this::insertionStarts);
     }
 
     @Override
     public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
         if (job2insert instanceof Delivery) {
             Capacity loadAtDepot = stateManager.getRouteState(inRoute, InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-            if (loadAtDepot == null) loadAtDepot = defaultValue;
+            if (loadAtDepot == null) {
+				loadAtDepot = defaultValue;
+			}
             stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_BEGINNING, Capacity.addup(loadAtDepot, job2insert.getSize()));
         } else if (job2insert instanceof Pickup || job2insert instanceof Service) {
             Capacity loadAtEnd = stateManager.getRouteState(inRoute, InternalStates.LOAD_AT_END, Capacity.class);
-            if (loadAtEnd == null) loadAtEnd = defaultValue;
+            if (loadAtEnd == null) {
+				loadAtEnd = defaultValue;
+			}
             stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_END, Capacity.addup(loadAtEnd, job2insert.getSize()));
         }
     }

@@ -37,6 +37,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by schroeder on 06/03/15.
@@ -44,14 +46,16 @@ import java.util.*;
 public class JspritTest {
 
 
-    @Test
+    private static final Logger logger = LoggerFactory.getLogger(JspritTest.class);
+
+	@Test
     public void whenRunningJspritWithSingleCustomer_itShouldWork() {
         Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(v).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(10);
-        final Map<String, Integer> counts = new HashMap<String, Integer>();
+        final Map<String, Integer> counts = new HashMap<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -60,7 +64,7 @@ public class JspritTest {
             }
 
             private void count(String strategyId) {
-                if (!counts.containsKey(strategyId)) counts.put(strategyId, 1);
+                counts.putIfAbsent(strategyId, 1);
                 counts.put(strategyId, counts.get(strategyId) + 1);
             }
 
@@ -69,7 +73,8 @@ public class JspritTest {
             vra.searchSolutions();
             Assert.assertTrue(true);
         } catch (Exception e) {
-            Assert.assertTrue(false);
+            logger.error(e.getMessage(), e);
+			Assert.assertTrue(false);
         }
 
     }
@@ -83,7 +88,7 @@ public class JspritTest {
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
             .setProperty(Jsprit.Strategy.RADIAL_BEST, "100.").buildAlgorithm();
         vra.setMaxIterations(100);
-        final Map<String, Integer> counts = new HashMap<String, Integer>();
+        final Map<String, Integer> counts = new HashMap<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -92,7 +97,7 @@ public class JspritTest {
             }
 
             private void count(String strategyId) {
-                if (!counts.containsKey(strategyId)) counts.put(strategyId, 1);
+                counts.putIfAbsent(strategyId, 1);
                 Integer integer = counts.get(strategyId);
                 counts.put(strategyId, integer + 1);
             }
@@ -112,7 +117,7 @@ public class JspritTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final Map<String, Integer> counts = new HashMap<String, Integer>();
+        final Map<String, Integer> counts = new HashMap<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -121,7 +126,7 @@ public class JspritTest {
             }
 
             private void count(String strategyId) {
-                if (!counts.containsKey(strategyId)) counts.put(strategyId, 1);
+                counts.putIfAbsent(strategyId, 1);
                 counts.put(strategyId, counts.get(strategyId) + 1);
             }
 
@@ -141,7 +146,7 @@ public class JspritTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final Map<String, Integer> counts = new HashMap<String, Integer>();
+        final Map<String, Integer> counts = new HashMap<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -150,7 +155,7 @@ public class JspritTest {
             }
 
             private void count(String strategyId) {
-                if (!counts.containsKey(strategyId)) counts.put(strategyId, 1);
+                counts.putIfAbsent(strategyId, 1);
                 counts.put(strategyId, counts.get(strategyId) + 1);
             }
 
@@ -171,7 +176,7 @@ public class JspritTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
+        final List<String> firstRecord = new ArrayList<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -185,7 +190,7 @@ public class JspritTest {
         RandomNumberGeneration.reset();
         VehicleRoutingAlgorithm second = Jsprit.createAlgorithm(vrp);
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
+        final List<String> secondRecord = new ArrayList<>();
         second.addListener(new StrategySelectedListener() {
 
             @Override
@@ -216,7 +221,7 @@ public class JspritTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.THREADS, "4").buildAlgorithm();
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
+        final List<String> firstRecord = new ArrayList<>();
         vra.addListener(new StrategySelectedListener() {
 
             @Override
@@ -230,7 +235,7 @@ public class JspritTest {
         RandomNumberGeneration.reset();
         VehicleRoutingAlgorithm second = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.THREADS, "2").buildAlgorithm();
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
+        final List<String> secondRecord = new ArrayList<>();
         second.addListener(new StrategySelectedListener() {
 
             @Override
@@ -264,7 +269,7 @@ public class JspritTest {
             .setProperty(Jsprit.Strategy.WORST_BEST, "0.")
             .setProperty(Jsprit.Parameter.THREADS, "2").buildAlgorithm();
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
+        final List<String> firstRecord = new ArrayList<>();
         vra.addListener(new RuinListener() {
             @Override
             public void ruinStarts(Collection<VehicleRoute> routes) {
@@ -288,7 +293,7 @@ public class JspritTest {
             .setProperty(Jsprit.Strategy.WORST_BEST, "0.")
             .buildAlgorithm();
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
+        final List<String> secondRecord = new ArrayList<>();
         second.addListener(new RuinListener() {
             @Override
             public void ruinStarts(Collection<VehicleRoute> routes) {
@@ -327,7 +332,7 @@ public class JspritTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
+        final List<String> firstRecord = new ArrayList<>();
         vra.addListener(new RuinListener() {
             @Override
             public void ruinStarts(Collection<VehicleRoute> routes) {
@@ -348,7 +353,7 @@ public class JspritTest {
 
         VehicleRoutingAlgorithm second = Jsprit.createAlgorithm(vrp);
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
+        final List<String> secondRecord = new ArrayList<>();
         second.addListener(new RuinListener() {
             @Override
             public void ruinStarts(Collection<VehicleRoute> routes) {
@@ -388,7 +393,7 @@ public class JspritTest {
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
+        final List<String> firstRecord = new ArrayList<>();
         vra.addListener(new JobInsertedListener() {
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
@@ -399,7 +404,7 @@ public class JspritTest {
 
         VehicleRoutingAlgorithm second = Jsprit.createAlgorithm(vrp);
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
+        final List<String> secondRecord = new ArrayList<>();
         second.addListener(new JobInsertedListener() {
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
@@ -432,8 +437,8 @@ public class JspritTest {
             .setProperty(Jsprit.Strategy.WORST_BEST, "0.")
             .setProperty(Jsprit.Parameter.THREADS, "4").buildAlgorithm();
         vra.setMaxIterations(100);
-        final List<String> firstRecord = new ArrayList<String>();
-        final List<Double> firstRecordCosts = new ArrayList<Double>();
+        final List<String> firstRecord = new ArrayList<>();
+        final List<Double> firstRecordCosts = new ArrayList<>();
         vra.addListener(new BeforeJobInsertionListener() {
             @Override
             public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
@@ -449,8 +454,8 @@ public class JspritTest {
             .setProperty(Jsprit.Strategy.WORST_BEST, "0.")
             .setProperty(Jsprit.Parameter.THREADS, "5").buildAlgorithm();
         second.setMaxIterations(100);
-        final List<String> secondRecord = new ArrayList<String>();
-        final List<Double> secondRecordCosts = new ArrayList<Double>();
+        final List<String> secondRecord = new ArrayList<>();
+        final List<Double> secondRecordCosts = new ArrayList<>();
         second.addListener(new BeforeJobInsertionListener() {
             @Override
             public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {

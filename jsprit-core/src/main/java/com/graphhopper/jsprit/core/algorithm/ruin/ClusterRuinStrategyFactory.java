@@ -8,7 +8,6 @@ public class ClusterRuinStrategyFactory implements RuinStrategyFactory  {
     private JobNeighborhoods jobNeighborhoods;
 
     public ClusterRuinStrategyFactory(int initialNumberJobsToRemove, JobNeighborhoods jobNeighborhoods) {
-        super();
         this.initialNumberJobsToRemove = initialNumberJobsToRemove;
         this.jobNeighborhoods = jobNeighborhoods;
     }

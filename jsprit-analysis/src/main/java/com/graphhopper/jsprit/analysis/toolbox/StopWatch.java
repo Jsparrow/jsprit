@@ -68,7 +68,7 @@ public class StopWatch implements AlgorithmStartsListener, AlgorithmEndsListener
 
     @Override
     public String toString() {
-        return "stopWatch: " + getCompTimeInSeconds() + " sec";
+        return new StringBuilder().append("stopWatch: ").append(getCompTimeInSeconds()).append(" sec").toString();
     }
 
     public double getCurrTimeInSeconds() {

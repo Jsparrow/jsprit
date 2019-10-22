@@ -43,49 +43,40 @@ public final class RuinWorst extends AbstractRuinStrategy {
 
     private VehicleRoutingProblem vrp;
 
-    private NoiseMaker noiseMaker = new NoiseMaker() {
-
-        @Override
-        public double makeNoise() {
-            return 0;
-        }
-    };
-
-    public void setNoiseMaker(NoiseMaker noiseMaker) {
-        this.noiseMaker = noiseMaker;
-    }
+    private NoiseMaker noiseMaker = () -> 0;
 
     public RuinWorst(VehicleRoutingProblem vrp, final int initialNumberJobsToRemove) {
         super(vrp);
         this.vrp = vrp;
-        setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return initialNumberJobsToRemove;
-            }
-        });
+        setRuinShareFactory(() -> initialNumberJobsToRemove);
         logger.debug("initialise {}", this);
     }
 
-    /**
+	public void setNoiseMaker(NoiseMaker noiseMaker) {
+        this.noiseMaker = noiseMaker;
+    }
+
+	/**
      * Removes a fraction of jobs from vehicleRoutes.
      * <p>
      * <p>The number of jobs is calculated as follows: Math.ceil(vrp.getJobs().values().size() * fractionOfAllNodes2beRuined).
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nOfJobs2BeRemoved = getRuinShareFactory().createNumberToBeRemoved();
         ruin(vehicleRoutes, nOfJobs2BeRemoved, unassignedJobs);
         return unassignedJobs;
     }
 
-    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
-        LinkedList<Job> availableJobs = new LinkedList<Job>(vrp.getJobs().values());
+	private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
+        LinkedList<Job> availableJobs = new LinkedList<>(vrp.getJobs().values());
         int toRemove = nOfJobs2BeRemoved;
         while (toRemove > 0) {
             Job worst = getWorst(vehicleRoutes);
-            if (worst == null) break;
+            if (worst == null) {
+				break;
+			}
             if (removeJob(worst, vehicleRoutes)) {
                 availableJobs.remove(worst);
                 unassignedJobs.add(worst);
@@ -94,13 +85,15 @@ public final class RuinWorst extends AbstractRuinStrategy {
         }
     }
 
-    private Job getWorst(Collection<VehicleRoute> copied) {
+	private Job getWorst(Collection<VehicleRoute> copied) {
         Job worst = null;
         double bestSavings = Double.MIN_VALUE;
 
         for (VehicleRoute route : copied) {
-            if (route.isEmpty()) continue;
-            Map<Job, Double> savingsMap = new HashMap<Job, Double>();
+            if (route.isEmpty()) {
+				continue;
+			}
+            Map<Job, Double> savingsMap = new HashMap<>();
             TourActivity actBefore = route.getStart();
             TourActivity actToEval = null;
             for (TourActivity act : route.getActivities()) {
@@ -145,16 +138,16 @@ public final class RuinWorst extends AbstractRuinStrategy {
         return worst;
     }
 
-    private double savings(VehicleRoute route, TourActivity actBefore, TourActivity actToEval, TourActivity act) {
+	private double savings(VehicleRoute route, TourActivity actBefore, TourActivity actToEval, TourActivity act) {
         double savings = c(actBefore, actToEval, route.getVehicle()) + c(actToEval, act, route.getVehicle()) - c(actBefore, act, route.getVehicle());
         return Math.max(0, savings + noiseMaker.makeNoise());
     }
 
-    private double c(TourActivity from, TourActivity to, Vehicle vehicle) {
+	private double c(TourActivity from, TourActivity to, Vehicle vehicle) {
         return vrp.getTransportCosts().getTransportCost(from.getLocation(), to.getLocation(), from.getEndTime(), DriverImpl.noDriver(), vehicle);
     }
 
-    @Override
+	@Override
     public String toString() {
         return "[name=worstRuin]";
     }

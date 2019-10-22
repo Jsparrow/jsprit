@@ -25,12 +25,12 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 public interface RouteAndActivityStateGetter {
 
 
-    public <T> T getActivityState(TourActivity act, StateId stateId, Class<T> type);
+    <T> T getActivityState(TourActivity act, StateId stateId, Class<T> type);
 
-    public <T> T getActivityState(TourActivity act, Vehicle vehicle, StateId stateId, Class<T> type);
+    <T> T getActivityState(TourActivity act, Vehicle vehicle, StateId stateId, Class<T> type);
 
-    public <T> T getRouteState(VehicleRoute route, StateId stateId, Class<T> type);
+    <T> T getRouteState(VehicleRoute route, StateId stateId, Class<T> type);
 
-    public <T> T getRouteState(VehicleRoute route, Vehicle vehicle, StateId stateId, Class<T> type);
+    <T> T getRouteState(VehicleRoute route, Vehicle vehicle, StateId stateId, Class<T> type);
 
 }

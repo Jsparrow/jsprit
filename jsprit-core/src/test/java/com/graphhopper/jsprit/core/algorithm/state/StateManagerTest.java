@@ -40,31 +40,19 @@ import static org.mockito.Mockito.when;
 
 public class StateManagerTest {
 
-    static class ActFac implements JobActivityFactory {
+    private VehicleRoutingProblem vrpMock;
 
-        @Override
-        public List<AbstractActivity> createActivities(Job job) {
-            ServiceActivity act = mock(ServiceActivity.class);
-            when(act.getIndex()).thenReturn(1);
-            List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
-            acts.add(act);
-            return acts;
-        }
-    }
-
-    private VehicleRoute getRoute(Vehicle vehicle) {
+	private VehicleRoute getRoute(Vehicle vehicle) {
         return VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(new ActFac()).addService(Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build()).build();
     }
 
-    private VehicleRoutingProblem vrpMock;
-
-    @Before
+	@Before
     public void doBefore(){
         vrpMock = mock(VehicleRoutingProblem.class);
         when(vrpMock.getFleetSize()).thenReturn(VehicleRoutingProblem.FleetSize.INFINITE);
     }
 
-    @Test
+	@Test
     public void whenInternalRouteStateIsSet_itMustBeSetCorrectly() {
         VehicleRoute route = getRoute(mock(Vehicle.class));
         StateManager stateManager = new StateManager(vrpMock);
@@ -73,7 +61,7 @@ public class StateManagerTest {
         assertEquals(10., stateManager.getRouteState(route, id, Double.class), 0.01);
     }
 
-    @Test
+	@Test
     public void whenInternalRouteStateIsNotSet_itShouldReturnNull() {
         VehicleRoute route = getRoute(mock(Vehicle.class));
         StateManager stateManager = new StateManager(vrpMock);
@@ -82,7 +70,7 @@ public class StateManagerTest {
         assertTrue(costs == null);
     }
 
-    @Test
+	@Test
     public void whenVehicleDependentInternalRouteStateIsSet_itMustBeSetCorrectly() {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
         //noinspection UnusedDeclaration
@@ -95,7 +83,7 @@ public class StateManagerTest {
         assertEquals(10., stateManager.getRouteState(route, vehicle, id, Double.class), 0.01);
     }
 
-    @Test
+	@Test
     public void whenVehicleDependentInternalRouteStateIsNotSet_itMustBeSetCorrectly() {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
         //noinspection UnusedDeclaration
@@ -108,7 +96,7 @@ public class StateManagerTest {
         assertTrue(costs == null);
     }
 
-    @Test
+	@Test
     public void whenRouteStateIsSetWithGenericMethodAndBoolean_itMustBeSetCorrectly() {
         VehicleRoute route = getRoute(mock(Vehicle.class));
         StateManager stateManager = new StateManager(vrpMock);
@@ -117,7 +105,7 @@ public class StateManagerTest {
         assertTrue(stateManager.getRouteState(route, id, Boolean.class));
     }
 
-    @Test
+	@Test
     public void whenRouteStateIsSetWithGenericMethodAndInteger_itMustBeSetCorrectly() {
         VehicleRoute route = getRoute(mock(Vehicle.class));
         StateManager stateManager = new StateManager(vrpMock);
@@ -128,7 +116,7 @@ public class StateManagerTest {
         assertEquals(3, getLoad);
     }
 
-    @Test
+	@Test
     public void whenRouteStateIsSetWithGenericMethodAndCapacity_itMustBeSetCorrectly() {
         VehicleRoute route = getRoute(mock(Vehicle.class));
         StateManager stateManager = new StateManager(vrpMock);
@@ -139,8 +127,7 @@ public class StateManagerTest {
         assertEquals(500, getCap.get(0));
     }
 
-
-    @Test
+	@Test
     public void whenActivityStateIsSetWithGenericMethodAndBoolean_itMustBeSetCorrectly() {
         TourActivity activity = mock(TourActivity.class);
         when(activity.getIndex()).thenReturn(1);
@@ -150,7 +137,7 @@ public class StateManagerTest {
         assertTrue(stateManager.getActivityState(activity, id, Boolean.class));
     }
 
-    @Test
+	@Test
     public void whenActivityStateIsSetWithGenericMethodAndInteger_itMustBeSetCorrectly() {
         TourActivity activity = mock(TourActivity.class);
         when(activity.getIndex()).thenReturn(1);
@@ -162,7 +149,7 @@ public class StateManagerTest {
         assertEquals(3, getLoad);
     }
 
-    @Test
+	@Test
     public void whenActivityStateIsSetWithGenericMethodAndCapacity_itMustBeSetCorrectly() {
         TourActivity activity = mock(TourActivity.class);
         when(activity.getIndex()).thenReturn(1);
@@ -174,7 +161,7 @@ public class StateManagerTest {
         assertEquals(500, getCap.get(0));
     }
 
-    @Test
+	@Test
     public void whenProblemStateIsSet_itMustBeSetCorrectly() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId id = stateManager.createStateId("problemState");
@@ -183,7 +170,7 @@ public class StateManagerTest {
         assertTrue(problemState);
     }
 
-    @Test(expected = NullPointerException.class)
+	@Test(expected = NullPointerException.class)
     public void whenProblemStateIsSetAndStateManagerClearedAfterwards_itThrowsException() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId id = stateManager.createStateId("problemState");
@@ -193,7 +180,7 @@ public class StateManagerTest {
         boolean problemState = stateManager.getProblemState(id, Boolean.class);
     }
 
-    @Test
+	@Test
     public void whenProblemStateIsSetAndStateManagerClearedAfterwards_itReturnsNull() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId id = stateManager.createStateId("problemState");
@@ -203,14 +190,14 @@ public class StateManagerTest {
         assertNull(problemState);
     }
 
-    @Test
+	@Test
     public void whenCreatingNewState_itShouldHaveAnIndex() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId stateId = stateManager.createStateId("foo-state");
         Assert.assertEquals(21, stateId.getIndex());
     }
 
-    @Test
+	@Test
     public void whenCreatingNewStates_theyShouldHaveAnIndex() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId fooState = stateManager.createStateId("foo-state");
@@ -219,7 +206,7 @@ public class StateManagerTest {
         Assert.assertEquals(22, foofooState.getIndex());
     }
 
-    @Test
+	@Test
     public void whenCreatingTwoStatesWithTheSameName_theyShouldHaveTheSameIndex() {
         StateManager stateManager = new StateManager(vrpMock);
         StateId fooState = stateManager.createStateId("foo-state");
@@ -228,7 +215,7 @@ public class StateManagerTest {
         Assert.assertEquals(21, foofooState.getIndex());
     }
 
-    @Test
+	@Test
     public void whenCreatingAVehicleDependentRouteState_itShouldBeMemorized() {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
         //noinspection UnusedDeclaration
@@ -242,7 +229,7 @@ public class StateManagerTest {
         assertEquals(500, getCap.get(0));
     }
 
-    @Test
+	@Test
     public void whenCreatingAVehicleDependentActivityState_itShouldBeMemorized() {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
         //noinspection UnusedDeclaration
@@ -257,7 +244,7 @@ public class StateManagerTest {
         assertEquals(500, getCap.get(0));
     }
 
-    @Test
+	@Test
     public void whenMemorizingVehicleInfo_itShouldBeMemorized() {
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
         //noinspection UnusedDeclaration
@@ -270,7 +257,7 @@ public class StateManagerTest {
         assertEquals(1., stateManager.getRouteState(route, vehicle, id, Double.class), 0.01);
     }
 
-    @Test
+	@Test
     public void whenMemorizingTwoVehicleInfoForRoute_itShouldBeMemorized() {
         VehicleType type = VehicleTypeImpl.Builder.newInstance("t").setCostPerDistance(4.).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
@@ -290,7 +277,7 @@ public class StateManagerTest {
         assertEquals(4., stateManager.getRouteState(route, vehicle2, id, Double.class), 0.01);
     }
 
-    @Test
+	@Test
     public void whenMemorizingTwoVehicleInfoForAct_itShouldBeMemorized() {
         VehicleType type = VehicleTypeImpl.Builder.newInstance("t").setCostPerDistance(4.).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
@@ -312,7 +299,7 @@ public class StateManagerTest {
         assertEquals(4., stateManager.getActivityState(act, vehicle2, id, Double.class), 0.01);
     }
 
-    @Test
+	@Test
     public void whenClearing_arrElementsShouldBeNull() {
         VehicleType type = VehicleTypeImpl.Builder.newInstance("t").setCostPerDistance(4.).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
@@ -336,7 +323,7 @@ public class StateManagerTest {
         assertNull(stateManager.getActivityState(act, vehicle2, id, Double.class));
     }
 
-    @Test
+	@Test
     public void arrayIniShouldWork(){
         VehicleType type = VehicleTypeImpl.Builder.newInstance("t").setCostPerDistance(4.).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("loc")).build();
@@ -355,5 +342,17 @@ public class StateManagerTest {
             myState = stateManager.createStateId("myState"+i);
         }
         stateManager.putTypedInternalRouteState(route,myState,1.);
+    }
+
+	static class ActFac implements JobActivityFactory {
+
+        @Override
+        public List<AbstractActivity> createActivities(Job job) {
+            ServiceActivity act = mock(ServiceActivity.class);
+            when(act.getIndex()).thenReturn(1);
+            List<AbstractActivity> acts = new ArrayList<>();
+            acts.add(act);
+            return acts;
+        }
     }
 }

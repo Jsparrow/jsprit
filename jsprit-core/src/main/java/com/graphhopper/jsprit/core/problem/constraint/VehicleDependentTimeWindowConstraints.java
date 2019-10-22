@@ -40,7 +40,6 @@ public class VehicleDependentTimeWindowConstraints implements HardActivityConstr
     private VehicleRoutingActivityCosts activityCosts;
 
     public VehicleDependentTimeWindowConstraints(RouteAndActivityStateGetter states, VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts) {
-        super();
         this.states = states;
         this.routingCosts = routingCosts;
         this.activityCosts = activityCosts;
@@ -126,12 +125,12 @@ public class VehicleDependentTimeWindowConstraints implements HardActivityConstr
             return ConstraintsStatus.NOT_FULFILLED;
         }
 
-        if (nextAct instanceof End) {
-            if (!iFacts.getNewVehicle().isReturnToDepot()) {
-                return ConstraintsStatus.FULFILLED;
-            }
-        }
-//			log.info(newAct + " arrTime=" + arrTimeAtNewAct);
+        boolean condition = nextAct instanceof End && !iFacts.getNewVehicle().isReturnToDepot();
+		//log.info(newAct + " arrTime=" + arrTimeAtNewAct);
+		if (condition)
+		 {
+		    return ConstraintsStatus.FULFILLED;
+		}
 
         double arrTimeAtNextAct = endTimeAtNewAct + routingCosts.getTransportTime(newAct.getLocation(), nextActLocation, endTimeAtNewAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
 

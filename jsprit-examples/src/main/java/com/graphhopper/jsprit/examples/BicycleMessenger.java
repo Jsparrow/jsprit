@@ -83,152 +83,6 @@ import java.util.Map;
 public class BicycleMessenger {
 
     /**
-     * Hard constraint: delivery of envelope must not take longer than 3*bestDirect (i.e. fastest messenger on direct delivery)
-     *
-     * @author stefan
-     */
-    static class ThreeTimesLessThanBestDirectRouteConstraint implements HardActivityConstraint {
-
-        private final VehicleRoutingTransportCosts routingCosts;
-
-        private final RouteAndActivityStateGetter stateManager;
-
-        //jobId map direct-distance by nearestMessenger
-        private final Map<String, Double> bestMessengers;
-
-        private final StateId latest_act_arrival_time_stateId;
-
-        public ThreeTimesLessThanBestDirectRouteConstraint(StateId latest_act_arrival_time, Map<String, Double> nearestMessengers, VehicleRoutingTransportCosts routingCosts, RouteAndActivityStateGetter stateManager) {
-            this.bestMessengers = nearestMessengers;
-            this.routingCosts = routingCosts;
-            this.stateManager = stateManager;
-            this.latest_act_arrival_time_stateId = latest_act_arrival_time;
-        }
-
-        @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
-            //make sure vehicle can manage direct path
-            double arrTime_at_nextAct_onDirectRoute = prevActDepTime + routingCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-            Double latest_arrTime_at_nextAct = stateManager.getActivityState(nextAct, latest_act_arrival_time_stateId, Double.class);
-            if (latest_arrTime_at_nextAct == null)
-                latest_arrTime_at_nextAct = nextAct.getTheoreticalLatestOperationStartTime();
-            if (arrTime_at_nextAct_onDirectRoute > latest_arrTime_at_nextAct) {
-                //constraint can never be fulfilled anymore, thus .NOT_FULFILLED_BREAK
-                return ConstraintsStatus.NOT_FULFILLED_BREAK;
-            }
-
-            double arrTime_at_newAct = prevActDepTime + routingCosts.getTransportTime(prevAct.getLocation(), newAct.getLocation(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-            //local impact
-            //no matter whether it is a pickupShipment or deliverShipment activities. both arrivalTimes must be < 3*best.
-            double directTimeOfNearestMessenger = bestMessengers.get(((JobActivity) newAct).getJob().getId());
-            if (arrTime_at_newAct > 3 * directTimeOfNearestMessenger) {
-                //not fulfilled AND it can never be fulfilled anymore by going forward in route, thus NOT_FULFILLED_BREAK
-                return ConstraintsStatus.NOT_FULFILLED_BREAK;
-            }
-
-            //impact on whole route, since insertion of newAct shifts all subsequent activities forward in time
-            double departureTime_at_newAct = arrTime_at_newAct + newAct.getOperationTime();
-            double latest_arrTime_at_newAct = latest_arrTime_at_nextAct - routingCosts.getTransportTime(newAct.getLocation(), nextAct.getLocation(), departureTime_at_newAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
-            if (arrTime_at_newAct > latest_arrTime_at_newAct) {
-                return ConstraintsStatus.NOT_FULFILLED;
-            }
-
-            double arrTime_at_nextAct = departureTime_at_newAct + routingCosts.getTransportTime(newAct.getLocation(), nextAct.getLocation(), departureTime_at_newAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
-            //here you need an activity state
-            if (arrTime_at_nextAct > latest_arrTime_at_nextAct) {
-                return ConstraintsStatus.NOT_FULFILLED;
-            }
-            return ConstraintsStatus.FULFILLED;
-        }
-
-    }
-
-    /**
-     * When inserting the activities of an envelope which are pickup and deliver envelope, this constraint makes insertion procedure to ignore messengers that are too far away to meet the 3*directTime-Constraint.
-     * <p>
-     * <p>one does not need this constraint. but it is faster. the earlier the solution-space can be constraint the better/faster.
-     *
-     * @author schroeder
-     */
-    static class IgnoreMessengerThatCanNeverMeetTimeRequirements implements HardRouteConstraint {
-
-        private final Map<String, Double> bestMessengers;
-
-        private final VehicleRoutingTransportCosts routingCosts;
-
-        public IgnoreMessengerThatCanNeverMeetTimeRequirements(Map<String, Double> bestMessengers, VehicleRoutingTransportCosts routingCosts) {
-            super();
-            this.bestMessengers = bestMessengers;
-            this.routingCosts = routingCosts;
-        }
-
-        @Override
-        public boolean fulfilled(JobInsertionContext insertionContext) {
-            double timeOfDirectRoute = getTimeOfDirectRoute(insertionContext.getJob(), insertionContext.getNewVehicle(), routingCosts);
-            double timeOfNearestMessenger = bestMessengers.get(insertionContext.getJob().getId());
-            return !(timeOfDirectRoute > 3 * timeOfNearestMessenger);
-        }
-
-    }
-
-    /**
-     * updates the state "latest-activity-start-time" (required above) once route/activity states changed, i.e. when removing or inserting an envelope-activity
-     * <p>
-     * <p>thus once either the insertion-procedure starts or an envelope has been inserted, this visitor runs through the route in reverse order (i.e. starting with the end of the route) and
-     * calculates the latest-activity-start-time (or latest-activity-arrival-time) which is the time to just meet the constraints of subsequent activities.
-     *
-     * @author schroeder
-     */
-    static class UpdateLatestActivityStartTimes implements StateUpdater, ReverseActivityVisitor {
-
-        private final StateManager stateManager;
-
-        private final VehicleRoutingTransportCosts routingCosts;
-
-        private final Map<String, Double> bestMessengers;
-
-        private VehicleRoute route;
-
-        private TourActivity prevAct;
-
-        private double latest_arrTime_at_prevAct;
-
-        private final StateId latest_act_arrival_time_stateId;
-
-        public UpdateLatestActivityStartTimes(StateId latest_act_arrival_time, StateManager stateManager, VehicleRoutingTransportCosts routingCosts, Map<String, Double> bestMessengers) {
-            super();
-            this.stateManager = stateManager;
-            this.routingCosts = routingCosts;
-            this.bestMessengers = bestMessengers;
-            this.latest_act_arrival_time_stateId = latest_act_arrival_time;
-        }
-
-        @Override
-        public void begin(VehicleRoute route) {
-            this.route = route;
-            latest_arrTime_at_prevAct = route.getEnd().getTheoreticalLatestOperationStartTime();
-            prevAct = route.getEnd();
-        }
-
-        @Override
-        public void visit(TourActivity currAct) {
-            double timeOfNearestMessenger = bestMessengers.get(((JobActivity) currAct).getJob().getId());
-            double potential_latest_arrTime_at_currAct =
-                latest_arrTime_at_prevAct - routingCosts.getBackwardTransportTime(currAct.getLocation(), prevAct.getLocation(), latest_arrTime_at_prevAct, route.getDriver(), route.getVehicle()) - currAct.getOperationTime();
-            double latest_arrTime_at_currAct = Math.min(3 * timeOfNearestMessenger, potential_latest_arrTime_at_currAct);
-            stateManager.putActivityState(currAct, latest_act_arrival_time_stateId, latest_arrTime_at_currAct);
-            assert currAct.getArrTime() <= latest_arrTime_at_currAct : "this must not be since it breaks condition; actArrTime: " + currAct.getArrTime() + " latestArrTime: " + latest_arrTime_at_currAct + " vehicle: " + route.getVehicle().getId();
-            latest_arrTime_at_prevAct = latest_arrTime_at_currAct;
-            prevAct = currAct;
-        }
-
-        @Override
-        public void finish() {
-        }
-
-    }
-
-    /**
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
@@ -322,21 +176,21 @@ public class BicycleMessenger {
 
     }
 
-    //if you wanne run this enable assertion by putting an '-ea' in your vmargument list - Run As --> Run Configurations --> (x)=Arguments --> VM arguments: -ea
+	//if you wanne run this enable assertion by putting an '-ea' in your vmargument list - Run As --> Run Configurations --> (x)=Arguments --> VM arguments: -ea
     private static void validateSolution(VehicleRoutingProblemSolution bestOf, VehicleRoutingProblem bicycleMessengerProblem, Map<String, Double> nearestMessengers) {
         for (VehicleRoute route : bestOf.getRoutes()) {
             for (TourActivity act : route.getActivities()) {
                 if (act.getArrTime() > 3 * nearestMessengers.get(((JobActivity) act).getJob().getId())) {
                     SolutionPrinter.print(bicycleMessengerProblem, bestOf, SolutionPrinter.Print.VERBOSE);
-                    throw new IllegalStateException("three times less than ... constraint broken. this must not be. act.getArrTime(): " + act.getArrTime() + " allowed: " + 3 * nearestMessengers.get(((JobActivity) act).getJob().getId()));
+                    throw new IllegalStateException(new StringBuilder().append("three times less than ... constraint broken. this must not be. act.getArrTime(): ").append(act.getArrTime()).append(" allowed: ").append(3 * nearestMessengers.get(((JobActivity) act).getJob().getId())).toString());
                 }
             }
         }
     }
 
-    static Map<String, Double> getNearestMessengers(VehicleRoutingTransportCosts routingCosts, Collection<Job> envelopes, Collection<Vehicle> messengers) {
-        Map<String, Double> nearestMessengers = new HashMap<String, Double>();
-        for (Job envelope : envelopes) {
+	static Map<String, Double> getNearestMessengers(VehicleRoutingTransportCosts routingCosts, Collection<Job> envelopes, Collection<Vehicle> messengers) {
+        Map<String, Double> nearestMessengers = new HashMap<>();
+        envelopes.forEach(envelope -> {
             double minDirect = Double.MAX_VALUE;
             for (Vehicle m : messengers) {
                 double direct = getTimeOfDirectRoute(envelope, m, routingCosts);
@@ -345,17 +199,17 @@ public class BicycleMessenger {
                 }
             }
             nearestMessengers.put(envelope.getId(), minDirect);
-        }
+        });
         return nearestMessengers;
     }
 
-    static double getTimeOfDirectRoute(Job job, Vehicle v, VehicleRoutingTransportCosts routingCosts) {
+	static double getTimeOfDirectRoute(Job job, Vehicle v, VehicleRoutingTransportCosts routingCosts) {
         Shipment envelope = (Shipment) job;
         return routingCosts.getTransportTime(v.getStartLocation(), envelope.getPickupLocation(), 0.0, DriverImpl.noDriver(), v) +
             routingCosts.getTransportTime(envelope.getPickupLocation(), envelope.getDeliveryLocation(), 0.0, DriverImpl.noDriver(), v);
     }
 
-    private static void readEnvelopes(Builder problemBuilder) throws IOException {
+	private static void readEnvelopes(Builder problemBuilder) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(new File("input/bicycle_messenger_demand.txt")));
         String line;
         boolean firstLine = true;
@@ -374,7 +228,7 @@ public class BicycleMessenger {
         reader.close();
     }
 
-    private static void readMessengers(Builder problemBuilder) throws IOException {
+	private static void readMessengers(Builder problemBuilder) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(new File("input/bicycle_messenger_supply.txt")));
         String line;
         boolean firstLine = true;
@@ -398,6 +252,152 @@ public class BicycleMessenger {
             problemBuilder.addVehicle(vehicle);
         }
         reader.close();
+    }
+
+	/**
+     * Hard constraint: delivery of envelope must not take longer than 3*bestDirect (i.e. fastest messenger on direct delivery)
+     *
+     * @author stefan
+     */
+    static class ThreeTimesLessThanBestDirectRouteConstraint implements HardActivityConstraint {
+
+        private final VehicleRoutingTransportCosts routingCosts;
+
+        private final RouteAndActivityStateGetter stateManager;
+
+        //jobId map direct-distance by nearestMessenger
+        private final Map<String, Double> bestMessengers;
+
+        private final StateId latestActArrivalTimeStateId;
+
+        public ThreeTimesLessThanBestDirectRouteConstraint(StateId latest_act_arrival_time, Map<String, Double> nearestMessengers, VehicleRoutingTransportCosts routingCosts, RouteAndActivityStateGetter stateManager) {
+            this.bestMessengers = nearestMessengers;
+            this.routingCosts = routingCosts;
+            this.stateManager = stateManager;
+            this.latestActArrivalTimeStateId = latest_act_arrival_time;
+        }
+
+        @Override
+        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+            //make sure vehicle can manage direct path
+            double arrTime_at_nextAct_onDirectRoute = prevActDepTime + routingCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
+            Double latest_arrTime_at_nextAct = stateManager.getActivityState(nextAct, latestActArrivalTimeStateId, Double.class);
+            if (latest_arrTime_at_nextAct == null) {
+				latest_arrTime_at_nextAct = nextAct.getTheoreticalLatestOperationStartTime();
+			}
+            if (arrTime_at_nextAct_onDirectRoute > latest_arrTime_at_nextAct) {
+                //constraint can never be fulfilled anymore, thus .NOT_FULFILLED_BREAK
+                return ConstraintsStatus.NOT_FULFILLED_BREAK;
+            }
+
+            double arrTime_at_newAct = prevActDepTime + routingCosts.getTransportTime(prevAct.getLocation(), newAct.getLocation(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
+            //local impact
+            //no matter whether it is a pickupShipment or deliverShipment activities. both arrivalTimes must be < 3*best.
+            double directTimeOfNearestMessenger = bestMessengers.get(((JobActivity) newAct).getJob().getId());
+            if (arrTime_at_newAct > 3 * directTimeOfNearestMessenger) {
+                //not fulfilled AND it can never be fulfilled anymore by going forward in route, thus NOT_FULFILLED_BREAK
+                return ConstraintsStatus.NOT_FULFILLED_BREAK;
+            }
+
+            //impact on whole route, since insertion of newAct shifts all subsequent activities forward in time
+            double departureTime_at_newAct = arrTime_at_newAct + newAct.getOperationTime();
+            double latest_arrTime_at_newAct = latest_arrTime_at_nextAct - routingCosts.getTransportTime(newAct.getLocation(), nextAct.getLocation(), departureTime_at_newAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
+            if (arrTime_at_newAct > latest_arrTime_at_newAct) {
+                return ConstraintsStatus.NOT_FULFILLED;
+            }
+
+            double arrTime_at_nextAct = departureTime_at_newAct + routingCosts.getTransportTime(newAct.getLocation(), nextAct.getLocation(), departureTime_at_newAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
+            //here you need an activity state
+            if (arrTime_at_nextAct > latest_arrTime_at_nextAct) {
+                return ConstraintsStatus.NOT_FULFILLED;
+            }
+            return ConstraintsStatus.FULFILLED;
+        }
+
+    }
+
+    /**
+     * When inserting the activities of an envelope which are pickup and deliver envelope, this constraint makes insertion procedure to ignore messengers that are too far away to meet the 3*directTime-Constraint.
+     * <p>
+     * <p>one does not need this constraint. but it is faster. the earlier the solution-space can be constraint the better/faster.
+     *
+     * @author schroeder
+     */
+    static class IgnoreMessengerThatCanNeverMeetTimeRequirements implements HardRouteConstraint {
+
+        private final Map<String, Double> bestMessengers;
+
+        private final VehicleRoutingTransportCosts routingCosts;
+
+        public IgnoreMessengerThatCanNeverMeetTimeRequirements(Map<String, Double> bestMessengers, VehicleRoutingTransportCosts routingCosts) {
+            this.bestMessengers = bestMessengers;
+            this.routingCosts = routingCosts;
+        }
+
+        @Override
+        public boolean fulfilled(JobInsertionContext insertionContext) {
+            double timeOfDirectRoute = getTimeOfDirectRoute(insertionContext.getJob(), insertionContext.getNewVehicle(), routingCosts);
+            double timeOfNearestMessenger = bestMessengers.get(insertionContext.getJob().getId());
+            return !(timeOfDirectRoute > 3 * timeOfNearestMessenger);
+        }
+
+    }
+
+    /**
+     * updates the state "latest-activity-start-time" (required above) once route/activity states changed, i.e. when removing or inserting an envelope-activity
+     * <p>
+     * <p>thus once either the insertion-procedure starts or an envelope has been inserted, this visitor runs through the route in reverse order (i.e. starting with the end of the route) and
+     * calculates the latest-activity-start-time (or latest-activity-arrival-time) which is the time to just meet the constraints of subsequent activities.
+     *
+     * @author schroeder
+     */
+    static class UpdateLatestActivityStartTimes implements StateUpdater, ReverseActivityVisitor {
+
+        private final StateManager stateManager;
+
+        private final VehicleRoutingTransportCosts routingCosts;
+
+        private final Map<String, Double> bestMessengers;
+
+        private VehicleRoute route;
+
+        private TourActivity prevAct;
+
+        private double latestArrTimeAtPrevAct;
+
+        private final StateId latest_act_arrival_time_stateId;
+
+        public UpdateLatestActivityStartTimes(StateId latest_act_arrival_time, StateManager stateManager, VehicleRoutingTransportCosts routingCosts, Map<String, Double> bestMessengers) {
+            this.stateManager = stateManager;
+            this.routingCosts = routingCosts;
+            this.bestMessengers = bestMessengers;
+            this.latest_act_arrival_time_stateId = latest_act_arrival_time;
+        }
+
+        @Override
+        public void begin(VehicleRoute route) {
+            this.route = route;
+            latestArrTimeAtPrevAct = route.getEnd().getTheoreticalLatestOperationStartTime();
+            prevAct = route.getEnd();
+        }
+
+        @Override
+        public void visit(TourActivity currAct) {
+            double timeOfNearestMessenger = bestMessengers.get(((JobActivity) currAct).getJob().getId());
+            double potential_latest_arrTime_at_currAct =
+                latestArrTimeAtPrevAct - routingCosts.getBackwardTransportTime(currAct.getLocation(), prevAct.getLocation(), latestArrTimeAtPrevAct, route.getDriver(), route.getVehicle()) - currAct.getOperationTime();
+            double latest_arrTime_at_currAct = Math.min(3 * timeOfNearestMessenger, potential_latest_arrTime_at_currAct);
+            stateManager.putActivityState(currAct, latest_act_arrival_time_stateId, latest_arrTime_at_currAct);
+            assert currAct.getArrTime() <= latest_arrTime_at_currAct : new StringBuilder().append("this must not be since it breaks condition; actArrTime: ").append(currAct.getArrTime()).append(" latestArrTime: ").append(latest_arrTime_at_currAct).append(" vehicle: ").append(route.getVehicle().getId())
+					.toString();
+            latestArrTimeAtPrevAct = latest_arrTime_at_currAct;
+            prevAct = currAct;
+        }
+
+        @Override
+        public void finish() {
+        }
+
     }
 
 }

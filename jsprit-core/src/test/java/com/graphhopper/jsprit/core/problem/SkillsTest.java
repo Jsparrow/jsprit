@@ -53,7 +53,7 @@ public class SkillsTest {
 
     @Test
     public void whenSkillsAddedThroughAddAll_theyShouldBeinSkillSet() {
-        Set<String> skillSet = new HashSet<String>();
+        Set<String> skillSet = new HashSet<>();
         skillSet.add("skill1");
         skillSet.add("skill2");
         Skills skills = Skills.Builder.newInstance().addAllSkills(skillSet).build();
@@ -63,7 +63,7 @@ public class SkillsTest {
 
     @Test
     public void whenSkillsAddedThroughAddAllCaseInsensitive_theyShouldBeinSkillSet() {
-        Set<String> skillSet = new HashSet<String>();
+        Set<String> skillSet = new HashSet<>();
         skillSet.add("skill1");
         skillSet.add("skill2");
         Skills skills = Skills.Builder.newInstance().addAllSkills(skillSet).build();
@@ -73,7 +73,7 @@ public class SkillsTest {
 
     @Test
     public void whenSkillsAddedThroughAddAllCaseInsensitive2_theyShouldBeinSkillSet() {
-        Set<String> skillSet = new HashSet<String>();
+        Set<String> skillSet = new HashSet<>();
         skillSet.add("skill1");
         skillSet.add("Skill2");
         Skills skills = Skills.Builder.newInstance().addAllSkills(skillSet).build();
@@ -83,7 +83,7 @@ public class SkillsTest {
 
     @Test
     public void whenSkillsAddedPrecedingWhitespaceShouldNotMatter() {
-        Set<String> skillSet = new HashSet<String>();
+        Set<String> skillSet = new HashSet<>();
         skillSet.add(" skill1");
         skillSet.add("Skill2");
         Skills skills = Skills.Builder.newInstance().addAllSkills(skillSet).build();
@@ -93,7 +93,7 @@ public class SkillsTest {
 
     @Test
     public void whenSkillsAddedTrailingWhitespaceShouldNotMatter() {
-        Set<String> skillSet = new HashSet<String>();
+        Set<String> skillSet = new HashSet<>();
         skillSet.add("skill1 ");
         skillSet.add("Skill2");
         Skills skills = Skills.Builder.newInstance().addAllSkills(skillSet).build();

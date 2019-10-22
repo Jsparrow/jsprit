@@ -48,11 +48,9 @@ class InfiniteVehicles implements VehicleFleetManager {
     }
 
     private void extractTypes(Collection<Vehicle> vehicles) {
-        for (Vehicle v : vehicles) {
-//            VehicleTypeKey typeKey = new VehicleTypeKey(v.getType().getTypeId(), v.getStartLocation().getId(), v.getEndLocation().getId(), v.getEarliestDeparture(), v.getLatestArrival(), v.getSkills(), v.isReturnToDepot());
-            types.put(v.getVehicleTypeIdentifier(), v);
-//			sortedTypes.add(typeKey);
-        }
+        //            VehicleTypeKey typeKey = new VehicleTypeKey(v.getType().getTypeId(), v.getStartLocation().getId(), v.getEndLocation().getId(), v.getEarliestDeparture(), v.getLatestArrival(), v.getSkills(), v.isReturnToDepot());
+		//sortedTypes.add(typeKey);
+		vehicles.forEach(v -> types.put(v.getVehicleTypeIdentifier(), v));
     }
 
 
@@ -86,11 +84,7 @@ class InfiniteVehicles implements VehicleFleetManager {
     public Collection<Vehicle> getAvailableVehicles(Vehicle withoutThisType) {
         Collection<Vehicle> vehicles = new ArrayList<>();
         VehicleTypeKey thisKey = new VehicleTypeKey(withoutThisType.getType().getTypeId(), withoutThisType.getStartLocation().getId(), withoutThisType.getEndLocation().getId(), withoutThisType.getEarliestDeparture(), withoutThisType.getLatestArrival(), withoutThisType.getSkills(), withoutThisType.isReturnToDepot());
-        for (VehicleTypeKey key : types.keySet()) {
-            if (!key.equals(thisKey)) {
-                vehicles.add(types.get(key));
-            }
-        }
+        types.keySet().stream().filter(key -> !key.equals(thisKey)).forEach(key -> vehicles.add(types.get(key)));
         return vehicles;
     }
 

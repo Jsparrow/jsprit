@@ -51,7 +51,7 @@ public class ServiceTest {
 
     @Test
     public void noName() {
-        Set<Service> serviceSet = new HashSet<Service>();
+        Set<Service> serviceSet = new HashSet<>();
         Service one = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("foo")).build();
         Service two = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("fo")).build();
         serviceSet.add(one);

@@ -55,7 +55,6 @@ public class ChristofidesReader {
      * @param vrpBuilder the builder
      */
     public ChristofidesReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
@@ -91,7 +90,7 @@ public class ChristofidesReader {
             } else {
                 Coordinate customerCoord = makeCoord(tokens[0].trim(), tokens[1].trim());
                 int demand = Integer.parseInt(tokens[2].trim());
-                String customer = Integer.valueOf(counter - 1).toString();
+                String customer = Integer.toString(counter - 1);
                 Service service = Service.Builder.newInstance(customer).addSizeDimension(0, demand).setServiceTime(serviceTime).setLocation(Location.newInstance(customerCoord.getX(), customerCoord.getY())).build();
                 vrpBuilder.addJob(service);
             }

@@ -65,15 +65,17 @@ public class SolomonSkills_IT {
                 .setType(newType).build();
             skillProblemBuilder.addVehicle(skill1Vehicle).addVehicle(skill2Vehicle);
         }
-        for (Job job : vrp.getJobs().values()) {
-            Service service = (Service) job;
-            Service.Builder skillServiceBuilder = Service.Builder.newInstance(service.getId()).setServiceTime(service.getServiceDuration())
+        vrp.getJobs().values().stream().map(job -> (Service) job).forEach(service -> {
+			Service.Builder skillServiceBuilder = Service.Builder.newInstance(service.getId()).setServiceTime(service.getServiceDuration())
                 .setLocation(TestUtils.loc(service.getLocation().getId(), service.getLocation().getCoordinate())).setTimeWindow(service.getTimeWindow())
                 .addSizeDimension(0, service.getSize().get(0));
-            if (service.getLocation().getCoordinate().getY() < 50) skillServiceBuilder.addRequiredSkill("skill2");
-            else skillServiceBuilder.addRequiredSkill("skill1");
-            skillProblemBuilder.addJob(skillServiceBuilder.build());
-        }
+			if (service.getLocation().getCoordinate().getY() < 50) {
+				skillServiceBuilder.addRequiredSkill("skill2");
+			} else {
+				skillServiceBuilder.addRequiredSkill("skill1");
+			}
+			skillProblemBuilder.addJob(skillServiceBuilder.build());
+		});
         skillProblemBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
         VehicleRoutingProblem skillProblem = skillProblemBuilder.build();
 
@@ -82,16 +84,11 @@ public class SolomonSkills_IT {
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
         assertEquals(828.94, solution.getCost(), 0.01);
-        for (VehicleRoute route : solution.getRoutes()) {
+        solution.getRoutes().forEach(route -> {
             Skills vehicleSkill = route.getVehicle().getSkills();
-            for (Job job : route.getTourActivities().getJobs()) {
-                for (String skill : job.getRequiredSkills().values()) {
-                    if (!vehicleSkill.containsSkill(skill)) {
-                        assertFalse(true);
-                    }
-                }
-            }
-        }
+            route.getTourActivities().getJobs().forEach(job -> job.getRequiredSkills().values().stream().filter(skill -> !vehicleSkill.containsSkill(skill))
+					.forEach(skill -> assertFalse(true)));
+        });
         assertTrue(true);
     }
 }

@@ -35,12 +35,16 @@ import com.graphhopper.jsprit.core.util.Solutions;
 
 import java.util.Collection;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class MultipleTimeWindowExample2 {
 
 
-    public static void main(String[] args) {
+    private static final Logger logger = LoggerFactory.getLogger(MultipleTimeWindowExample2.class);
+
+	public static void main(String[] args) {
 
 		/*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
@@ -84,7 +88,7 @@ public class MultipleTimeWindowExample2 {
 
         Random random = RandomNumberGeneration.newInstance();
         for(int i=0;i<40;i++){
-            Service service = Service.Builder.newInstance("" + (i + 1))
+            Service service = Service.Builder.newInstance(Integer.toString((i + 1)))
                 .addTimeWindow(random.nextInt(50), 200)
                 .addTimeWindow(220 + random.nextInt(50), 350)
                 .addTimeWindow(400 + random.nextInt(50), 550)
@@ -95,7 +99,7 @@ public class MultipleTimeWindowExample2 {
         }
 
         for(int i=0;i<12;i++){
-            Service service = Service.Builder.newInstance(""+(i+51))
+            Service service = Service.Builder.newInstance(Integer.toString((i+51)))
 //                .addTimeWindow(0, 80)
 ////                .addTimeWindow(120, 200)
 //                .addTimeWindow(250,500)
@@ -136,10 +140,10 @@ public class MultipleTimeWindowExample2 {
 
         SolutionAnalyser a = new SolutionAnalyser(problem, bestSolution, problem.getTransportCosts());
 
-        System.out.println("distance: " + a.getDistance());
-        System.out.println("ttime: " + a.getTransportTime());
-        System.out.println("completion: " + a.getOperationTime());
-        System.out.println("waiting: " + a.getWaitingTime());
+        logger.info("distance: " + a.getDistance());
+        logger.info("ttime: " + a.getTransportTime());
+        logger.info("completion: " + a.getOperationTime());
+        logger.info("waiting: " + a.getWaitingTime());
 
 //        new GraphStreamViewer(problem, bestSolution).labelWith(Label.ID).setRenderDelay(200).display();
     }

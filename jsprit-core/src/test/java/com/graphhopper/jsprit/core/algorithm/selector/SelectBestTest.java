@@ -45,7 +45,7 @@ public class SelectBestTest {
     public void whenHavingOnly1Solutions_selectThisOne() {
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
         when(sol1.getCost()).thenReturn(1.0);
-        assertThat(new SelectBest().selectSolution(Arrays.asList(sol1)), is(sol1));
+        assertThat(new SelectBest().selectSolution(Collections.singletonList(sol1)), is(sol1));
     }
 
     @Test

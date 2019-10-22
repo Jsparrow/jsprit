@@ -38,40 +38,40 @@ public class Resource {
 
     private static Logger log = LoggerFactory.getLogger(Resource.class);
 
-    public final static URL getAsURL(final String filename) {
+    public static final URL getAsURL(final String filename) {
         URL url = Resource.class.getClassLoader().getResource(filename);
         if (url != null) {
             return url;
         }
-        log.debug("resource: " + filename + " is unreachable by the current class loader, try the filesystem");
+        log.debug(new StringBuilder().append("resource: ").append(filename).append(" is unreachable by the current class loader, try the filesystem").toString());
         File file = new File(filename);
         if (!file.exists()) {
-            log.debug("resource: " + filename + " do not exists on the filesystem");
+            log.debug(new StringBuilder().append("resource: ").append(filename).append(" do not exists on the filesystem").toString());
             return null;
         }
         try {
             return file.toURI().toURL();
         } catch (MalformedURLException e) {
-            log.debug("resource: " + filename + " exists on the filesystem, but its URL is invalid: " + e.getMessage());
+            log.debug(new StringBuilder().append("resource: ").append(filename).append(" exists on the filesystem, but its URL is invalid: ").append(e.getMessage()).toString());
             return null;
         }
     }
 
-    public final static InputStream getAsInputStream(final String filename) {
+    public static final InputStream getAsInputStream(final String filename) {
         InputStream stream = Resource.class.getClassLoader().getResourceAsStream(filename);
         if (stream != null) {
             return stream;
         }
-        log.debug("resource: " + filename + " is unreachable by the current class loader, try the filesystem");
+        log.debug(new StringBuilder().append("resource: ").append(filename).append(" is unreachable by the current class loader, try the filesystem").toString());
         File file = new File(filename);
         if (!file.exists()) {
-            log.debug("resource: " + filename + " do not exists on the filesystem");
+            log.debug(new StringBuilder().append("resource: ").append(filename).append(" do not exists on the filesystem").toString());
             return null;
         }
         try {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            log.debug("resource: " + filename + " exists on the filesystem, but its URL is invalid: " + e.getMessage());
+            log.debug(new StringBuilder().append("resource: ").append(filename).append(" exists on the filesystem, but its URL is invalid: ").append(e.getMessage()).toString());
             return null;
         }
     }

@@ -23,7 +23,7 @@ class Activities {
         if (time == Double.MAX_VALUE) {
             return "oo";
         }
-        return "" + Math.round(time);
+        return Long.toString(Math.round(time));
     }
 
 }

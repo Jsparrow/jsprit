@@ -67,7 +67,7 @@ public class TestInserter {
         when(iData.getSelectedVehicle()).thenReturn(vehicle);
 
         VehicleRoutingProblem vehicleRoutingProblem = mock(VehicleRoutingProblem.class);
-        List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> acts = new ArrayList<>();
         PickupService act = new PickupService(serviceToInsert);
         acts.add(act);
         when(vehicleRoutingProblem.copyAndGetActivities(serviceToInsert)).thenReturn(acts);
@@ -114,7 +114,7 @@ public class TestInserter {
     }
 
     private List<AbstractActivity> getTourActivities(Service serviceToInsert) {
-        List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> acts = new ArrayList<>();
         acts.add(new PickupService(serviceToInsert));
         return acts;
     }
@@ -155,7 +155,7 @@ public class TestInserter {
     }
 
     private List<AbstractActivity> getTourActivities(Shipment shipmentToInsert) {
-        List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
+        List<AbstractActivity> acts = new ArrayList<>();
         acts.add(new PickupShipment(shipmentToInsert));
         acts.add(new DeliverShipment(shipmentToInsert));
         return acts;

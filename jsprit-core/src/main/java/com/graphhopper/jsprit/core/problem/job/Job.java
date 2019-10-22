@@ -38,7 +38,8 @@ public interface Job extends HasId, HasIndex {
      *
      * @return id
      */
-    String getId();
+    @Override
+	String getId();
 
     /**
      * Returns size, i.e. capacity-demand, of this job which can consist of an arbitrary number of capacity dimensions.

@@ -26,7 +26,7 @@ import java.util.List;
  */
 class EventListeners {
 
-    private List<EventListener> listeners = new ArrayList<EventListener>();
+    private List<EventListener> listeners = new ArrayList<>();
 
     public EventListeners() {
         listeners.add(new InsertActivityListener());
@@ -35,8 +35,6 @@ class EventListeners {
     }
 
     public void inform(Event event) {
-        for (EventListener l : listeners) {
-            l.inform(event);
-        }
+        listeners.forEach(l -> l.inform(event));
     }
 }

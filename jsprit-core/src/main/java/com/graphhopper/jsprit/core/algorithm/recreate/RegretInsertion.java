@@ -51,7 +51,15 @@ public class RegretInsertion extends AbstractInsertionStrategy {
     private JobInsertionCostsCalculator insertionCostsCalculator;
 
 
-    /**
+    public RegretInsertion(JobInsertionCostsCalculator jobInsertionCalculator, VehicleRoutingProblem vehicleRoutingProblem) {
+        super(vehicleRoutingProblem);
+        this.scoringFunction = new DefaultScorer(vehicleRoutingProblem);
+        this.insertionCostsCalculator = jobInsertionCalculator;
+        this.vrp = vehicleRoutingProblem;
+        logger.debug("initialise {}", this);
+    }
+
+	/**
      * Sets the scoring function.
      * <p>
      * <p>By default, the this.TimeWindowScorer is used.
@@ -62,28 +70,19 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         this.scoringFunction = scoringFunction;
     }
 
-    public RegretInsertion(JobInsertionCostsCalculator jobInsertionCalculator, VehicleRoutingProblem vehicleRoutingProblem) {
-        super(vehicleRoutingProblem);
-        this.scoringFunction = new DefaultScorer(vehicleRoutingProblem);
-        this.insertionCostsCalculator = jobInsertionCalculator;
-        this.vrp = vehicleRoutingProblem;
-        logger.debug("initialise {}", this);
-    }
-
-    @Override
+	@Override
     public String toString() {
-        return "[name=regretInsertion][additionalScorer=" + scoringFunction + "]";
+        return new StringBuilder().append("[name=regretInsertion][additionalScorer=").append(scoringFunction).append("]").toString();
     }
 
-
-    /**
+	/**
      * Runs insertion.
      * <p>
      * <p>Before inserting a job, all unassigned jobs are scored according to its best- and secondBest-insertion plus additional scoring variables.
      */
     @Override
     public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
-        List<Job> badJobs = new ArrayList<Job>(unassignedJobs.size());
+        List<Job> badJobs = new ArrayList<>(unassignedJobs.size());
 
         Iterator<Job> jobIterator = unassignedJobs.iterator();
         while (jobIterator.hasNext()){
@@ -117,24 +116,21 @@ public class RegretInsertion extends AbstractInsertionStrategy {
                 insertJob(bestScoredJob.getJob(), bestScoredJob.getInsertionData(), bestScoredJob.getRoute());
                 jobs.remove(bestScoredJob.getJob());
             }
-            for (ScoredJob bad : badJobList) {
+            badJobList.forEach(bad -> {
                 Job unassigned = bad.getJob();
                 jobs.remove(unassigned);
                 badJobs.add(unassigned);
                 markUnassigned(unassigned, bad.getInsertionData().getFailedConstraintNames());
-            }
+            });
         }
         return badJobs;
     }
 
-    private VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
-        for(VehicleRoute r : routes){
-            if(r.getVehicle().getBreak() == job) return r;
-        }
-        return null;
+	private VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
+        return routes.stream().filter(r -> r.getVehicle().getBreak() == job).findFirst().orElse(null);
     }
 
-    private ScoredJob nextJob(Collection<VehicleRoute> routes, Collection<Job> unassignedJobList, List<ScoredJob> badJobs) {
+	private ScoredJob nextJob(Collection<VehicleRoute> routes, Collection<Job> unassignedJobList, List<ScoredJob> badJobs) {
         ScoredJob bestScoredJob = null;
         for (Job unassignedJob : unassignedJobList) {
             ScoredJob scoredJob = getScoredJob(routes, unassignedJob, insertionCostsCalculator, scoringFunction);
@@ -142,8 +138,9 @@ public class RegretInsertion extends AbstractInsertionStrategy {
                 badJobs.add(scoredJob);
                 continue;
             }
-            if (bestScoredJob == null) bestScoredJob = scoredJob;
-            else {
+            if (bestScoredJob == null) {
+				bestScoredJob = scoredJob;
+			} else {
                 if (scoredJob.getScore() > bestScoredJob.getScore()) {
                     bestScoredJob = scoredJob;
                 } else if (scoredJob.getScore() == bestScoredJob.getScore()) {
@@ -156,7 +153,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         return bestScoredJob;
     }
 
-    static ScoredJob getScoredJob(Collection<VehicleRoute> routes, Job unassignedJob, JobInsertionCostsCalculator insertionCostsCalculator, ScoringFunction scoringFunction) {
+	static ScoredJob getScoredJob(Collection<VehicleRoute> routes, Job unassignedJob, JobInsertionCostsCalculator insertionCostsCalculator, ScoringFunction scoringFunction) {
         InsertionData best = null;
         InsertionData secondBest = null;
         VehicleRoute bestRoute = null;
@@ -196,7 +193,9 @@ public class RegretInsertion extends AbstractInsertionStrategy {
             } else if (secondBest == null || (iData.getInsertionCost() < secondBest.getInsertionCost())) {
                 secondBest = iData;
             }
-        } else failedConstraintNames.addAll(iData.getFailedConstraintNames());
+        } else {
+			failedConstraintNames.addAll(iData.getFailedConstraintNames());
+		}
         if (best == null) {
             ScoredJob.BadJob badJob = new ScoredJob.BadJob(unassignedJob, failedConstraintNames);
             return badJob;
@@ -205,12 +204,13 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         ScoredJob scoredJob;
         if (bestRoute == emptyRoute) {
             scoredJob = new ScoredJob(unassignedJob, score, best, bestRoute, true);
-        } else scoredJob = new ScoredJob(unassignedJob, score, best, bestRoute, false);
+        } else {
+			scoredJob = new ScoredJob(unassignedJob, score, best, bestRoute, false);
+		}
         return scoredJob;
     }
 
-
-    static double score(Job unassignedJob, InsertionData best, InsertionData secondBest, ScoringFunction scoringFunction) {
+	static double score(Job unassignedJob, InsertionData best, InsertionData secondBest, ScoringFunction scoringFunction) {
         return Scorer.score(unassignedJob,best,secondBest,scoringFunction);
     }
 

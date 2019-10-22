@@ -36,51 +36,27 @@ public class InsertionListeners {
     }
 
     public void informJobInserted(Job insertedJob, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof JobInsertedListener) {
-                ((JobInsertedListener) l).informJobInserted(insertedJob, inRoute, additionalCosts, additionalTime);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof JobInsertedListener).forEach(l -> ((JobInsertedListener) l).informJobInserted(insertedJob, inRoute, additionalCosts, additionalTime));
     }
 
     public void informVehicleSwitched(VehicleRoute route, Vehicle oldVehicle, Vehicle newVehicle) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof VehicleSwitchedListener) {
-                ((VehicleSwitchedListener) l).vehicleSwitched(route, oldVehicle, newVehicle);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof VehicleSwitchedListener).forEach(l -> ((VehicleSwitchedListener) l).vehicleSwitched(route, oldVehicle, newVehicle));
     }
 
     public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof BeforeJobInsertionListener) {
-                ((BeforeJobInsertionListener) l).informBeforeJobInsertion(job, data, route);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof BeforeJobInsertionListener).forEach(l -> ((BeforeJobInsertionListener) l).informBeforeJobInsertion(job, data, route));
     }
 
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof InsertionStartsListener) {
-                ((InsertionStartsListener) l).informInsertionStarts(vehicleRoutes, unassignedJobs);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof InsertionStartsListener).forEach(l -> ((InsertionStartsListener) l).informInsertionStarts(vehicleRoutes, unassignedJobs));
     }
 
     public void informInsertionEndsListeners(Collection<VehicleRoute> vehicleRoutes, Collection<Job> badJobs) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof InsertionEndsListener) {
-                ((InsertionEndsListener) l).informInsertionEnds(vehicleRoutes, badJobs);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof InsertionEndsListener).forEach(l -> ((InsertionEndsListener) l).informInsertionEnds(vehicleRoutes, badJobs));
     }
 
     public void informJobUnassignedListeners(Job unassigned, List<String> reasons) {
-        for (InsertionListener l : listeners) {
-            if (l instanceof JobUnassignedListener) {
-                ((JobUnassignedListener) l).informJobUnassigned(unassigned, reasons);
-            }
-        }
+        listeners.stream().filter(l -> l instanceof JobUnassignedListener).forEach(l -> ((JobUnassignedListener) l).informJobUnassigned(unassigned, reasons));
     }
 
     public void addListener(InsertionListener insertionListener) {
@@ -92,7 +68,7 @@ public class InsertionListeners {
     }
 
     public void addAllListeners(Collection<InsertionListener> listeners) {
-        for (InsertionListener l : listeners) addListener(l);
+        listeners.forEach(this::addListener);
     }
 
 }

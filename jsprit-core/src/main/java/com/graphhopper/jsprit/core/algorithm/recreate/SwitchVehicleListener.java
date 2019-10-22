@@ -32,18 +32,21 @@ class SwitchVehicleListener implements EventListener {
 
     @Override
     public void inform(Event event) {
-        if (event instanceof SwitchVehicle) {
-            SwitchVehicle switchVehicle = (SwitchVehicle) event;
-            if (vehiclesDifferent((SwitchVehicle) event)) {
-                logger.trace("switch vehicle ({} to {})",((SwitchVehicle) event).getRoute().getVehicle().getId(),((SwitchVehicle) event).getVehicle().getId());
-                Break aBreak = ((SwitchVehicle) event).getRoute().getVehicle().getBreak();
-                if (aBreak != null) {
-                    boolean removed = ((SwitchVehicle) event).getRoute().getTourActivities().removeJob(aBreak);
-                    if (removed) logger.trace("remove {}",aBreak.getId());
-                }
-            }
-            switchVehicle.getRoute().setVehicleAndDepartureTime(switchVehicle.getVehicle(), ((SwitchVehicle) event).getDepartureTime());
-        }
+        if (!(event instanceof SwitchVehicle)) {
+			return;
+		}
+		SwitchVehicle switchVehicle = (SwitchVehicle) event;
+		if (vehiclesDifferent((SwitchVehicle) event)) {
+		    logger.trace("switch vehicle ({} to {})",((SwitchVehicle) event).getRoute().getVehicle().getId(),((SwitchVehicle) event).getVehicle().getId());
+		    Break aBreak = ((SwitchVehicle) event).getRoute().getVehicle().getBreak();
+		    if (aBreak != null) {
+		        boolean removed = ((SwitchVehicle) event).getRoute().getTourActivities().removeJob(aBreak);
+		        if (removed) {
+					logger.trace("remove {}",aBreak.getId());
+				}
+		    }
+		}
+		switchVehicle.getRoute().setVehicleAndDepartureTime(switchVehicle.getVehicle(), ((SwitchVehicle) event).getDepartureTime());
     }
 
     private boolean vehiclesDifferent(SwitchVehicle event) {

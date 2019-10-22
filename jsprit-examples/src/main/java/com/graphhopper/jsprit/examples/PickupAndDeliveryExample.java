@@ -31,11 +31,15 @@ import com.graphhopper.jsprit.io.problem.VrpXMLReader;
 import com.graphhopper.jsprit.util.Examples;
 
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class PickupAndDeliveryExample {
 
-    public static void main(String[] args) {
+    private static final Logger logger = LoggerFactory.getLogger(PickupAndDeliveryExample.class);
+
+	public static void main(String[] args) {
 
 		/*
          * some preparation - create output folder
@@ -99,12 +103,12 @@ public class PickupAndDeliveryExample {
         //some stats
         SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
 
-        System.out.println("tp_distance: " + analyser.getDistance());
-        System.out.println("tp_time: " + analyser.getTransportTime());
-        System.out.println("waiting: " + analyser.getWaitingTime());
-        System.out.println("service: " + analyser.getServiceTime());
-        System.out.println("#picks: " + analyser.getNumberOfPickups());
-        System.out.println("#deliveries: " + analyser.getNumberOfDeliveries());
+        logger.info("tp_distance: " + analyser.getDistance());
+        logger.info("tp_time: " + analyser.getTransportTime());
+        logger.info("waiting: " + analyser.getWaitingTime());
+        logger.info("service: " + analyser.getServiceTime());
+        logger.info("#picks: " + analyser.getNumberOfPickups());
+        logger.info("#deliveries: " + analyser.getNumberOfDeliveries());
 
 
     }

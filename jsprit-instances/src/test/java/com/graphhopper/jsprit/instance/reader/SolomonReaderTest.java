@@ -40,7 +40,9 @@ public class SolomonReaderTest {
 
     private String getPath() {
         URL resource = getClass().getClassLoader().getResource("C101_solomon.txt");
-        if (resource == null) throw new IllegalStateException("file C101_solomon.txt does not exist");
+        if (resource == null) {
+			throw new IllegalStateException("file C101_solomon.txt does not exist");
+		}
         return resource.getPath();
     }
 
@@ -57,9 +59,7 @@ public class SolomonReaderTest {
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            assertEquals(200, v.getType().getCapacityDimensions().get(0));
-        }
+        vrp.getVehicles().forEach(v -> assertEquals(200, v.getType().getCapacityDimensions().get(0)));
     }
 
     @Test
@@ -67,10 +67,10 @@ public class SolomonReaderTest {
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(v -> {
             assertEquals(40.0, v.getStartLocation().getCoordinate().getX(), 0.01);
             assertEquals(50.0, v.getStartLocation().getCoordinate().getY(), 0.01);
-        }
+        });
     }
 
     @Test

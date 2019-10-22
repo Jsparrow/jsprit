@@ -25,7 +25,7 @@ import java.util.Collections;
 
 class SoftRouteConstraintManager implements SoftRouteConstraint {
 
-    private Collection<SoftRouteConstraint> softConstraints = new ArrayList<SoftRouteConstraint>();
+    private Collection<SoftRouteConstraint> softConstraints = new ArrayList<>();
 
     public void addConstraint(SoftRouteConstraint constraint) {
         softConstraints.add(constraint);

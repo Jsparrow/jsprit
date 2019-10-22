@@ -43,7 +43,9 @@ public class GoldenReaderTest {
 
     private String getPath(String string) {
         URL resource = this.getClass().getClassLoader().getResource(string);
-        if (resource == null) throw new IllegalStateException("resource " + string + " does not exist");
+        if (resource == null) {
+			throw new IllegalStateException(new StringBuilder().append("resource ").append(string).append(" does not exist").toString());
+		}
         return resource.getPath();
     }
 
@@ -55,7 +57,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_1")) {
+            if ("type_1".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -70,7 +72,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_1")) {
+            if ("type_1".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -85,7 +87,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_2")) {
+            if ("type_2".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -100,7 +102,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_2")) {
+            if ("type_2".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -115,7 +117,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_3")) {
+            if ("type_3".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -130,7 +132,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_3")) {
+            if ("type_3".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -145,7 +147,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_4")) {
+            if ("type_4".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -160,7 +162,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_4")) {
+            if ("type_4".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -175,7 +177,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_5")) {
+            if ("type_5".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -190,7 +192,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_5")) {
+            if ("type_5".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -205,7 +207,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_6")) {
+            if ("type_6".equals(v.getType().getTypeId())) {
                 nuOfType1Vehicles++;
             }
         }
@@ -220,7 +222,7 @@ public class GoldenReaderTest {
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
         for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_6")) {
+            if ("type_6".equals(v.getType().getTypeId())) {
                 sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
             }
         }
@@ -233,14 +235,14 @@ public class GoldenReaderTest {
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        for (Vehicle v : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(v -> {
             if (v.getStartLocation().getCoordinate().getX() != 40.0) {
                 assertFalse(true);
             }
             if (v.getStartLocation().getCoordinate().getY() != 40.0) {
                 assertFalse(true);
             }
-        }
+        });
         assertTrue(true);
     }
 
@@ -314,12 +316,7 @@ public class GoldenReaderTest {
     }
 
     private Job getJob(String string, VehicleRoutingProblem vrp) {
-        for (Job j : vrp.getJobs().values()) {
-            if (j.getId().equals(string)) {
-                return j;
-            }
-        }
-        return null;
+        return vrp.getJobs().values().stream().filter(j -> j.getId().equals(string)).findFirst().orElse(null);
     }
 
 

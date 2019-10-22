@@ -22,6 +22,6 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public interface SoftActivityConstraint extends SoftConstraint {
 
-    public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime);
+    double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime);
 
 }

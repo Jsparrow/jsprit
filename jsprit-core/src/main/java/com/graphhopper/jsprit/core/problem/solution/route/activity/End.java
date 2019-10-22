@@ -21,40 +21,26 @@ import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 
-public final class End extends AbstractActivity implements TourActivity {
+public final class End extends AbstractActivity {
 
-    public static End newInstance(String locationId, double earliestArrival, double latestArrival) {
-        return new End(locationId, earliestArrival, latestArrival);
-    }
-
-    public static End copyOf(End end) {
-        return new End(end);
-    }
-
-    private final static Capacity capacity = Capacity.Builder.newInstance().build();
+    private static final Capacity capacity = Capacity.Builder.newInstance().build();
 
 
-    private double endTime = -1;
+	private double endTime = -1;
 
 
-    private double theoretical_earliestOperationStartTime;
+	private double theoretical_earliestOperationStartTime;
 
-    private double theoretical_latestOperationStartTime;
 
-    private double arrTime;
+	private double theoretical_latestOperationStartTime;
 
-    private Location location;
 
-    public void setTheoreticalEarliestOperationStartTime(double theoreticalEarliestOperationStartTime) {
-        theoretical_earliestOperationStartTime = theoreticalEarliestOperationStartTime;
-    }
+	private double arrTime;
 
-    public void setTheoreticalLatestOperationStartTime(double theoreticalLatestOperationStartTime) {
-        theoretical_latestOperationStartTime = theoreticalLatestOperationStartTime;
-    }
 
-    public End(Location location, double theoreticalStart, double theoreticalEnd) {
-        super();
+	private Location location;
+
+	public End(Location location, double theoreticalStart, double theoreticalEnd) {
         this.location = location;
         theoretical_earliestOperationStartTime = theoreticalStart;
         theoretical_latestOperationStartTime = theoreticalEnd;
@@ -62,16 +48,17 @@ public final class End extends AbstractActivity implements TourActivity {
         setIndex(-2);
     }
 
-    public End(String locationId, double theoreticalStart, double theoreticalEnd) {
-        super();
-        if (locationId != null) this.location = Location.Builder.newInstance().setId(locationId).build();
+	public End(String locationId, double theoreticalStart, double theoreticalEnd) {
+        if (locationId != null) {
+			this.location = Location.Builder.newInstance().setId(locationId).build();
+		}
         theoretical_earliestOperationStartTime = theoreticalStart;
         theoretical_latestOperationStartTime = theoreticalEnd;
         endTime = theoreticalEnd;
         setIndex(-2);
     }
 
-    public End(End end) {
+	public End(End end) {
         this.location = end.getLocation();
 //		this.locationId = end.getLocation().getId();
         theoretical_earliestOperationStartTime = end.getTheoreticalEarliestOperationStartTime();
@@ -81,66 +68,86 @@ public final class End extends AbstractActivity implements TourActivity {
         setIndex(-2);
     }
 
-    public double getTheoreticalEarliestOperationStartTime() {
+	public static End newInstance(String locationId, double earliestArrival, double latestArrival) {
+        return new End(locationId, earliestArrival, latestArrival);
+    }
+
+	public static End copyOf(End end) {
+        return new End(end);
+    }
+
+	@Override
+	public void setTheoreticalEarliestOperationStartTime(double theoreticalEarliestOperationStartTime) {
+        theoretical_earliestOperationStartTime = theoreticalEarliestOperationStartTime;
+    }
+
+	@Override
+	public void setTheoreticalLatestOperationStartTime(double theoreticalLatestOperationStartTime) {
+        theoretical_latestOperationStartTime = theoreticalLatestOperationStartTime;
+    }
+
+	@Override
+	public double getTheoreticalEarliestOperationStartTime() {
         return theoretical_earliestOperationStartTime;
     }
 
-    public double getTheoreticalLatestOperationStartTime() {
+	@Override
+	public double getTheoreticalLatestOperationStartTime() {
         return theoretical_latestOperationStartTime;
     }
 
-    public double getEndTime() {
+	@Override
+	public double getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(double endTime) {
+	@Override
+	public void setEndTime(double endTime) {
         this.endTime = endTime;
     }
 
-    public void setLocation(Location location) {
+	public void setLocation(Location location) {
         this.location = location;
     }
 
-    @Override
+	@Override
     public Location getLocation() {
         return location;
     }
 
-    @Override
+	@Override
     public double getOperationTime() {
         return 0.0;
     }
 
-
-    @Override
+	@Override
     public String toString() {
-        return "[type=" + getName() + "][location=" + location
-            + "][twStart=" + Activities.round(theoretical_earliestOperationStartTime)
-            + "][twEnd=" + Activities.round(theoretical_latestOperationStartTime) + "]";
+        return new StringBuilder().append("[type=").append(getName()).append("][location=").append(location).append("][twStart=").append(Activities.round(theoretical_earliestOperationStartTime))
+				.append("][twEnd=").append(Activities.round(theoretical_latestOperationStartTime)).append("]").toString();
     }
 
-    @Override
+	@Override
     public String getName() {
         return "end";
     }
 
-    @Override
+	@Override
     public double getArrTime() {
         return this.arrTime;
     }
 
-    @Override
+	@Override
     public void setArrTime(double arrTime) {
         this.arrTime = arrTime;
 
     }
 
-    @Override
+	@Override
     public TourActivity duplicate() {
         return new End(this);
     }
 
-    @Override
+	@Override
     public Capacity getSize() {
         return capacity;
     }

@@ -33,7 +33,7 @@ import java.util.Random;
 
 public abstract class AbstractRuinStrategy implements RuinStrategy {
 
-    private final static Logger logger = LoggerFactory.getLogger(AbstractRuinStrategy.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractRuinStrategy.class);
 
     private RuinListeners ruinListeners;
 
@@ -41,26 +41,26 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
 
     protected VehicleRoutingProblem vrp;
 
-    public void setRandom(Random random) {
-        this.random = random;
-    }
+	protected RuinShareFactory ruinShareFactory;
 
-    protected RuinShareFactory ruinShareFactory;
-
-    public void setRuinShareFactory(RuinShareFactory ruinShareFactory) {
-        this.ruinShareFactory = ruinShareFactory;
-    }
-
-    public RuinShareFactory getRuinShareFactory() {
-        return ruinShareFactory;
-    }
-
-    protected AbstractRuinStrategy(VehicleRoutingProblem vrp) {
+	protected AbstractRuinStrategy(VehicleRoutingProblem vrp) {
         this.vrp = vrp;
         ruinListeners = new RuinListeners();
     }
 
-    @Override
+	public void setRandom(Random random) {
+        this.random = random;
+    }
+
+	public void setRuinShareFactory(RuinShareFactory ruinShareFactory) {
+        this.ruinShareFactory = ruinShareFactory;
+    }
+
+	public RuinShareFactory getRuinShareFactory() {
+        return ruinShareFactory;
+    }
+
+	@Override
     public Collection<Job> ruin(Collection<VehicleRoute> vehicleRoutes) {
         ruinListeners.ruinStarts(vehicleRoutes);
         Collection<Job> unassigned = ruinRoutes(vehicleRoutes);
@@ -69,45 +69,44 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
         return unassigned;
     }
 
-    public abstract Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes);
+	public abstract Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes);
 
-    @Override
+	@Override
     public void addListener(RuinListener ruinListener) {
         ruinListeners.addListener(ruinListener);
     }
 
-    @Override
+	@Override
     public void removeListener(RuinListener ruinListener) {
         ruinListeners.removeListener(ruinListener);
     }
 
-    @Override
+	@Override
     public Collection<RuinListener> getListeners() {
         return ruinListeners.getListeners();
     }
 
-    protected boolean removeJob(Job job, Collection<VehicleRoute> vehicleRoutes) {
-        if (jobIsInitial(job)) return false;
-        for (VehicleRoute route : vehicleRoutes) {
-            if (removeJob(job, route)) {
-                return true;
-            }
-        }
-        return false;
+	protected boolean removeJob(Job job, Collection<VehicleRoute> vehicleRoutes) {
+        if (jobIsInitial(job)) {
+			return false;
+		}
+        return vehicleRoutes.stream().anyMatch(route -> removeJob(job, route));
     }
 
-    private boolean jobIsInitial(Job job) {
+	private boolean jobIsInitial(Job job) {
         return !vrp.getJobs().containsKey(job.getId()); //for initial jobs (being not contained in problem
     }
 
-    protected boolean removeJob(Job job, VehicleRoute route) {
-        if (jobIsInitial(job)) return false;
+	protected boolean removeJob(Job job, VehicleRoute route) {
+        if (jobIsInitial(job)) {
+			return false;
+		}
         boolean removed = route.getTourActivities().removeJob(job);
-        if (removed) {
-            logger.trace("ruin: {}", job.getId());
-            ruinListeners.removed(job, route);
-            return true;
-        }
-        return false;
+        if (!removed) {
+			return false;
+		}
+		logger.trace("ruin: {}", job.getId());
+		ruinListeners.removed(job, route);
+		return true;
     }
 }

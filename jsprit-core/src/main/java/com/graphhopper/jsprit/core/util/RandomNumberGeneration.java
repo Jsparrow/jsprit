@@ -21,12 +21,12 @@ import java.util.Random;
 
 public class RandomNumberGeneration {
 
-    private static long DEFAULT_SEED = 4711L;
+    private static long defaultSeed = 4711L;
 
-    private static Random random = new Random(DEFAULT_SEED);
+    private static Random random = new Random(defaultSeed);
 
     public static Random newInstance() {
-        return new Random(DEFAULT_SEED);
+        return new Random(defaultSeed);
     }
 
     public static Random getRandom() {
@@ -42,7 +42,7 @@ public class RandomNumberGeneration {
     }
 
     public static void reset(Random random) {
-        random.setSeed(DEFAULT_SEED);
+        random.setSeed(defaultSeed);
     }
 
 }

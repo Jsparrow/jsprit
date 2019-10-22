@@ -46,7 +46,9 @@ public class RandomUtils {
         int randomIndex = random.nextInt(items.size());
         int count = 0;
         for (T item : items) {
-            if (count == randomIndex) return item;
+            if (count == randomIndex) {
+				return item;
+			}
             count++;
         }
         return null;

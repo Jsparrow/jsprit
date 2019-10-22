@@ -33,6 +33,7 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import java.util.Collections;
 
 /**
  * Created by schroeder on 30/01/15.
@@ -53,7 +54,7 @@ public class RuinWorstTest {
         RuinWorst worst = new RuinWorst(vrp, 1);
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
-        Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
+        Collection<Job> unassigned = worst.ruinRoutes(Collections.singletonList(route));
         assertEquals(1, unassigned.size());
 
     }
@@ -72,7 +73,7 @@ public class RuinWorstTest {
         RuinWorst worst = new RuinWorst(vrp, 1);
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
-        Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
+        Collection<Job> unassigned = worst.ruinRoutes(Collections.singletonList(route));
         assertEquals(s3, unassigned.iterator().next());
 
     }
@@ -89,15 +90,10 @@ public class RuinWorstTest {
             .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
-        worst.setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return 2;
-            }
-        });
+        worst.setRuinShareFactory(() -> 2);
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
-        Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
+        Collection<Job> unassigned = worst.ruinRoutes(Collections.singletonList(route));
 
         assertTrue(unassigned.size() == 2);
         assertTrue(unassigned.contains(s2));
@@ -121,17 +117,12 @@ public class RuinWorstTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
-        worst.setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return 1;
-            }
-        });
+        worst.setRuinShareFactory(() -> 1);
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v)
             .addPickup(shipment).addService(s1).addService(s2).addService(s3).addDelivery(shipment)
             .setJobActivityFactory(vrp.getJobActivityFactory()).build();
-        Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
+        Collection<Job> unassigned = worst.ruinRoutes(Collections.singletonList(route));
 
         assertTrue(unassigned.size() == 1);
         assertTrue(unassigned.contains(shipment));
@@ -156,12 +147,7 @@ public class RuinWorstTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).addVehicle(v2).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
-        worst.setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return 1;
-            }
-        });
+        worst.setRuinShareFactory(() -> 1);
 
         VehicleRoute route1 = VehicleRoute.Builder.newInstance(v)
             .addService(s1).addService(s2).addService(s3)
@@ -193,12 +179,7 @@ public class RuinWorstTest {
         VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).addVehicle(v2).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
-        worst.setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return 2;
-            }
-        });
+        worst.setRuinShareFactory(() -> 2);
 
         VehicleRoute route1 = VehicleRoute.Builder.newInstance(v)
             .addService(s1).addService(s2).addService(s3)

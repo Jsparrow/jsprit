@@ -25,7 +25,28 @@ package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
 public class TimeWindow {
 
-    /**
+    private final double start;
+	private final double end;
+
+	/**
+     * Constructs the timeWindow
+     *
+     * @param start
+     * @param end
+     * @throw IllegalArgumentException either if start or end < 0.0 or end < start
+     */
+    public TimeWindow(double start, double end) {
+        if (start < 0.0 || end < 0.0) {
+			throw new IllegalArgumentException(new StringBuilder().append("neither time window start nor end must be < 0.0: ").append("[start=").append(start).append("][end=").append(end).append("]").toString());
+		}
+        if (end < start) {
+			throw new IllegalArgumentException(new StringBuilder().append("time window end cannot be smaller than its start: ").append("[start=").append(start).append("][end=").append(end).append("]").toString());
+		}
+        this.start = start;
+        this.end = end;
+    }
+
+	/**
      * Returns new instance of TimeWindow.
      *
      * @param start
@@ -37,27 +58,7 @@ public class TimeWindow {
         return new TimeWindow(start, end);
     }
 
-    private final double start;
-    private final double end;
-
-    /**
-     * Constructs the timeWindow
-     *
-     * @param start
-     * @param end
-     * @throw IllegalArgumentException either if start or end < 0.0 or end < start
-     */
-    public TimeWindow(double start, double end) {
-        super();
-        if (start < 0.0 || end < 0.0)
-            throw new IllegalArgumentException("neither time window start nor end must be < 0.0: " + "[start=" + start + "][end=" + end + "]");
-        if (end < start)
-            throw new IllegalArgumentException("time window end cannot be smaller than its start: " + "[start=" + start + "][end=" + end + "]");
-        this.start = start;
-        this.end = end;
-    }
-
-    /**
+	/**
      * Returns startTime of TimeWindow.
      *
      * @return startTime
@@ -66,7 +67,7 @@ public class TimeWindow {
         return start;
     }
 
-    /**
+	/**
      * Returns endTime of TimeWindow.
      *
      * @return endTime
@@ -75,16 +76,16 @@ public class TimeWindow {
         return end;
     }
 
-    public boolean larger(TimeWindow timeWindow) {
+	public boolean larger(TimeWindow timeWindow) {
         return (this.getEnd() - this.getStart()) > (timeWindow.getEnd() - timeWindow.getStart());
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[start=" + start + "][end=" + end + "]";
+        return new StringBuilder().append("[start=").append(start).append("][end=").append(end).append("]").toString();
     }
 
-    @Override
+	@Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -96,23 +97,28 @@ public class TimeWindow {
         return result;
     }
 
-    /**
+	/**
      * Two timeWindows are equal if they have the same start AND endTime.
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) {
+			return true;
+		}
+        if (obj == null) {
+			return false;
+		}
+        if (getClass() != obj.getClass()) {
+			return false;
+		}
         TimeWindow other = (TimeWindow) obj;
-        if (Double.doubleToLongBits(end) != Double.doubleToLongBits(other.end))
-            return false;
+        if (Double.doubleToLongBits(end) != Double.doubleToLongBits(other.end)) {
+			return false;
+		}
         if (Double.doubleToLongBits(start) != Double
-            .doubleToLongBits(other.start))
-            return false;
+            .doubleToLongBits(other.start)) {
+			return false;
+		}
         return true;
     }
 

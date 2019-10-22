@@ -61,10 +61,9 @@ public class SolomonWithSkillsExample {
                 .setType(newType).build();
             skillProblemBuilder.addVehicle(skill1Vehicle).addVehicle(skill2Vehicle);
         }
-        for (Job job : vrp.getJobs().values()) {
-            Service service = (Service) job;
-            Service.Builder skillServiceBuilder;
-            if (service.getLocation().getCoordinate().getY() < 50.) {
+        vrp.getJobs().values().stream().map(job -> (Service) job).forEach(service -> {
+			Service.Builder skillServiceBuilder;
+			if (service.getLocation().getCoordinate().getY() < 50.) {
                 skillServiceBuilder = Service.Builder.newInstance(service.getId() + "_skill2").setServiceTime(service.getServiceDuration())
                     .setLocation(Location.Builder.newInstance().setId(service.getLocation().getId())
                         .setCoordinate(service.getLocation().getCoordinate()).build()).setTimeWindow(service.getTimeWindow())
@@ -79,8 +78,8 @@ public class SolomonWithSkillsExample {
                     .addSizeDimension(0, service.getSize().get(0));
                 skillServiceBuilder.addRequiredSkill("skill1");
             }
-            skillProblemBuilder.addJob(skillServiceBuilder.build());
-        }
+			skillProblemBuilder.addJob(skillServiceBuilder.build());
+		});
         skillProblemBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
         VehicleRoutingProblem skillProblem = skillProblemBuilder.build();
 

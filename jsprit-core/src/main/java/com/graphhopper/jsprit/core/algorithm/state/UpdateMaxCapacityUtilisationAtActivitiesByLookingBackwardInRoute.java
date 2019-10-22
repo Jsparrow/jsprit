@@ -47,7 +47,9 @@ class UpdateMaxCapacityUtilisationAtActivitiesByLookingBackwardInRoute implement
     public void begin(VehicleRoute route) {
         this.route = route;
         maxLoad = stateManager.getRouteState(route, InternalStates.LOAD_AT_BEGINNING, Capacity.class);
-        if (maxLoad == null) maxLoad = defaultValue;
+        if (maxLoad == null) {
+			maxLoad = defaultValue;
+		}
     }
 
     @Override

@@ -48,7 +48,7 @@ import java.util.List;
  */
 public class VariationCoefficientTermination implements PrematureAlgorithmTermination, IterationStartsListener, AlgorithmStartsListener, IterationEndsListener {
 
-    private final static Logger logger = LoggerFactory.getLogger(VariationCoefficientTermination.class);
+    private static final Logger logger = LoggerFactory.getLogger(VariationCoefficientTermination.class);
 
     private final int noIterations;
 
@@ -70,7 +70,6 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
      *                                      is smaller than the specified threshold, the algorithm terminates.
      */
     public VariationCoefficientTermination(int noIterations, double variationCoefficientThreshold) {
-        super();
         this.noIterations = noIterations;
         this.variationCoefficientThreshold = variationCoefficientThreshold;
         solutionValues = new double[noIterations];
@@ -79,7 +78,7 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
 
     @Override
     public String toString() {
-        return "[name=VariationCoefficientBreaker][variationCoefficientThreshold=" + variationCoefficientThreshold + "][iterations=" + noIterations + "]";
+        return new StringBuilder().append("[name=VariationCoefficientBreaker][variationCoefficientThreshold=").append(variationCoefficientThreshold).append("][iterations=").append(noIterations).append("]").toString();
     }
 
     @Override
@@ -90,7 +89,9 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
         } else {
             if (lastAccepted != null) {
                 solutionValues[currentIteration] = lastAccepted.getCost();
-            } else solutionValues[currentIteration] = Integer.MAX_VALUE;
+            } else {
+				solutionValues[currentIteration] = Integer.MAX_VALUE;
+			}
         }
         if (currentIteration == (noIterations - 1)) {
             double mean = StatUtils.mean(solutionValues);
@@ -133,7 +134,9 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
 
     @Override
     public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-        if (lastAccepted == null) lastAccepted = Solutions.bestOf(solutions);
+        if (lastAccepted == null) {
+			lastAccepted = Solutions.bestOf(solutions);
+		}
     }
 
     public void informIterationStarts(int i, VehicleRoutingProblem problem, VehicleRoutingProblemSolution solution) {

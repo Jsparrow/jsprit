@@ -40,86 +40,52 @@ import java.util.concurrent.*;
 
 public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
 
-    static class Batch {
-        List<VehicleRoute> routes = new ArrayList<VehicleRoute>();
-
-    }
-
-    class Insertion {
-
-        private final VehicleRoute route;
-
-        private final InsertionData insertionData;
-
-        public Insertion(VehicleRoute vehicleRoute, InsertionData insertionData) {
-            super();
-            this.route = vehicleRoute;
-            this.insertionData = insertionData;
-        }
-
-        public VehicleRoute getRoute() {
-            return route;
-        }
-
-        public InsertionData getInsertionData() {
-            return insertionData;
-        }
-
-    }
-
     private static Logger logger = LoggerFactory.getLogger(BestInsertionConcurrent.class);
 
-    private final static double NO_NEW_DEPARTURE_TIME_YET = -12345.12345;
+	private static final double NO_NEW_DEPARTURE_TIME_YET = -12345.12345;
 
-    private final static Vehicle NO_NEW_VEHICLE_YET = null;
+	private static final Vehicle NO_NEW_VEHICLE_YET = null;
 
-    private final static Driver NO_NEW_DRIVER_YET = null;
+	private static final Driver NO_NEW_DRIVER_YET = null;
 
-    private InsertionListeners insertionsListeners;
+	private InsertionListeners insertionsListeners;
 
-    private JobInsertionCostsCalculator bestInsertionCostCalculator;
+	private JobInsertionCostsCalculator bestInsertionCostCalculator;
 
-    private int nuOfBatches;
+	private int nuOfBatches;
 
-    private ExecutorCompletionService<Insertion> completionService;
+	private ExecutorCompletionService<Insertion> completionService;
 
-    public BestInsertionConcurrent(JobInsertionCostsCalculator jobInsertionCalculator, ExecutorService executorService, int nuOfBatches, VehicleRoutingProblem vehicleRoutingProblem) {
+	public BestInsertionConcurrent(JobInsertionCostsCalculator jobInsertionCalculator, ExecutorService executorService, int nuOfBatches, VehicleRoutingProblem vehicleRoutingProblem) {
         super(vehicleRoutingProblem);
         this.insertionsListeners = new InsertionListeners();
         this.nuOfBatches = nuOfBatches;
         bestInsertionCostCalculator = jobInsertionCalculator;
-        completionService = new ExecutorCompletionService<Insertion>(executorService);
+        completionService = new ExecutorCompletionService<>(executorService);
         logger.debug("initialise {}", this);
     }
 
-    @Override
+	@Override
     public String toString() {
         return "[name=bestInsertion]";
     }
 
-    @Override
+	@Override
     public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
-        List<Job> badJobs = new ArrayList<Job>(unassignedJobs.size());
-        List<Job> unassignedJobList = new ArrayList<Job>(unassignedJobs);
+        List<Job> badJobs = new ArrayList<>(unassignedJobs.size());
+        List<Job> unassignedJobList = new ArrayList<>(unassignedJobs);
         Collections.shuffle(unassignedJobList, random);
-        Collections.sort(unassignedJobList, new AccordingToPriorities());
+        unassignedJobList.sort(new AccordingToPriorities());
         List<Batch> batches = distributeRoutes(vehicleRoutes, nuOfBatches);
         List<String> failedConstraintNames = new ArrayList<>();
         for (final Job unassignedJob : unassignedJobList) {
             Insertion bestInsertion = null;
             double bestInsertionCost = Double.MAX_VALUE;
             for (final Batch batch : batches) {
-                completionService.submit(new Callable<Insertion>() {
-
-                    @Override
-                    public Insertion call() throws Exception {
-                        return getBestInsertion(batch, unassignedJob);
-                    }
-
-                });
+                completionService.submit(() -> getBestInsertion(batch, unassignedJob));
             }
             try {
-                for (int i = 0; i < batches.size(); i++) {
+                for (Batch batche : batches) {
                     Future<Insertion> futureIData = completionService.take();
                     Insertion insertion = futureIData.get();
                     if (insertion.insertionData instanceof NoInsertionFound) {
@@ -132,7 +98,8 @@ public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
                     }
                 }
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                logger.error(e.getMessage(), e);
+				Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
@@ -146,14 +113,14 @@ public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
             if (bestInsertion == null) {
                 badJobs.add(unassignedJob);
                 markUnassigned(unassignedJob, failedConstraintNames);
-            }
-            else insertJob(unassignedJob, bestInsertion.getInsertionData(), bestInsertion.getRoute());
+            } else {
+				insertJob(unassignedJob, bestInsertion.getInsertionData(), bestInsertion.getRoute());
+			}
         }
         return badJobs;
     }
 
-
-    private Insertion getBestInsertion(Batch batch, Job unassignedJob) {
+	private Insertion getBestInsertion(Batch batch, Job unassignedJob) {
         Insertion bestInsertion = null;
         InsertionData empty = new InsertionData.NoInsertionFound();
         double bestInsertionCost = Double.MAX_VALUE;
@@ -168,13 +135,17 @@ public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
                 bestInsertionCost = iData.getInsertionCost();
             }
         }
-        if (bestInsertion == null) return new Insertion(null, empty);
+        if (bestInsertion == null) {
+			return new Insertion(null, empty);
+		}
         return bestInsertion;
     }
 
-    private List<Batch> distributeRoutes(Collection<VehicleRoute> vehicleRoutes, int nuOfBatches) {
-        List<Batch> batches = new ArrayList<Batch>();
-        for (int i = 0; i < nuOfBatches; i++) batches.add(new Batch());
+	private List<Batch> distributeRoutes(Collection<VehicleRoute> vehicleRoutes, int nuOfBatches) {
+        List<Batch> batches = new ArrayList<>();
+        for (int i = 0; i < nuOfBatches; i++) {
+			batches.add(new Batch());
+		}
         /*
          * if route.size < nuOfBatches add as much routes as empty batches are available
 		 * else add one empty route anyway
@@ -192,11 +163,39 @@ public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
 		 */
         int count = 0;
         for (VehicleRoute route : vehicleRoutes) {
-            if (count == nuOfBatches) count = 0;
+            if (count == nuOfBatches) {
+				count = 0;
+			}
             batches.get(count).routes.add(route);
             count++;
         }
         return batches;
+    }
+
+	static class Batch {
+        List<VehicleRoute> routes = new ArrayList<>();
+
+    }
+
+    class Insertion {
+
+        private final VehicleRoute route;
+
+        private final InsertionData insertionData;
+
+        public Insertion(VehicleRoute vehicleRoute, InsertionData insertionData) {
+            this.route = vehicleRoute;
+            this.insertionData = insertionData;
+        }
+
+        public VehicleRoute getRoute() {
+            return route;
+        }
+
+        public InsertionData getInsertionData() {
+            return insertionData;
+        }
+
     }
 
 

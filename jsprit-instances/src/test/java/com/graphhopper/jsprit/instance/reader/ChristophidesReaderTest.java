@@ -40,7 +40,9 @@ public class ChristophidesReaderTest {
 
     private String getPath(String string) {
         URL resource = this.getClass().getClassLoader().getResource(string);
-        if (resource == null) throw new IllegalStateException("resource " + string + " does not exist");
+        if (resource == null) {
+			throw new IllegalStateException(new StringBuilder().append("resource ").append(string).append(" does not exist").toString());
+		}
         return resource.getPath();
     }
 
@@ -57,9 +59,7 @@ public class ChristophidesReaderTest {
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
         new ChristofidesReader(builder).read(getPath("vrpnc1.txt"));
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            assertEquals(160, v.getType().getCapacityDimensions().get(0));
-        }
+        vrp.getVehicles().forEach(v -> assertEquals(160, v.getType().getCapacityDimensions().get(0)));
     }
 
     @Test
@@ -67,10 +67,10 @@ public class ChristophidesReaderTest {
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
         new ChristofidesReader(builder).read(getPath("vrpnc1.txt"));
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(v -> {
             assertEquals(30.0, v.getStartLocation().getCoordinate().getX(), 0.01);
             assertEquals(40.0, v.getStartLocation().getCoordinate().getY(), 0.01);
-        }
+        });
     }
 
     @Test
@@ -78,10 +78,10 @@ public class ChristophidesReaderTest {
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
         new ChristofidesReader(builder).read(getPath("vrpnc13.txt"));
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(v -> {
             assertEquals(0.0, v.getEarliestDeparture(), 0.01);
             assertEquals(720.0, v.getLatestArrival() - v.getEarliestDeparture(), 0.01);
-        }
+        });
     }
 
     @Test

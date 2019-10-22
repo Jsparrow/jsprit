@@ -44,7 +44,7 @@ public final class IncreasingAbsoluteFixedCosts extends SolutionCompletenessRati
 
     @Override
     public String toString() {
-        return "[name=IncreasingAbsoluteFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + "]";
+        return new StringBuilder().append("[name=IncreasingAbsoluteFixedCosts][weightOfFixedCostSavings=").append(weightDeltaFixCost).append("]").toString();
     }
 
     @Override

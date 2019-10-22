@@ -64,7 +64,6 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
     private final AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
 
     public ShipmentInsertionCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts, ActivityInsertionCostsCalculator activityInsertionCostsCalculator, ConstraintManager constraintManager, JobActivityFactory jobActivityFactory) {
-        super();
         this.activityInsertionCostsCalculator = activityInsertionCostsCalculator;
         this.constraintManager = constraintManager;
         this.softActivityConstraint = constraintManager;
@@ -98,7 +97,9 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
         check hard route constraints
          */
         InsertionData noInsertion = checkRouteContraints(insertionContext, constraintManager);
-        if (noInsertion != null) return noInsertion;
+        if (noInsertion != null) {
+			return noInsertion;
+		}
         /*
         check soft route constraints
          */
@@ -147,13 +148,13 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                 activityContext.setInsertionIndex(i);
                 insertionContext.setActivityContext(activityContext);
                 ConstraintsStatus pickupShipmentConstraintStatus = fulfilled(insertionContext, prevAct, pickupShipment, nextAct, prevActEndTime, failedActivityConstraints, constraintManager);
-                if (pickupShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (pickupShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED) {
                     pickupInsertionNotFulfilledBreak = false;
                     continue;
-                } else if(pickupShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+                } else if(pickupShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                     continue;
                 }
-                else if (pickupShipmentConstraintStatus.equals(ConstraintsStatus.FULFILLED)) {
+                else if (pickupShipmentConstraintStatus == ConstraintsStatus.FULFILLED) {
                     pickupInsertionNotFulfilledBreak = false;
                 }
                 double additionalPickupICosts = softActivityConstraint.getCosts(insertionContext, prevAct, pickupShipment, nextAct, prevActEndTime);
@@ -193,7 +194,7 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                         activityContext_.setInsertionIndex(j);
                         insertionContext.setActivityContext(activityContext_);
                         ConstraintsStatus deliverShipmentConstraintStatus = fulfilled(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop, failedActivityConstraints, constraintManager);
-                        if (deliverShipmentConstraintStatus.equals(ConstraintsStatus.FULFILLED)) {
+                        if (deliverShipmentConstraintStatus == ConstraintsStatus.FULFILLED) {
                             double additionalDeliveryICosts = softActivityConstraint.getCosts(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop);
                             double deliveryAIC = calculate(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop);
                             double totalActivityInsertionCosts = pickupAIC + deliveryAIC
@@ -206,11 +207,13 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                                 bestDeliveryTimeWindow = deliveryTimeWindow;
                             }
                             deliveryInsertionNotFulfilledBreak = false;
-                        } else if (deliverShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                        } else if (deliverShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED) {
                             deliveryInsertionNotFulfilledBreak = false;
                         }
                     }
-                    if (deliveryInsertionNotFulfilledBreak) break;
+                    if (deliveryInsertionNotFulfilledBreak) {
+						break;
+					}
                     //update prevAct and endTime
                     double nextActArrTime = prevActEndTime_deliveryLoop + transportCosts.getTransportTime(prevAct_deliveryLoop.getLocation(), nextAct_deliveryLoop.getLocation(), prevActEndTime_deliveryLoop, newDriver, newVehicle);
                     prevActEndTime_deliveryLoop = Math.max(nextActArrTime, nextAct_deliveryLoop.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct_deliveryLoop,nextActArrTime,newDriver,newVehicle);
@@ -229,9 +232,7 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
         }
         if (pickupInsertionIndex == InsertionData.NO_INDEX) {
             InsertionData emptyInsertionData = new InsertionData.NoInsertionFound();
-            for (HardConstraint failed : failedActivityConstraints) {
-                emptyInsertionData.addFailedConstrainName(failed.getClass().getSimpleName());
-            }
+            failedActivityConstraints.forEach(failed -> emptyInsertionData.addFailedConstrainName(failed.getClass().getSimpleName()));
             return emptyInsertionData;
         }
         InsertionData insertionData = new InsertionData(bestCost, pickupInsertionIndex, deliveryInsertionIndex, newVehicle, newDriver);

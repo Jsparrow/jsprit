@@ -30,12 +30,7 @@ public class TimeTerminationTest {
     public void whenTimeThreshold2000msAndCurrentTime0_itShouldNotBreak() {
         long threshold = 2000;
         TimeTermination tt = new TimeTermination(threshold);
-        tt.setTimeGetter(new TimeTermination.TimeGetter() {
-            @Override
-            public long getCurrentTime() {
-                return 0;
-            }
-        });
+        tt.setTimeGetter(() -> 0);
         tt.start(0);
         Assert.assertFalse(tt.isPrematureBreak(null));
     }
@@ -44,12 +39,7 @@ public class TimeTerminationTest {
     public void whenTimeThreshold2000msAndCurrentTime2000ms_itShouldBreak() {
         long threshold = 2000;
         TimeTermination tt = new TimeTermination(threshold);
-        tt.setTimeGetter(new TimeTermination.TimeGetter() {
-            @Override
-            public long getCurrentTime() {
-                return 2001;
-            }
-        });
+        tt.setTimeGetter(() -> 2001);
         tt.start(0);
         Assert.assertTrue(tt.isPrematureBreak(null));
     }

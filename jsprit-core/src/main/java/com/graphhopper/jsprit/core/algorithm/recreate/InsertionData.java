@@ -32,17 +32,37 @@ import java.util.List;
 public class InsertionData {
 
 
-    public static class NoInsertionFound extends InsertionData {
-
-        public NoInsertionFound() {
-            super(Double.MAX_VALUE, NO_INDEX, NO_INDEX, null, null);
-        }
-
-    }
-
     private static InsertionData noInsertion = new NoInsertionFound();
 
-    /**
+	static int NO_INDEX = -1;
+
+	private final double insertionCost;
+
+	private final int pickupInsertionIndex;
+
+	private final int deliveryInsertionIndex;
+
+	private final Vehicle selectedVehicle;
+
+	private final Driver selectedDriver;
+
+	private double departureTime;
+
+	private double additionalTime;
+
+	private List<Event> events = new ArrayList<>();
+
+	private List<String> reasons = new ArrayList<>();
+
+	public InsertionData(double insertionCost, int pickupInsertionIndex, int deliveryInsertionIndex, Vehicle vehicle, Driver driver) {
+        this.insertionCost = insertionCost;
+        this.pickupInsertionIndex = pickupInsertionIndex;
+        this.deliveryInsertionIndex = deliveryInsertionIndex;
+        this.selectedVehicle = vehicle;
+        this.selectedDriver = driver;
+    }
+
+	/**
      * Returns an instance of InsertionData that represents an EmptyInsertionData (which might indicate
      * that no insertion has been found). It is internally instantiated as follows:<br>
      * <code>new InsertionData(Double.MAX_VALUE, NO_INDEX, NO_INDEX, null, null);</code><br>
@@ -54,66 +74,39 @@ public class InsertionData {
         return noInsertion;
     }
 
-    static int NO_INDEX = -1;
-
-    private final double insertionCost;
-
-    private final int pickupInsertionIndex;
-
-    private final int deliveryInsertionIndex;
-
-    private final Vehicle selectedVehicle;
-
-    private final Driver selectedDriver;
-
-    private double departureTime;
-
-    private double additionalTime;
-
-    private List<Event> events = new ArrayList<Event>();
-
-    List<Event> getEvents() {
+	List<Event> getEvents() {
         return events;
     }
 
-    private List<String> reasons = new ArrayList<>();
-
-    /**
+	/**
      * @return the additionalTime
      */
     public double getAdditionalTime() {
         return additionalTime;
     }
 
-    public void addFailedConstrainName(String name) {
+	public void addFailedConstrainName(String name) {
         reasons.add(name);
     }
 
-    public List<String> getFailedConstraintNames() {
+	public List<String> getFailedConstraintNames() {
         return reasons;
     }
 
-    /**
+	/**
      * @param additionalTime the additionalTime to set
      */
     public void setAdditionalTime(double additionalTime) {
         this.additionalTime = additionalTime;
     }
 
-    public InsertionData(double insertionCost, int pickupInsertionIndex, int deliveryInsertionIndex, Vehicle vehicle, Driver driver) {
-        this.insertionCost = insertionCost;
-        this.pickupInsertionIndex = pickupInsertionIndex;
-        this.deliveryInsertionIndex = deliveryInsertionIndex;
-        this.selectedVehicle = vehicle;
-        this.selectedDriver = driver;
-    }
-
-    @Override
+	@Override
     public String toString() {
-        return "[iCost=" + insertionCost + "][pickupIndex=" + pickupInsertionIndex + "][deliveryIndex=" + deliveryInsertionIndex + "][depTime=" + departureTime + "][vehicle=" + selectedVehicle + "][driver=" + selectedDriver + "]";
+        return new StringBuilder().append("[iCost=").append(insertionCost).append("][pickupIndex=").append(pickupInsertionIndex).append("][deliveryIndex=").append(deliveryInsertionIndex).append("][depTime=")
+				.append(departureTime).append("][vehicle=").append(selectedVehicle).append("][driver=").append(selectedDriver).append("]").toString();
     }
 
-    /**
+	/**
      * Returns insertionIndex of deliveryActivity. If no insertionPosition is found, it returns NO_INDEX (=-1).
      *
      * @return
@@ -122,7 +115,7 @@ public class InsertionData {
         return deliveryInsertionIndex;
     }
 
-    /**
+	/**
      * Returns insertionIndex of pickkupActivity. If no insertionPosition is found, it returns NO_INDEX (=-1).
      *
      * @return
@@ -131,7 +124,7 @@ public class InsertionData {
         return pickupInsertionIndex;
     }
 
-    /**
+	/**
      * Returns insertion costs (which might be the additional costs of inserting the corresponding job).
      *
      * @return
@@ -140,7 +133,7 @@ public class InsertionData {
         return insertionCost;
     }
 
-    /**
+	/**
      * Returns the vehicle to be employed.
      *
      * @return
@@ -149,7 +142,7 @@ public class InsertionData {
         return selectedVehicle;
     }
 
-    /**
+	/**
      * Returns the vehicle to be employed.
      *
      * @return
@@ -158,18 +151,26 @@ public class InsertionData {
         return selectedDriver;
     }
 
-    /**
+	/**
      * @return the departureTime
      */
     public double getVehicleDepartureTime() {
         return departureTime;
     }
 
-    /**
+	/**
      * @param departureTime the departureTime to set
      */
     public void setVehicleDepartureTime(double departureTime) {
         this.departureTime = departureTime;
+    }
+
+	public static class NoInsertionFound extends InsertionData {
+
+        public NoInsertionFound() {
+            super(Double.MAX_VALUE, NO_INDEX, NO_INDEX, null, null);
+        }
+
     }
 
 

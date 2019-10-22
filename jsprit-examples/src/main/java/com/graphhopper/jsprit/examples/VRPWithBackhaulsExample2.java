@@ -36,11 +36,15 @@ import com.graphhopper.jsprit.io.problem.VrpXMLReader;
 import com.graphhopper.jsprit.util.Examples;
 
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class VRPWithBackhaulsExample2 {
 
-    public static void main(String[] args) {
+    private static final Logger logger = LoggerFactory.getLogger(VRPWithBackhaulsExample2.class);
+
+	public static void main(String[] args) {
 
 		/*
          * some preparation - create output folder
@@ -124,64 +128,64 @@ public class VRPWithBackhaulsExample2 {
 
         SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
 
-        for (VehicleRoute route : solution.getRoutes()) {
-            System.out.println("------");
-            System.out.println("vehicleId: " + route.getVehicle().getId());
-            System.out.println("vehicleCapacity: " + route.getVehicle().getType().getCapacityDimensions() + " maxLoad: " + analyser.getMaxLoad(route));
-            System.out.println("totalDistance: " + analyser.getDistance(route));
-            System.out.println("waitingTime: " + analyser.getWaitingTime(route));
-            System.out.println("load@beginning: " + analyser.getLoadAtBeginning(route));
-            System.out.println("load@end: " + analyser.getLoadAtEnd(route));
-            System.out.println("operationTime: " + analyser.getOperationTime(route));
-            System.out.println("serviceTime: " + analyser.getServiceTime(route));
-            System.out.println("transportTime: " + analyser.getTransportTime(route));
-            System.out.println("transportCosts: " + analyser.getVariableTransportCosts(route));
-            System.out.println("fixedCosts: " + analyser.getFixedCosts(route));
-            System.out.println("capViolationOnRoute: " + analyser.getCapacityViolation(route));
-            System.out.println("capViolation@beginning: " + analyser.getCapacityViolationAtBeginning(route));
-            System.out.println("capViolation@end: " + analyser.getCapacityViolationAtEnd(route));
-            System.out.println("timeWindowViolationOnRoute: " + analyser.getTimeWindowViolation(route));
-            System.out.println("skillConstraintViolatedOnRoute: " + analyser.hasSkillConstraintViolation(route));
+        solution.getRoutes().forEach(route -> {
+            logger.info("------");
+            logger.info("vehicleId: " + route.getVehicle().getId());
+            logger.info(new StringBuilder().append("vehicleCapacity: ").append(route.getVehicle().getType().getCapacityDimensions()).append(" maxLoad: ").append(analyser.getMaxLoad(route)).toString());
+            logger.info("totalDistance: " + analyser.getDistance(route));
+            logger.info("waitingTime: " + analyser.getWaitingTime(route));
+            logger.info("load@beginning: " + analyser.getLoadAtBeginning(route));
+            logger.info("load@end: " + analyser.getLoadAtEnd(route));
+            logger.info("operationTime: " + analyser.getOperationTime(route));
+            logger.info("serviceTime: " + analyser.getServiceTime(route));
+            logger.info("transportTime: " + analyser.getTransportTime(route));
+            logger.info("transportCosts: " + analyser.getVariableTransportCosts(route));
+            logger.info("fixedCosts: " + analyser.getFixedCosts(route));
+            logger.info("capViolationOnRoute: " + analyser.getCapacityViolation(route));
+            logger.info("capViolation@beginning: " + analyser.getCapacityViolationAtBeginning(route));
+            logger.info("capViolation@end: " + analyser.getCapacityViolationAtEnd(route));
+            logger.info("timeWindowViolationOnRoute: " + analyser.getTimeWindowViolation(route));
+            logger.info("skillConstraintViolatedOnRoute: " + analyser.hasSkillConstraintViolation(route));
 
-            System.out.println("dist@" + route.getStart().getLocation().getId() + ": " + analyser.getDistanceAtActivity(route.getStart(), route));
-            System.out.println("timeWindowViolation@" + route.getStart().getLocation().getId() + ": " + analyser.getTimeWindowViolationAtActivity(route.getStart(), route));
-            for (TourActivity act : route.getActivities()) {
-                System.out.println("--");
-                System.out.println("actType: " + act.getName() + " demand: " + act.getSize());
-                System.out.println("dist@" + act.getLocation().getId() + ": " + analyser.getDistanceAtActivity(act, route));
-                System.out.println("load(before)@" + act.getLocation().getId() + ": " + analyser.getLoadJustBeforeActivity(act, route));
-                System.out.println("load(after)@" + act.getLocation().getId() + ": " + analyser.getLoadRightAfterActivity(act, route));
-                System.out.println("transportCosts@" + act.getLocation().getId() + ": " + analyser.getVariableTransportCostsAtActivity(act, route));
-                System.out.println("capViolation(after)@" + act.getLocation().getId() + ": " + analyser.getCapacityViolationAfterActivity(act, route));
-                System.out.println("timeWindowViolation@" + act.getLocation().getId() + ": " + analyser.getTimeWindowViolationAtActivity(act, route));
-                System.out.println("skillConstraintViolated@" + act.getLocation().getId() + ": " + analyser.hasSkillConstraintViolationAtActivity(act, route));
-            }
-            System.out.println("--");
-            System.out.println("dist@" + route.getEnd().getLocation().getId() + ": " + analyser.getDistanceAtActivity(route.getEnd(), route));
-            System.out.println("timeWindowViolation@" + route.getEnd().getLocation().getId() + ": " + analyser.getTimeWindowViolationAtActivity(route.getEnd(), route));
-        }
+            logger.info(new StringBuilder().append("dist@").append(route.getStart().getLocation().getId()).append(": ").append(analyser.getDistanceAtActivity(route.getStart(), route)).toString());
+            logger.info(new StringBuilder().append("timeWindowViolation@").append(route.getStart().getLocation().getId()).append(": ").append(analyser.getTimeWindowViolationAtActivity(route.getStart(), route)).toString());
+            route.getActivities().forEach(act -> {
+                logger.info("--");
+                logger.info(new StringBuilder().append("actType: ").append(act.getName()).append(" demand: ").append(act.getSize()).toString());
+                logger.info(new StringBuilder().append("dist@").append(act.getLocation().getId()).append(": ").append(analyser.getDistanceAtActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("load(before)@").append(act.getLocation().getId()).append(": ").append(analyser.getLoadJustBeforeActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("load(after)@").append(act.getLocation().getId()).append(": ").append(analyser.getLoadRightAfterActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("transportCosts@").append(act.getLocation().getId()).append(": ").append(analyser.getVariableTransportCostsAtActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("capViolation(after)@").append(act.getLocation().getId()).append(": ").append(analyser.getCapacityViolationAfterActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("timeWindowViolation@").append(act.getLocation().getId()).append(": ").append(analyser.getTimeWindowViolationAtActivity(act, route)).toString());
+                logger.info(new StringBuilder().append("skillConstraintViolated@").append(act.getLocation().getId()).append(": ").append(analyser.hasSkillConstraintViolationAtActivity(act, route)).toString());
+            });
+            logger.info("--");
+            logger.info(new StringBuilder().append("dist@").append(route.getEnd().getLocation().getId()).append(": ").append(analyser.getDistanceAtActivity(route.getEnd(), route)).toString());
+            logger.info(new StringBuilder().append("timeWindowViolation@").append(route.getEnd().getLocation().getId()).append(": ").append(analyser.getTimeWindowViolationAtActivity(route.getEnd(), route)).toString());
+        });
 
-        System.out.println("-----");
-        System.out.println("aggreate solution stats");
-        System.out.println("total freight moved: " + Capacity.addup(analyser.getLoadAtBeginning(), analyser.getLoadPickedUp()));
-        System.out.println("total no. picks at beginning: " + analyser.getNumberOfPickupsAtBeginning());
-        System.out.println("total no. picks on routes: " + analyser.getNumberOfPickups());
-        System.out.println("total picked load at beginnnig: " + analyser.getLoadAtBeginning());
-        System.out.println("total picked load on routes: " + analyser.getLoadPickedUp());
-        System.out.println("total no. deliveries at end: " + analyser.getNumberOfDeliveriesAtEnd());
-        System.out.println("total no. deliveries on routes: " + analyser.getNumberOfDeliveries());
-        System.out.println("total delivered load at end: " + analyser.getLoadAtEnd());
-        System.out.println("total delivered load on routes: " + analyser.getLoadDelivered());
-        System.out.println("total tp_distance: " + analyser.getDistance());
-        System.out.println("total tp_time: " + analyser.getTransportTime());
-        System.out.println("total waiting_time: " + analyser.getWaitingTime());
-        System.out.println("total service_time: " + analyser.getServiceTime());
-        System.out.println("total operation_time: " + analyser.getOperationTime());
-        System.out.println("total twViolation: " + analyser.getTimeWindowViolation());
-        System.out.println("total capViolation: " + analyser.getCapacityViolation());
-        System.out.println("total fixedCosts: " + analyser.getFixedCosts());
-        System.out.println("total variableCosts: " + analyser.getVariableTransportCosts());
-        System.out.println("total costs: " + analyser.getTotalCosts());
+        logger.info("-----");
+        logger.info("aggreate solution stats");
+        logger.info("total freight moved: " + Capacity.addup(analyser.getLoadAtBeginning(), analyser.getLoadPickedUp()));
+        logger.info("total no. picks at beginning: " + analyser.getNumberOfPickupsAtBeginning());
+        logger.info("total no. picks on routes: " + analyser.getNumberOfPickups());
+        logger.info("total picked load at beginnnig: " + analyser.getLoadAtBeginning());
+        logger.info("total picked load on routes: " + analyser.getLoadPickedUp());
+        logger.info("total no. deliveries at end: " + analyser.getNumberOfDeliveriesAtEnd());
+        logger.info("total no. deliveries on routes: " + analyser.getNumberOfDeliveries());
+        logger.info("total delivered load at end: " + analyser.getLoadAtEnd());
+        logger.info("total delivered load on routes: " + analyser.getLoadDelivered());
+        logger.info("total tp_distance: " + analyser.getDistance());
+        logger.info("total tp_time: " + analyser.getTransportTime());
+        logger.info("total waiting_time: " + analyser.getWaitingTime());
+        logger.info("total service_time: " + analyser.getServiceTime());
+        logger.info("total operation_time: " + analyser.getOperationTime());
+        logger.info("total twViolation: " + analyser.getTimeWindowViolation());
+        logger.info("total capViolation: " + analyser.getCapacityViolation());
+        logger.info("total fixedCosts: " + analyser.getFixedCosts());
+        logger.info("total variableCosts: " + analyser.getVariableTransportCosts());
+        logger.info("total costs: " + analyser.getTotalCosts());
 
     }
 

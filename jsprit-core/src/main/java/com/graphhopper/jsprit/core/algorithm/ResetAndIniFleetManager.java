@@ -31,17 +31,14 @@ public class ResetAndIniFleetManager implements InsertionStartsListener {
     private VehicleFleetManager vehicleFleetManager;
 
     public ResetAndIniFleetManager(VehicleFleetManager vehicleFleetManager) {
-        super();
         this.vehicleFleetManager = vehicleFleetManager;
     }
 
     @Override
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
         vehicleFleetManager.unlockAll();
-        Collection<VehicleRoute> routes = new ArrayList<VehicleRoute>(vehicleRoutes);
-        for (VehicleRoute route : routes) {
-            vehicleFleetManager.lock(route.getVehicle());
-        }
+        Collection<VehicleRoute> routes = new ArrayList<>(vehicleRoutes);
+        routes.forEach(route -> vehicleFleetManager.lock(route.getVehicle()));
     }
 
     @Override

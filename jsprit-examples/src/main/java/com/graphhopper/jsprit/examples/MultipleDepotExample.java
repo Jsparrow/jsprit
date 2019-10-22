@@ -75,7 +75,7 @@ public class MultipleDepotExample {
         for (Coordinate depotCoord : Arrays.asList(firstDepotCoord, second, third, fourth)) {
             for (int i = 0; i < nuOfVehicles; i++) {
                 VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance(depotCounter + "_type").addCapacityDimension(0, capacity).setCostPerDistance(1.0).build();
-                VehicleImpl vehicle = VehicleImpl.Builder.newInstance(depotCounter + "_" + (i + 1) + "_vehicle").setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).setType(vehicleType).build();
+                VehicleImpl vehicle = VehicleImpl.Builder.newInstance(new StringBuilder().append(depotCounter).append("_").append(i + 1).append("_vehicle").toString()).setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).setType(vehicleType).build();
                 vrpBuilder.addVehicle(vehicle);
             }
             depotCounter++;

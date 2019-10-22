@@ -57,7 +57,7 @@ public class VehicleRoutingProblemSolutionTest {
     @Test
     public void sizeOfBadJobsShouldBeCorrect() {
         Job badJob = mock(Job.class);
-        List<Job> badJobs = new ArrayList<Job>();
+        List<Job> badJobs = new ArrayList<>();
         badJobs.add(badJob);
         VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), badJobs, 10.0);
         assertEquals(1, sol.getUnassignedJobs().size());
@@ -66,7 +66,7 @@ public class VehicleRoutingProblemSolutionTest {
     @Test
     public void sizeOfBadJobsShouldBeCorrect_2() {
         Job badJob = mock(Job.class);
-        List<Job> badJobs = new ArrayList<Job>();
+        List<Job> badJobs = new ArrayList<>();
         badJobs.add(badJob);
         VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
         sol.getUnassignedJobs().addAll(badJobs);
@@ -76,7 +76,7 @@ public class VehicleRoutingProblemSolutionTest {
     @Test
     public void badJobsShouldBeCorrect() {
         Job badJob = mock(Job.class);
-        List<Job> badJobs = new ArrayList<Job>();
+        List<Job> badJobs = new ArrayList<>();
         badJobs.add(badJob);
         VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), badJobs, 10.0);
         Assert.assertEquals(badJob, sol.getUnassignedJobs().iterator().next());
@@ -85,7 +85,7 @@ public class VehicleRoutingProblemSolutionTest {
     @Test
     public void badJobsShouldBeCorrect_2() {
         Job badJob = mock(Job.class);
-        List<Job> badJobs = new ArrayList<Job>();
+        List<Job> badJobs = new ArrayList<>();
         badJobs.add(badJob);
         VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
         sol.getUnassignedJobs().addAll(badJobs);

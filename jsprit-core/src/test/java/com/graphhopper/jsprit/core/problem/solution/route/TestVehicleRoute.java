@@ -173,42 +173,42 @@ public class TestVehicleRoute {
     public void whenBuildingRouteWithVehicleThatHasDifferentStartAndEndLocation_routeMustHaveCorrectStartLocation() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("end")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getStart().getLocation().getId().equals("start"));
+        assertTrue("start".equals(vRoute.getStart().getLocation().getId()));
     }
 
     @Test
     public void whenBuildingRouteWithVehicleThatHasDifferentStartAndEndLocation_routeMustHaveCorrectEndLocation() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("end")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getEnd().getLocation().getId().equals("end"));
+        assertTrue("end".equals(vRoute.getEnd().getLocation().getId()));
     }
 
     @Test
     public void whenBuildingRouteWithVehicleThatHasSameStartAndEndLocation_routeMustHaveCorrectStartLocation() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("end")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getStart().getLocation().getId().equals("start"));
+        assertTrue("start".equals(vRoute.getStart().getLocation().getId()));
     }
 
     @Test
     public void whenBuildingRouteWithVehicleThatHasSameStartAndEndLocation_routeMustHaveCorrectEndLocation() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("start")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getEnd().getLocation().getId().equals("start"));
+        assertTrue("start".equals(vRoute.getEnd().getLocation().getId()));
     }
 
     @Test
     public void whenBuildingRouteWithVehicleThatHasSameStartAndEndLocation_routeMustHaveCorrectStartLocationV2() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("end")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getStart().getLocation().getId().equals("start"));
+        assertTrue("start".equals(vRoute.getStart().getLocation().getId()));
     }
 
     @Test
     public void whenBuildingRouteWithVehicleThatHasSameStartAndEndLocation_routeMustHaveCorrectEndLocationV2() {
         Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("start")).setEndLocation(Location.newInstance("start")).build();
         VehicleRoute vRoute = VehicleRoute.Builder.newInstance(vehicle, DriverImpl.noDriver()).build();
-        assertTrue(vRoute.getEnd().getLocation().getId().equals("start"));
+        assertTrue("start".equals(vRoute.getEnd().getLocation().getId()));
     }
 
     @Test
@@ -304,7 +304,7 @@ public class TestVehicleRoute {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).addService(pickup).build();
 
         TourActivity act = route.getActivities().get(0);
-        assertTrue(act.getName().equals("pickup"));
+        assertTrue("pickup".equals(act.getName()));
         assertTrue(act instanceof PickupService);
         assertTrue(((TourActivity.JobActivity) act).getJob() instanceof Pickup);
 
@@ -318,7 +318,7 @@ public class TestVehicleRoute {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).addPickup(pickup).build();
 
         TourActivity act = route.getActivities().get(0);
-        assertTrue(act.getName().equals("pickup"));
+        assertTrue("pickup".equals(act.getName()));
         assertTrue(act instanceof PickupService);
         assertTrue(((TourActivity.JobActivity) act).getJob() instanceof Pickup);
 
@@ -332,7 +332,7 @@ public class TestVehicleRoute {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).addService(delivery).build();
 
         TourActivity act = route.getActivities().get(0);
-        assertTrue(act.getName().equals("delivery"));
+        assertTrue("delivery".equals(act.getName()));
         assertTrue(act instanceof DeliverService);
         assertTrue(((TourActivity.JobActivity) act).getJob() instanceof Delivery);
 
@@ -346,7 +346,7 @@ public class TestVehicleRoute {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle).addDelivery(delivery).build();
 
         TourActivity act = route.getActivities().get(0);
-        assertTrue(act.getName().equals("delivery"));
+        assertTrue("delivery".equals(act.getName()));
         assertTrue(act instanceof DeliverService);
         assertTrue(((TourActivity.JobActivity) act).getJob() instanceof Delivery);
 

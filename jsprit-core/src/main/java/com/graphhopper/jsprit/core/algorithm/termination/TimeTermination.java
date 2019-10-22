@@ -41,63 +41,55 @@ import java.util.Collection;
  */
 public class TimeTermination implements PrematureAlgorithmTermination, AlgorithmStartsListener {
 
-    public static interface TimeGetter {
-
-        public long getCurrentTime();
-
-    }
-
     private static Logger logger = LoggerFactory.getLogger(TimeTermination.class);
 
-    private final long timeThreshold;
+	private final long timeThreshold;
 
-    private TimeGetter timeGetter = new TimeGetter() {
+	private TimeGetter timeGetter = System::currentTimeMillis;
 
-        @Override
-        public long getCurrentTime() {
-            return System.currentTimeMillis();
-        }
+	private long startTime;
 
-    };
-
-    private long startTime;
-
-    /**
+	/**
      * Constructs TimeTermination that terminates algorithm prematurely based on specified time.
      *
      * @param timeThreshold_in_milliseconds the computation time [in ms] after which the algorithm terminates
      */
     public TimeTermination(long timeThreshold_in_milliseconds) {
-        super();
         this.timeThreshold = timeThreshold_in_milliseconds;
         logger.debug("initialise {}", this);
     }
 
-    public void setTimeGetter(TimeGetter timeGetter) {
+	public void setTimeGetter(TimeGetter timeGetter) {
         this.timeGetter = timeGetter;
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[name=TimeTermination][timeThreshold=" + timeThreshold + " ms]";
+        return new StringBuilder().append("[name=TimeTermination][timeThreshold=").append(timeThreshold).append(" ms]").toString();
     }
 
-    @Override
+	@Override
     public boolean isPrematureBreak(SearchStrategy.DiscoveredSolution discoveredSolution) {
         return (now() - startTime) > timeThreshold;
     }
 
-    void start(long startTime) {
+	void start(long startTime) {
         this.startTime = startTime;
     }
 
-    private long now() {
+	private long now() {
         return timeGetter.getCurrentTime();
     }
 
-    @Override
+	@Override
     public void informAlgorithmStarts(VehicleRoutingProblem problem, VehicleRoutingAlgorithm algorithm, Collection<VehicleRoutingProblemSolution> solutions) {
         start(timeGetter.getCurrentTime());
+    }
+
+	public static interface TimeGetter {
+
+        long getCurrentTime();
+
     }
 
 }

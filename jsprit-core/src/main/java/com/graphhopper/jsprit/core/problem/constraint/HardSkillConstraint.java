@@ -44,13 +44,10 @@ public class HardSkillConstraint implements HardRouteConstraint {
             }
         }
         Skills requiredSkillsForRoute = states.getRouteState(insertionContext.getRoute(), InternalStates.SKILLS, Skills.class);
-        if (requiredSkillsForRoute == null) requiredSkillsForRoute = defaultSkills;
-        for (String skill : requiredSkillsForRoute.values()) {
-            if (!insertionContext.getNewVehicle().getSkills().containsSkill(skill)) {
-                return false;
-            }
-        }
-        return true;
+        if (requiredSkillsForRoute == null) {
+			requiredSkillsForRoute = defaultSkills;
+		}
+        return requiredSkillsForRoute.values().stream().allMatch(skill -> insertionContext.getNewVehicle().getSkills().containsSkill(skill));
     }
 
 }

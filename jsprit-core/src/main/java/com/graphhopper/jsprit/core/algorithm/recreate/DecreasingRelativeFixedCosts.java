@@ -50,12 +50,14 @@ public final class DecreasingRelativeFixedCosts extends SolutionCompletenessRati
 
     @Override
     public String toString() {
-        return "[name=DecreasingRelativeFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + "]";
+        return new StringBuilder().append("[name=DecreasingRelativeFixedCosts][weightOfFixedCostSavings=").append(weightDeltaFixCost).append("]").toString();
     }
 
     private Capacity getCurrentMaxLoadInRoute(VehicleRoute route) {
         Capacity maxLoad = stateGetter.getRouteState(route, InternalStates.MAXLOAD, Capacity.class);
-        if (maxLoad == null) maxLoad = Capacity.Builder.newInstance().build();
+        if (maxLoad == null) {
+			maxLoad = Capacity.Builder.newInstance().build();
+		}
         return maxLoad;
     }
 

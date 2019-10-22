@@ -51,13 +51,16 @@ public class IterationWithoutImprovementTermination implements PrematureAlgorith
 
     @Override
     public String toString() {
-        return "[name=IterationWithoutImprovementBreaker][iterationsWithoutImprovement=" + noIterationWithoutImprovement + "]";
+        return new StringBuilder().append("[name=IterationWithoutImprovementBreaker][iterationsWithoutImprovement=").append(noIterationWithoutImprovement).append("]").toString();
     }
 
     @Override
     public boolean isPrematureBreak(SearchStrategy.DiscoveredSolution discoveredSolution) {
-        if (discoveredSolution.isAccepted()) iterationsWithoutImprovement = 0;
-        else iterationsWithoutImprovement++;
+        if (discoveredSolution.isAccepted()) {
+			iterationsWithoutImprovement = 0;
+		} else {
+			iterationsWithoutImprovement++;
+		}
         return (iterationsWithoutImprovement > noIterationWithoutImprovement);
     }
 

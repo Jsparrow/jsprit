@@ -51,11 +51,11 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
         List<HardConstraint> failed = new ArrayList<>();
         for (HardActivityConstraint c : constraintManager.getCriticalHardActivityConstraints()) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 failedActivityConstraints.add(c);
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     failed.add(c);
                     notFulfilled = status;
                 }
@@ -68,11 +68,11 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
 
         for (HardActivityConstraint c : constraintManager.getHighPrioHardActivityConstraints()) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 failedActivityConstraints.add(c);
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     failed.add(c);
                     notFulfilled = status;
                 }
@@ -85,7 +85,7 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
 
         for (HardActivityConstraint constraint : constraintManager.getLowPrioHardActivityConstraints()) {
             ConstraintsStatus status = constraint.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK) || status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK || status == ConstraintsStatus.NOT_FULFILLED) {
                 failedActivityConstraints.add(constraint);
                 return status;
             }

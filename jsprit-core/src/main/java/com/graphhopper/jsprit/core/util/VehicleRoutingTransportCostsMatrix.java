@@ -41,22 +41,125 @@ import java.util.Map;
  */
 public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRoutingTransportCosts {
 
-    static class RelationKey {
+    private Map<RelationKey, Double> distances = new HashMap<>();
 
-        static RelationKey newKey(String from, String to) {
-            return new RelationKey(from, to);
+	private Map<RelationKey, Double> times = new HashMap<>();
+
+	private boolean isSymmetric;
+
+	private boolean timesSet;
+
+	private boolean distancesSet;
+
+	private VehicleRoutingTransportCostsMatrix(Builder builder) {
+        this.isSymmetric = builder.isSymmetric;
+        distances.putAll(builder.distances);
+        times.putAll(builder.times);
+        timesSet = builder.timesSet;
+        distancesSet = builder.distancesSet;
+    }
+
+
+	@Override
+    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        return getTime(from.getId(), to.getId());
+    }
+
+
+	private double getTime(String fromId, String toId) {
+        if (fromId.equals(toId)) {
+			return 0.0;
+		}
+        if (!timesSet) {
+			return 0.0;
+		}
+        RelationKey key = RelationKey.newKey(fromId, toId);
+        if (!isSymmetric) {
+            if (times.containsKey(key)) {
+				return times.get(key);
+			} else {
+				throw new IllegalStateException(new StringBuilder().append("time value for relation from ").append(fromId).append(" to ").append(toId).append(" does not exist").toString());
+			}
+        } else {
+            Double time = times.get(key);
+            if (time == null) {
+                time = times.get(RelationKey.newKey(toId, fromId));
+            }
+            if (time != null) {
+				return time;
+			} else {
+				throw new IllegalStateException(new StringBuilder().append("time value for relation from ").append(fromId).append(" to ").append(toId).append(" does not exist").toString());
+			}
         }
+    }
+
+
+	/**
+     * Returns the distance fromId to toId.
+     *
+     * @param fromId from locationId
+     * @param toId   to locationId
+     * @return the distance from fromId to toId
+     * @throws IllegalStateException if distance of fromId -> toId is not found
+     */
+    public double getDistance(String fromId, String toId) {
+        if (fromId.equals(toId)) {
+			return 0.0;
+		}
+        if (!distancesSet) {
+			return 0.0;
+		}
+        RelationKey key = RelationKey.newKey(fromId, toId);
+        if (!isSymmetric) {
+            if (distances.containsKey(key)) {
+				return distances.get(key);
+			} else {
+				throw new IllegalStateException(new StringBuilder().append("distance value for relation from ").append(fromId).append(" to ").append(toId).append(" does not exist").toString());
+			}
+        } else {
+            Double time = distances.get(key);
+            if (time == null) {
+                time = distances.get(RelationKey.newKey(toId, fromId));
+            }
+            if (time != null) {
+				return time;
+			} else {
+				throw new IllegalStateException(new StringBuilder().append("distance value for relation from ").append(fromId).append(" to ").append(toId).append(" does not exist").toString());
+			}
+        }
+    }
+
+
+	@Override
+    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (vehicle == null) {
+			return getDistance(from.getId(), to.getId());
+		}
+        VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
+        return costParams.perDistanceUnit * getDistance(from.getId(), to.getId()) + costParams.perTransportTimeUnit * getTime(from.getId(), to.getId());
+    }
+
+
+	@Override
+    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
+        return getDistance(from.getId(), to.getId());
+    }
+
+	static class RelationKey {
 
         final String from;
-        final String to;
+		final String to;
 
-        public RelationKey(String from, String to) {
-            super();
+		public RelationKey(String from, String to) {
             this.from = from;
             this.to = to;
         }
 
-        /* (non-Javadoc)
+		static RelationKey newKey(String from, String to) {
+            return new RelationKey(from, to);
+        }
+
+		/* (non-Javadoc)
          * @see java.lang.Object#hashCode()
          */
         @Override
@@ -68,28 +171,35 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
             return result;
         }
 
-        /* (non-Javadoc)
+		/* (non-Javadoc)
          * @see java.lang.Object#equals(java.lang.Object)
          */
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
+            if (this == obj) {
+				return true;
+			}
+            if (obj == null) {
+				return false;
+			}
+            if (getClass() != obj.getClass()) {
+				return false;
+			}
             RelationKey other = (RelationKey) obj;
             if (from == null) {
-                if (other.from != null)
-                    return false;
-            } else if (!from.equals(other.from))
-                return false;
+                if (other.from != null) {
+					return false;
+				}
+            } else if (!from.equals(other.from)) {
+				return false;
+			}
             if (to == null) {
-                if (other.to != null)
-                    return false;
-            } else if (!to.equals(other.to))
-                return false;
+                if (other.to != null) {
+					return false;
+				}
+            } else if (!to.equals(other.to)) {
+				return false;
+			}
             return true;
         }
     }
@@ -105,15 +215,19 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
 
         private boolean isSymmetric;
 
-        private Map<RelationKey, Double> distances = new HashMap<RelationKey, Double>();
+        private Map<RelationKey, Double> distances = new HashMap<>();
 
-        private Map<RelationKey, Double> times = new HashMap<RelationKey, Double>();
+        private Map<RelationKey, Double> times = new HashMap<>();
 
         private boolean distancesSet = false;
 
         private boolean timesSet = false;
 
-        /**
+        private Builder(boolean isSymmetric) {
+            this.isSymmetric = isSymmetric;
+        }
+
+		/**
          * Creates a new builder returning the matrix-builder.
          * <p>If you want to consider symmetric matrices, set isSymmetric to true.
          *
@@ -124,11 +238,7 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
             return new Builder(isSymmetric);
         }
 
-        private Builder(boolean isSymmetric) {
-            this.isSymmetric = isSymmetric;
-        }
-
-        /**
+		/**
          * Adds a transport-distance for a particular relation.
          *
          * @param from     from loactionId
@@ -138,19 +248,23 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
          */
         public Builder addTransportDistance(String from, String to, double distance) {
             RelationKey key = RelationKey.newKey(from, to);
-            if (!distancesSet) distancesSet = true;
+            if (!distancesSet) {
+				distancesSet = true;
+			}
             if (distances.containsKey(key)) {
-                log.warn("distance from " + from + " to " + to + " already exists. This overrides distance.");
+                log.warn(new StringBuilder().append("distance from ").append(from).append(" to ").append(to).append(" already exists. This overrides distance.").toString());
             }
             distances.put(key, distance);
             if (isSymmetric) {
                 RelationKey revKey = RelationKey.newKey(to, from);
-                if (distances.containsKey(revKey)) distances.put(revKey, distance);
+                if (distances.containsKey(revKey)) {
+					distances.put(revKey, distance);
+				}
             }
             return this;
         }
 
-        /**
+		/**
          * Adds transport-time for a particular relation.
          *
          * @param from from locationId
@@ -160,19 +274,23 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
          */
         public Builder addTransportTime(String from, String to, double time) {
             RelationKey key = RelationKey.newKey(from, to);
-            if (!timesSet) timesSet = true;
+            if (!timesSet) {
+				timesSet = true;
+			}
             if (times.containsKey(key)) {
-                log.warn("transport-time from " + from + " to " + to + " already exists. This overrides times.");
+                log.warn(new StringBuilder().append("transport-time from ").append(from).append(" to ").append(to).append(" already exists. This overrides times.").toString());
             }
             times.put(key, time);
             if (isSymmetric) {
                 RelationKey revKey = RelationKey.newKey(to, from);
-                if (times.containsKey(revKey)) times.put(revKey, time);
+                if (times.containsKey(revKey)) {
+					times.put(revKey, time);
+				}
             }
             return this;
         }
 
-        /**
+		/**
          * Builds the matrix.
          *
          * @return matrix
@@ -182,89 +300,6 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
         }
 
 
-    }
-
-    private Map<RelationKey, Double> distances = new HashMap<RelationKey, Double>();
-
-    private Map<RelationKey, Double> times = new HashMap<RelationKey, Double>();
-
-    private boolean isSymmetric;
-
-    private boolean timesSet;
-
-    private boolean distancesSet;
-
-    private VehicleRoutingTransportCostsMatrix(Builder builder) {
-        this.isSymmetric = builder.isSymmetric;
-        distances.putAll(builder.distances);
-        times.putAll(builder.times);
-        timesSet = builder.timesSet;
-        distancesSet = builder.distancesSet;
-    }
-
-
-    @Override
-    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        return getTime(from.getId(), to.getId());
-    }
-
-
-    private double getTime(String fromId, String toId) {
-        if (fromId.equals(toId)) return 0.0;
-        if (!timesSet) return 0.0;
-        RelationKey key = RelationKey.newKey(fromId, toId);
-        if (!isSymmetric) {
-            if (times.containsKey(key)) return times.get(key);
-            else
-                throw new IllegalStateException("time value for relation from " + fromId + " to " + toId + " does not exist");
-        } else {
-            Double time = times.get(key);
-            if (time == null) {
-                time = times.get(RelationKey.newKey(toId, fromId));
-            }
-            if (time != null) return time;
-            else
-                throw new IllegalStateException("time value for relation from " + fromId + " to " + toId + " does not exist");
-        }
-    }
-
-    /**
-     * Returns the distance fromId to toId.
-     *
-     * @param fromId from locationId
-     * @param toId   to locationId
-     * @return the distance from fromId to toId
-     * @throws IllegalStateException if distance of fromId -> toId is not found
-     */
-    public double getDistance(String fromId, String toId) {
-        if (fromId.equals(toId)) return 0.0;
-        if (!distancesSet) return 0.0;
-        RelationKey key = RelationKey.newKey(fromId, toId);
-        if (!isSymmetric) {
-            if (distances.containsKey(key)) return distances.get(key);
-            else
-                throw new IllegalStateException("distance value for relation from " + fromId + " to " + toId + " does not exist");
-        } else {
-            Double time = distances.get(key);
-            if (time == null) {
-                time = distances.get(RelationKey.newKey(toId, fromId));
-            }
-            if (time != null) return time;
-            else
-                throw new IllegalStateException("distance value for relation from " + fromId + " to " + toId + " does not exist");
-        }
-    }
-
-    @Override
-    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (vehicle == null) return getDistance(from.getId(), to.getId());
-        VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-        return costParams.perDistanceUnit * getDistance(from.getId(), to.getId()) + costParams.perTransportTimeUnit * getTime(from.getId(), to.getId());
-    }
-
-    @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
-        return getDistance(from.getId(), to.getId());
     }
 
 }

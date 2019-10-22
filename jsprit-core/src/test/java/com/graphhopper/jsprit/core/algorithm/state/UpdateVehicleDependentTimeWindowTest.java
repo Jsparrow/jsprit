@@ -86,7 +86,7 @@ public class UpdateVehicleDependentTimeWindowTest {
 
         vrpBuilder.addVehicle(vehicle).addVehicle(vehicle2).addVehicle(vehicle3).addVehicle(equivalentOf3);
 
-        Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
+        Collection<Vehicle> vehicles = new ArrayList<>();
         vehicles.add(vehicle);
         vehicles.add(vehicle2);
         vehicles.add(vehicle3);
@@ -101,29 +101,19 @@ public class UpdateVehicleDependentTimeWindowTest {
         vrpBuilder.addJob(service).addJob(service2).addJob(service3);
         vrp = vrpBuilder.build();
 
-        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        }).addService(service).addService(service2).addService(service3).build();
+        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp::copyAndGetActivities).addService(service).addService(service2).addService(service3).build();
 
 
         stateManager = new StateManager(vrp);
         UpdateVehicleDependentPracticalTimeWindows updater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, routingCosts, activityCosts);
-        updater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-
-            @Override
-            public Collection<Vehicle> get(VehicleRoute route) {
-                Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
-                vehicles.add(route.getVehicle());
-                vehicles.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
-                return vehicles;
-            }
-
-        });
+        updater.setVehiclesToUpdate((VehicleRoute route) -> {
+		    Collection<Vehicle> vehicles1 = new ArrayList<>();
+		    vehicles1.add(route.getVehicle());
+		    vehicles1.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
+		    return vehicles1;
+		});
         stateManager.addStateUpdater(updater);
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
     }
 
     @Test
@@ -132,7 +122,7 @@ public class UpdateVehicleDependentTimeWindowTest {
         UpdateVehicleDependentPracticalTimeWindows updater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, routingCosts, activityCosts);
 
         stateManager.addStateUpdater(updater);
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
         assertTrue(stateManager.hasActivityState(route.getActivities().get(0), vehicle, InternalStates.LATEST_OPERATION_START_TIME));
         assertFalse(stateManager.hasActivityState(route.getActivities().get(0), vehicle2, InternalStates.LATEST_OPERATION_START_TIME));
     }
@@ -222,19 +212,14 @@ public class UpdateVehicleDependentTimeWindowTest {
 
         StateManager stateManager = new StateManager(vrp);
         UpdateVehicleDependentPracticalTimeWindows updater = new UpdateVehicleDependentPracticalTimeWindows(stateManager,routingCosts,activityCosts);
-        updater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-
-            @Override
-            public Collection<Vehicle> get(VehicleRoute route) {
-                Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
-                vehicles.add(route.getVehicle());
+        updater.setVehiclesToUpdate((VehicleRoute route1) -> {
+		    Collection<Vehicle> vehicles = new ArrayList<>();
+		    vehicles.add(route1.getVehicle());
 //                vehicles.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
-                return vehicles;
-            }
-
-        });
+		    return vehicles;
+		});
         stateManager.addStateUpdater(updater);
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
 
         assertEquals(80.,stateManager.getActivityState(route.getActivities().get(1),vehicle,
                 InternalStates.LATEST_OPERATION_START_TIME, Double.class),0.01);

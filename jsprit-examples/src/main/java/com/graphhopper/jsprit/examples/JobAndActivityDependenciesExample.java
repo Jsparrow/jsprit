@@ -51,160 +51,6 @@ import java.util.Collection;
  */
 public class JobAndActivityDependenciesExample {
 
-    static class KeyStatusUpdater implements StateUpdater, ActivityVisitor {
-
-        StateManager stateManager;
-
-        StateId keyPickedStateId;
-
-        StateId keyUsedStateId;
-
-        private StateId keyDeliveredStateId;
-
-        private VehicleRoute route;
-
-
-        KeyStatusUpdater(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
-            this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
-        }
-
-        @Override
-        public void begin(VehicleRoute route) {
-            this.route = route;
-        }
-
-        @Override
-        public void visit(TourActivity activity) {
-            if (((TourActivity.JobActivity) activity).getJob().getName().equals("use key")) {
-                stateManager.putProblemState(keyUsedStateId, VehicleRoute.class, route);
-            } else if (((TourActivity.JobActivity) activity).getJob().getName().equals("get key")) {
-                stateManager.putProblemState(keyPickedStateId, VehicleRoute.class, route);
-            } else if (((TourActivity.JobActivity) activity).getJob().getName().equals("deliver key")) {
-                stateManager.putProblemState(keyDeliveredStateId, VehicleRoute.class, route);
-            }
-        }
-
-        @Override
-        public void finish() {
-        }
-    }
-
-    static class GetUseAndDeliverHardRouteContraint implements HardRouteConstraint {
-
-        StateManager stateManager;
-
-        StateId keyPickedStateId;
-
-        StateId keyUsedStateId;
-
-        StateId keyDeliveredStateId;
-
-        public GetUseAndDeliverHardRouteContraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
-            this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
-        }
-
-        @Override
-        public boolean fulfilled(JobInsertionContext iFacts) {
-            if (iFacts.getJob().getName().equals("get key") || iFacts.getJob().getName().equals("use key")
-                || iFacts.getJob().getName().equals("deliver key")) {
-                VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
-                VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
-                VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
-
-                if (routeOfPickupKey != null) {
-                    if (routeOfPickupKey != iFacts.getRoute()) return false;
-                }
-                if (routeOfUseKey != null) {
-                    if (routeOfUseKey != iFacts.getRoute()) return false;
-                }
-                if (routeOfDeliverKey != null) {
-                    if (routeOfDeliverKey != iFacts.getRoute()) return false;
-                }
-            }
-            return true;
-
-        }
-    }
-
-    static class GetUseAndDeliverKeySimpleHardActivityConstraint implements HardActivityConstraint {
-
-        StateManager stateManager;
-
-        StateId keyPickedStateId;
-
-        StateId keyUsedStateId;
-
-        StateId keyDeliveredStateId;
-
-        GetUseAndDeliverKeySimpleHardActivityConstraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
-            this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
-        }
-
-        @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
-
-            VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
-            VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
-            VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
-
-            if (!isPickupKey(newAct) && !isUseKey(newAct) && !isDeliverKey(newAct)) {
-                if (isPickupKey(prevAct) && isUseKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-                if (isPickupKey(prevAct) && isDeliverKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-                if (isUseKey(prevAct) && isDeliverKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-            }
-            if (isPickupKey(newAct)) {
-                if (routeOfUseKey != null) {
-                    if (!isUseKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-                }
-                if (routeOfDeliverKey != null) {
-                    if (!isDeliverKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-                }
-                return ConstraintsStatus.FULFILLED;
-            }
-            if (isUseKey(newAct)) {
-                if (routeOfPickupKey != null) {
-                    if (!isPickupKey(prevAct)) return ConstraintsStatus.NOT_FULFILLED;
-                }
-                if (routeOfDeliverKey != null) {
-                    if (!isDeliverKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
-                }
-                return ConstraintsStatus.FULFILLED;
-            }
-            if (isDeliverKey(newAct)) {
-                if (routeOfUseKey != null) {
-                    if (!isUseKey(prevAct)) return ConstraintsStatus.NOT_FULFILLED;
-                }
-            }
-            return ConstraintsStatus.FULFILLED;
-        }
-
-        private boolean isPickupKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("get key");
-        }
-
-        private boolean isUseKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("use key");
-        }
-
-        private boolean isDeliverKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("deliver key");
-        }
-
-
-    }
-
     public static void main(String[] args) {
 
         VehicleImpl driver1 = VehicleImpl.Builder.newInstance("driver1")
@@ -273,6 +119,178 @@ public class JobAndActivityDependenciesExample {
         SolutionPrinter.print(vrp, Solutions.bestOf(solutions), SolutionPrinter.Print.VERBOSE);
 
         new GraphStreamViewer(vrp, Solutions.bestOf(solutions)).labelWith(GraphStreamViewer.Label.JOB_NAME).display();
+
+    }
+
+	static class KeyStatusUpdater implements StateUpdater, ActivityVisitor {
+
+        StateManager stateManager;
+
+        StateId keyPickedStateId;
+
+        StateId keyUsedStateId;
+
+        private StateId keyDeliveredStateId;
+
+        private VehicleRoute route;
+
+
+        KeyStatusUpdater(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+            this.stateManager = stateManager;
+            this.keyPickedStateId = keyPickedStateId;
+            this.keyUsedStateId = keyUsedStateId;
+            this.keyDeliveredStateId = keyDeliveredStateId;
+        }
+
+        @Override
+        public void begin(VehicleRoute route) {
+            this.route = route;
+        }
+
+        @Override
+        public void visit(TourActivity activity) {
+            if ("use key".equals(((TourActivity.JobActivity) activity).getJob().getName())) {
+                stateManager.putProblemState(keyUsedStateId, VehicleRoute.class, route);
+            } else if ("get key".equals(((TourActivity.JobActivity) activity).getJob().getName())) {
+                stateManager.putProblemState(keyPickedStateId, VehicleRoute.class, route);
+            } else if ("deliver key".equals(((TourActivity.JobActivity) activity).getJob().getName())) {
+                stateManager.putProblemState(keyDeliveredStateId, VehicleRoute.class, route);
+            }
+        }
+
+        @Override
+        public void finish() {
+        }
+    }
+
+    static class GetUseAndDeliverHardRouteContraint implements HardRouteConstraint {
+
+        StateManager stateManager;
+
+        StateId keyPickedStateId;
+
+        StateId keyUsedStateId;
+
+        StateId keyDeliveredStateId;
+
+        public GetUseAndDeliverHardRouteContraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+            this.stateManager = stateManager;
+            this.keyPickedStateId = keyPickedStateId;
+            this.keyUsedStateId = keyUsedStateId;
+            this.keyDeliveredStateId = keyDeliveredStateId;
+        }
+
+        @Override
+        public boolean fulfilled(JobInsertionContext iFacts) {
+            if ("get key".equals(iFacts.getJob().getName()) || "use key".equals(iFacts.getJob().getName())
+                || "deliver key".equals(iFacts.getJob().getName())) {
+                VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
+                VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
+                VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
+
+                boolean condition = routeOfPickupKey != null && routeOfPickupKey != iFacts.getRoute();
+				if (condition) {
+					return false;
+				}
+                boolean condition1 = routeOfUseKey != null && routeOfUseKey != iFacts.getRoute();
+				if (condition1) {
+					return false;
+				}
+                boolean condition2 = routeOfDeliverKey != null && routeOfDeliverKey != iFacts.getRoute();
+				if (condition2) {
+					return false;
+				}
+            }
+            return true;
+
+        }
+    }
+
+    static class GetUseAndDeliverKeySimpleHardActivityConstraint implements HardActivityConstraint {
+
+        StateManager stateManager;
+
+        StateId keyPickedStateId;
+
+        StateId keyUsedStateId;
+
+        StateId keyDeliveredStateId;
+
+        GetUseAndDeliverKeySimpleHardActivityConstraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+            this.stateManager = stateManager;
+            this.keyPickedStateId = keyPickedStateId;
+            this.keyUsedStateId = keyUsedStateId;
+            this.keyDeliveredStateId = keyDeliveredStateId;
+        }
+
+        @Override
+        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+
+            VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
+            VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
+            VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
+
+            if (!isPickupKey(newAct) && !isUseKey(newAct) && !isDeliverKey(newAct)) {
+                if (isPickupKey(prevAct) && isUseKey(nextAct)) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                if (isPickupKey(prevAct) && isDeliverKey(nextAct)) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                if (isUseKey(prevAct) && isDeliverKey(nextAct)) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+            }
+            if (isPickupKey(newAct)) {
+                boolean condition = routeOfUseKey != null && !isUseKey(nextAct);
+				if (condition) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                boolean condition1 = routeOfDeliverKey != null && !isDeliverKey(nextAct);
+				if (condition1) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                return ConstraintsStatus.FULFILLED;
+            }
+            if (isUseKey(newAct)) {
+                boolean condition2 = routeOfPickupKey != null && !isPickupKey(prevAct);
+				if (condition2) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                boolean condition3 = routeOfDeliverKey != null && !isDeliverKey(nextAct);
+				if (condition3) {
+					return ConstraintsStatus.NOT_FULFILLED;
+				}
+                return ConstraintsStatus.FULFILLED;
+            }
+            boolean condition4 = isDeliverKey(newAct) && routeOfUseKey != null && !isUseKey(prevAct);
+			if (condition4) {
+				return ConstraintsStatus.NOT_FULFILLED;
+			}
+            return ConstraintsStatus.FULFILLED;
+        }
+
+        private boolean isPickupKey(TourActivity act) {
+            if (!(act instanceof TourActivity.JobActivity)) {
+				return false;
+			}
+            return "get key".equals(((TourActivity.JobActivity) act).getJob().getName());
+        }
+
+        private boolean isUseKey(TourActivity act) {
+            if (!(act instanceof TourActivity.JobActivity)) {
+				return false;
+			}
+            return "use key".equals(((TourActivity.JobActivity) act).getJob().getName());
+        }
+
+        private boolean isDeliverKey(TourActivity act) {
+            if (!(act instanceof TourActivity.JobActivity)) {
+				return false;
+			}
+            return "deliver key".equals(((TourActivity.JobActivity) act).getJob().getName());
+        }
+
 
     }
 

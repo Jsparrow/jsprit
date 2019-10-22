@@ -76,7 +76,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -88,7 +88,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -100,7 +100,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(2, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -112,7 +112,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,4);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(4, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -124,7 +124,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,4);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(4, s7);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -139,7 +139,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(100, target);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }
@@ -151,7 +151,7 @@ public class JobNeighborhoodsOptimizedTest {
         JobNeighborhoodsOptimized jn = new JobNeighborhoodsOptimized(vrp,jobDistance,2);
         jn.initialise();
         Iterator<Job> iter = jn.getNearestNeighborsIterator(100, b1);
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new ArrayList<>();
         while (iter.hasNext()) {
             services.add((Service) iter.next());
         }

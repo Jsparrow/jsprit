@@ -40,12 +40,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import java.util.Collections;
 
 
 public class TestCalculatesServiceInsertionOnRouteLevel {
@@ -98,7 +98,9 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
             @Override
             public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
                 double tpCosts = routingCosts.getTransportCost(from, to, departureTime, driver, vehicle);
-                if (vehicle.getId().equals("v1")) return tpCosts;
+                if ("v1".equals(vehicle.getId())) {
+					return tpCosts;
+				}
                 return 2. * tpCosts;
             }
 
@@ -107,7 +109,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
         first = Service.Builder.newInstance("1").setLocation(Location.newInstance("0,10")).setTimeWindow(TimeWindow.newInstance(0.0, 100.0)).build();
         second = Service.Builder.newInstance("3").setLocation(Location.newInstance("10,0")).setTimeWindow(TimeWindow.newInstance(0.0, 100.0)).build();
         third = Service.Builder.newInstance("2").setLocation(Location.newInstance("10,10")).setTimeWindow(TimeWindow.newInstance(0.0, 100.0)).build();
-        Collection<Job> jobs = new ArrayList<Job>();
+        Collection<Job> jobs = new ArrayList<>();
         jobs.add(first);
         jobs.add(second);
         jobs.add(third);
@@ -129,12 +131,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
         serviceInsertion = new ServiceInsertionOnRouteLevelCalculator(costs, activityCosts, actInsertionCostCalculator, cManager, cManager);
         serviceInsertion.setNuOfActsForwardLooking(4);
         serviceInsertion.setStates(states);
-        serviceInsertion.setJobActivityFactory(new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        });
+        serviceInsertion.setJobActivityFactory(vrp::copyAndGetActivities);
 
     }
 
@@ -142,7 +139,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
     @Test
     public void whenInsertingTheFirstJobInAnEmptyTourWithVehicle_itCalculatesMarginalCostChanges() {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle, driver).build();
-        states.informInsertionStarts(Arrays.asList(route), null);
+        states.informInsertionStarts(Collections.singletonList(route), null);
 
         InsertionData iData = serviceInsertion.getInsertionData(route, first, vehicle, vehicle.getEarliestDeparture(), null, Double.MAX_VALUE);
         assertEquals(20.0, iData.getInsertionCost(), 0.2);
@@ -152,7 +149,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
     @Test
     public void whenInsertingThirdJobWithVehicle_itCalculatesMarginalCostChanges() {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle, driver).setJobActivityFactory(vrp.getJobActivityFactory()).addService(first).addService(second).build();
-        states.informInsertionStarts(Arrays.asList(route), null);
+        states.informInsertionStarts(Collections.singletonList(route), null);
 
         InsertionData iData = serviceInsertion.getInsertionData(route, third, vehicle, vehicle.getEarliestDeparture(), null, Double.MAX_VALUE);
         assertEquals(0.0, iData.getInsertionCost(), 0.2);
@@ -162,7 +159,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
     @Test
     public void whenInsertingThirdJobWithNewVehicle_itCalculatesMarginalCostChanges() {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle, driver).setJobActivityFactory(vrp.getJobActivityFactory()).addService(first).addService(second).build();
-        states.informInsertionStarts(Arrays.asList(route), null);
+        states.informInsertionStarts(Collections.singletonList(route), null);
 
         InsertionData iData = serviceInsertion.getInsertionData(route, third, newVehicle, vehicle.getEarliestDeparture(), null, Double.MAX_VALUE);
         assertEquals(40.0, iData.getInsertionCost(), 0.2);
@@ -172,7 +169,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
     @Test
     public void whenInsertingASecondJobWithAVehicle_itCalculatesLocalMarginalCostChanges() {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle, driver).setJobActivityFactory(vrp.getJobActivityFactory()).addService(first).addService(third).build();
-        states.informInsertionStarts(Arrays.asList(route), null);
+        states.informInsertionStarts(Collections.singletonList(route), null);
 
         InsertionData iData = serviceInsertion.getInsertionData(route, second, vehicle, vehicle.getEarliestDeparture(), null, Double.MAX_VALUE);
         assertEquals(0.0, iData.getInsertionCost(), 0.2);
@@ -182,7 +179,7 @@ public class TestCalculatesServiceInsertionOnRouteLevel {
     @Test
     public void whenInsertingASecondJobWithANewVehicle_itCalculatesLocalMarginalCostChanges() {
         VehicleRoute route = VehicleRoute.Builder.newInstance(vehicle, driver).setJobActivityFactory(vrp.getJobActivityFactory()).addService(first).addService(third).build();
-        states.informInsertionStarts(Arrays.asList(route), null);
+        states.informInsertionStarts(Collections.singletonList(route), null);
 
         InsertionData iData = serviceInsertion.getInsertionData(route, second, newVehicle, vehicle.getEarliestDeparture(), null, Double.MAX_VALUE);
         assertEquals(40.0, iData.getInsertionCost(), 0.2);

@@ -42,7 +42,6 @@ import com.graphhopper.jsprit.core.util.CostFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,17 +96,11 @@ public class TestRouteLevelActivityInsertionCostEstimator {
         vrp.getActivities(s3).get(0).setTheoreticalEarliestOperationStartTime(30);
         vrp.getActivities(s3).get(0).setTheoreticalLatestOperationStartTime(30);
 
-        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-
-        }).addService(s1).addService(s2).addService(s3).build();
+        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp::copyAndGetActivities).addService(s1).addService(s2).addService(s3).build();
 
         stateManager = new StateManager(vrp);
         stateManager.addStateUpdater(new UpdateVariableCosts(activityCosts, routingCosts, stateManager));
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Collections.singletonList(route), Collections.<Job>emptyList());
     }
 
     @Test

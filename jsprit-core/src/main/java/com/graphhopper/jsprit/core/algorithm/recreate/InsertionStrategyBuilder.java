@@ -33,91 +33,85 @@ public class InsertionStrategyBuilder {
 
     private boolean fastRegret;
 
+	private VehicleRoutingProblem vrp;
 
-    public enum Strategy {
-        REGRET, BEST
-    }
+	private StateManager stateManager;
 
-    private VehicleRoutingProblem vrp;
+	private boolean local = true;
 
-    private StateManager stateManager;
+	private ConstraintManager constraintManager;
 
-    private boolean local = true;
+	private VehicleFleetManager fleetManager;
 
-    private ConstraintManager constraintManager;
+	private double weightOfFixedCosts;
 
-    private VehicleFleetManager fleetManager;
+	private boolean considerFixedCosts = false;
 
-    private double weightOfFixedCosts;
+	private ActivityInsertionCostsCalculator actInsertionCostsCalculator = null;
 
-    private boolean considerFixedCosts = false;
+	private int forwaredLooking;
 
-    private ActivityInsertionCostsCalculator actInsertionCostsCalculator = null;
+	private int memory;
 
-    private int forwaredLooking;
+	private ExecutorService executor;
 
-    private int memory;
+	private int nuOfThreads;
 
-    private ExecutorService executor;
+	private double timeSlice;
 
-    private int nuOfThreads;
+	private int nNeighbors;
 
-    private double timeSlice;
+	private boolean timeScheduling = false;
 
-    private int nNeighbors;
+	private boolean allowVehicleSwitch = true;
 
-    private boolean timeScheduling = false;
+	private boolean addDefaultCostCalc = true;
 
-    private boolean allowVehicleSwitch = true;
+	private Strategy strategy = Strategy.BEST;
 
-    private boolean addDefaultCostCalc = true;
+	private boolean isFastRegret = false;
 
-    private Strategy strategy = Strategy.BEST;
+	private JobInsertionCostsCalculatorFactory shipmentInsertionCalculatorFactory;
 
-    private boolean isFastRegret = false;
+	private JobInsertionCostsCalculatorFactory serviceInsertionCalculatorFactory;
 
-    private JobInsertionCostsCalculatorFactory shipmentInsertionCalculatorFactory;
+	private JobInsertionCostsCalculatorFactory breakInsertionCalculatorFactory;
 
-    private JobInsertionCostsCalculatorFactory serviceInsertionCalculatorFactory;
-
-    private JobInsertionCostsCalculatorFactory breakInsertionCalculatorFactory;
-
-    public InsertionStrategyBuilder(VehicleRoutingProblem vrp, VehicleFleetManager vehicleFleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        super();
+	public InsertionStrategyBuilder(VehicleRoutingProblem vrp, VehicleFleetManager vehicleFleetManager, StateManager stateManager, ConstraintManager constraintManager) {
         this.vrp = vrp;
         this.stateManager = stateManager;
         this.constraintManager = constraintManager;
         this.fleetManager = vehicleFleetManager;
     }
 
-    public InsertionStrategyBuilder setShipmentInsertionCalculatorFactory(JobInsertionCostsCalculatorFactory shipmentInsertionCalculatorFactory) {
+	public InsertionStrategyBuilder setShipmentInsertionCalculatorFactory(JobInsertionCostsCalculatorFactory shipmentInsertionCalculatorFactory) {
         this.shipmentInsertionCalculatorFactory = shipmentInsertionCalculatorFactory;
         return this;
     }
 
-    public InsertionStrategyBuilder setServiceInsertionCalculator(JobInsertionCostsCalculatorFactory serviceInsertionCalculator) {
+	public InsertionStrategyBuilder setServiceInsertionCalculator(JobInsertionCostsCalculatorFactory serviceInsertionCalculator) {
         this.serviceInsertionCalculatorFactory = serviceInsertionCalculator;
         return this;
     }
 
-    public InsertionStrategyBuilder setBreakInsertionCalculator(JobInsertionCostsCalculatorFactory breakInsertionCalculator) {
+	public InsertionStrategyBuilder setBreakInsertionCalculator(JobInsertionCostsCalculatorFactory breakInsertionCalculator) {
         this.breakInsertionCalculatorFactory = breakInsertionCalculator;
         return this;
     }
 
-    public InsertionStrategyBuilder setInsertionStrategy(Strategy strategy) {
+	public InsertionStrategyBuilder setInsertionStrategy(Strategy strategy) {
         this.strategy = strategy;
         return this;
     }
 
-    public InsertionStrategyBuilder setRouteLevel(int forwardLooking, int memory) {
+	public InsertionStrategyBuilder setRouteLevel(int forwardLooking, int memory) {
         local = false;
         this.forwaredLooking = forwardLooking;
         this.memory = memory;
         return this;
     }
 
-    public InsertionStrategyBuilder setRouteLevel(int forwardLooking, int memory, boolean addDefaultMarginalCostCalculation) {
+	public InsertionStrategyBuilder setRouteLevel(int forwardLooking, int memory, boolean addDefaultMarginalCostCalculation) {
         local = false;
         this.forwaredLooking = forwardLooking;
         this.memory = memory;
@@ -125,18 +119,17 @@ public class InsertionStrategyBuilder {
         return this;
     }
 
-    public InsertionStrategyBuilder setFastRegret(boolean fastRegret) {
+	public InsertionStrategyBuilder setFastRegret(boolean fastRegret) {
         this.isFastRegret = fastRegret;
         return this;
     }
 
-
-    public InsertionStrategyBuilder setLocalLevel() {
+	public InsertionStrategyBuilder setLocalLevel() {
         local = true;
         return this;
     }
 
-    /**
+	/**
      * If addDefaulMarginalCostCalculation is false, no calculator is set which implicitly assumes that marginal cost calculation
      * is controlled by your custom soft constraints.
      *
@@ -149,39 +142,41 @@ public class InsertionStrategyBuilder {
         return this;
     }
 
-    public InsertionStrategyBuilder considerFixedCosts(double weightOfFixedCosts) {
+	public InsertionStrategyBuilder considerFixedCosts(double weightOfFixedCosts) {
         this.weightOfFixedCosts = weightOfFixedCosts;
         this.considerFixedCosts = true;
         return this;
     }
 
-    public InsertionStrategyBuilder setActivityInsertionCostCalculator(ActivityInsertionCostsCalculator activityInsertionCostsCalculator) {
+	public InsertionStrategyBuilder setActivityInsertionCostCalculator(ActivityInsertionCostsCalculator activityInsertionCostsCalculator) {
         this.actInsertionCostsCalculator = activityInsertionCostsCalculator;
         return this;
     }
 
-    public InsertionStrategyBuilder setConcurrentMode(ExecutorService executor, int nuOfThreads) {
+	public InsertionStrategyBuilder setConcurrentMode(ExecutorService executor, int nuOfThreads) {
         this.executor = executor;
         this.nuOfThreads = nuOfThreads;
         return this;
     }
 
-
-    public InsertionStrategy build() {
-        List<InsertionListener> iListeners = new ArrayList<InsertionListener>();
-        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> algorithmListeners = new ArrayList<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener>();
+	public InsertionStrategy build() {
+        List<InsertionListener> iListeners = new ArrayList<>();
+        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> algorithmListeners = new ArrayList<>();
         JobInsertionCostsCalculatorBuilder calcBuilder = new JobInsertionCostsCalculatorBuilder(iListeners, algorithmListeners);
         if (local) {
             calcBuilder.setLocalLevel(addDefaultCostCalc);
         } else {
             calcBuilder.setRouteLevel(forwaredLooking, memory, addDefaultCostCalc);
         }
-        if (shipmentInsertionCalculatorFactory != null)
-            calcBuilder.setShipmentCalculatorFactory(shipmentInsertionCalculatorFactory);
-        if (serviceInsertionCalculatorFactory != null)
-            calcBuilder.setServiceCalculatorFactory(serviceInsertionCalculatorFactory);
-        if (breakInsertionCalculatorFactory != null)
-            calcBuilder.setBreakCalculatorFactory(breakInsertionCalculatorFactory);
+        if (shipmentInsertionCalculatorFactory != null) {
+			calcBuilder.setShipmentCalculatorFactory(shipmentInsertionCalculatorFactory);
+		}
+        if (serviceInsertionCalculatorFactory != null) {
+			calcBuilder.setServiceCalculatorFactory(serviceInsertionCalculatorFactory);
+		}
+        if (breakInsertionCalculatorFactory != null) {
+			calcBuilder.setBreakCalculatorFactory(breakInsertionCalculatorFactory);
+		}
         calcBuilder.setConstraintManager(constraintManager);
         calcBuilder.setStateManager(stateManager);
         calcBuilder.setVehicleRoutingProblem(vrp);
@@ -197,13 +192,13 @@ public class InsertionStrategyBuilder {
         JobInsertionCostsCalculator costCalculator = calcBuilder.build();
 
         InsertionStrategy insertion;
-        if (strategy.equals(Strategy.BEST)) {
+        if (strategy == Strategy.BEST) {
             if (executor == null) {
                 insertion = new BestInsertion(costCalculator, vrp);
             } else {
                 insertion = new BestInsertionConcurrent(costCalculator, executor, nuOfThreads, vrp);
             }
-        } else if (strategy.equals(Strategy.REGRET)) {
+        } else if (strategy == Strategy.REGRET) {
             if (executor == null) {
                 if (isFastRegret) {
                     RegretInsertionFast regret = new RegretInsertionFast(costCalculator, vrp, fleetManager);
@@ -225,14 +220,20 @@ public class InsertionStrategyBuilder {
                 }
 
             }
-        } else throw new IllegalStateException("you should never get here");
-        for (InsertionListener l : iListeners) insertion.addListener(l);
+        } else {
+			throw new IllegalStateException("you should never get here");
+		}
+        iListeners.forEach(insertion::addListener);
         return insertion;
     }
 
-    public InsertionStrategyBuilder setAllowVehicleSwitch(boolean allowVehicleSwitch) {
+	public InsertionStrategyBuilder setAllowVehicleSwitch(boolean allowVehicleSwitch) {
         this.allowVehicleSwitch = allowVehicleSwitch;
         return this;
+    }
+
+	public enum Strategy {
+        REGRET, BEST
     }
 
 

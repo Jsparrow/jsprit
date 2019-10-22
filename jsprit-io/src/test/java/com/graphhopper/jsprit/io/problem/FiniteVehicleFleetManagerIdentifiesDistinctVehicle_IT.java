@@ -29,12 +29,17 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FiniteVehicleFleetManagerIdentifiesDistinctVehicle_IT {
 
-    @Test
+    private static final Logger logger = LoggerFactory
+			.getLogger(FiniteVehicleFleetManagerIdentifiesDistinctVehicle_IT.class);
+
+	@Test
     public void whenEmployingVehicleWhereOnlyOneDistinctVehicleCanServeAParticularJobWith_jspritAlgorithmShouldFoundDistinctSolution() {
-        final List<Boolean> testFailed = new ArrayList<Boolean>();
+        final List<Boolean> testFailed = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
             new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("biggerProblem.xml"));
@@ -46,7 +51,8 @@ public class FiniteVehicleFleetManagerIdentifiesDistinctVehicle_IT {
                 @SuppressWarnings("unused")
                 Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
             } catch (NoSolutionFoundException e) {
-                testFailed.add(true);
+                logger.error(e.getMessage(), e);
+				testFailed.add(true);
             }
         }
         assertTrue(testFailed.isEmpty());

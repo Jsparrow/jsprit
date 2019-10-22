@@ -70,7 +70,9 @@ public class InitialRoutesTest {
     private int getNuShipments(VehicleRoutingProblem vrp) {
         int nuShipments = 0;
         for (Job job : vrp.getJobs().values()) {
-            if (job instanceof Shipment) nuShipments++;
+            if (job instanceof Shipment) {
+				nuShipments++;
+			}
         }
         return nuShipments;
     }
@@ -78,7 +80,9 @@ public class InitialRoutesTest {
     private int getNuServices(VehicleRoutingProblem vrp) {
         int nuServices = 0;
         for (Job job : vrp.getJobs().values()) {
-            if (job instanceof Service) nuServices++;
+            if (job instanceof Service) {
+				nuServices++;
+			}
         }
         return nuServices;
     }

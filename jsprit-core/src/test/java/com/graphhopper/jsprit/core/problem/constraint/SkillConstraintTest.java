@@ -30,10 +30,9 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import java.util.Collections;
 
 
 public class SkillConstraintTest {
@@ -67,7 +66,7 @@ public class SkillConstraintTest {
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateSkillStates();
-        stateManager.informInsertionStarts(Arrays.asList(route), null);
+        stateManager.informInsertionStarts(Collections.singletonList(route), null);
 
         skillConstraint = new HardSkillConstraint(stateManager);
     }

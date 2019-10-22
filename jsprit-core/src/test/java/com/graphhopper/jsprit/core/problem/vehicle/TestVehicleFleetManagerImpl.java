@@ -28,10 +28,14 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestVehicleFleetManagerImpl {
 
-    VehicleFleetManager fleetManager;
+    private static final Logger logger = LoggerFactory.getLogger(TestVehicleFleetManagerImpl.class);
+
+	VehicleFleetManager fleetManager;
 
     VehicleImpl v1;
 
@@ -39,7 +43,7 @@ public class TestVehicleFleetManagerImpl {
 
     @Before
     public void setUp() {
-        List<Vehicle> vehicles = new ArrayList<Vehicle>();
+        List<Vehicle> vehicles = new ArrayList<>();
 
         v1 = VehicleImpl.Builder.newInstance("standard").setStartLocation(Location.newInstance("loc")).setType(VehicleTypeImpl.Builder.newInstance("standard").build()).build();
         v2 = VehicleImpl.Builder.newInstance("foo").setStartLocation(Location.newInstance("fooLoc")).setType(VehicleTypeImpl.Builder.newInstance("foo").build()).build();
@@ -89,7 +93,8 @@ public class TestVehicleFleetManagerImpl {
             Collection<Vehicle> vehicles_ = fleetManager.getAvailableVehicles();
             assertFalse(true);
         } catch (IllegalStateException e) {
-            assertTrue(true);
+            logger.error(e.getMessage(), e);
+			assertTrue(true);
         }
     }
 
@@ -210,10 +215,7 @@ public class TestVehicleFleetManagerImpl {
     }
 
     private boolean vehicleInCollection(Vehicle v, Collection<Vehicle> vehicles) {
-        for (Vehicle veh : vehicles) {
-            if (veh == v) return true;
-        }
-        return false;
+        return vehicles.stream().anyMatch(veh -> veh == v);
     }
 
 

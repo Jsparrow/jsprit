@@ -39,136 +39,41 @@ import org.graphstream.ui.view.Viewer;
 
 import javax.swing.*;
 import java.awt.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class GraphStreamViewer {
 
-    public static class StyleSheets {
+    private static final Logger logger = LoggerFactory.getLogger(GraphStreamViewer.class);
 
-        static String BLUE_FOREST =
-            "graph { fill-color: #141F2E; }" +
-                "node {" +
-                "	size: 7px, 7px;" +
-                "   fill-color: #A0FFA0;" +
-                "	text-alignment: at-right;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #999;" +
-                "	stroke-width: 1.0;" +
-                "	text-font: couriernew;" +
-                " 	text-offset: 2,-5;" +
-                "	text-size: 8;" +
-                "}" +
-                "node.pickup {" +
-                " 	fill-color: #6CC644;" +
-                "}" +
-                "node.delivery {" +
-                " 	fill-color: #f93;" +
-                "}" +
-                "node.pickupInRoute {" +
-                "	fill-color: #6CC644;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #333;" +
-                "   stroke-width: 2.0;" +
-                "}" +
-                "node.deliveryInRoute {" +
-                " 	fill-color: #f93;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #333;" +
-                "   stroke-width: 2.0;" +
-                "}" +
-                "node.depot {" +
-                " 	fill-color: #BD2C00;" +
-                "	size: 10px, 10px;" +
-                " 	shape: box;" +
-                "}" +
-                "node.removed {" +
-                " 	fill-color: #FF8080;" +
-                "	size: 10px, 10px;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #CCF;" +
-                "   stroke-width: 2.0;" +
-                "   shadow-mode: gradient-radial;" +
-                "   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;" +
-                "}" +
+	private Label label = Label.NO_LABEL;
 
-                "edge {" +
-                "	fill-color: #D3D3D3;" +
-                "	arrow-size: 6px,3px;" +
-                "}" +
-//                    "edge.inserted {" +
-//                    "	fill-color: #A0FFA0;" +
-//                    "	arrow-size: 6px,3px;" +
-//                    "   shadow-mode: gradient-radial;" +
-//                    "   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;" +
-//                    "}" +
-//                    "edge.removed {" +
-//                    "	fill-color: #FF0000;" +
-//                    "	arrow-size: 6px,3px;" +
-//                    "   shadow-mode: gradient-radial;" +
-//                    "   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;" +
-//                    "}" +
-                "edge.shipment {" +
-                "	fill-color: #999;" +
-                "	arrow-size: 6px,3px;" +
-                "}";
+	private long renderDelayInMs = 0;
+
+	private boolean renderShipments = false;
+
+	private Center center;
+
+	private VehicleRoutingProblem vrp;
+
+	private VehicleRoutingProblemSolution solution;
+
+	private double zoomFactor;
+
+	private double scaling = 1.0;
 
 
-        @SuppressWarnings("UnusedDeclaration")
-        public static String SIMPLE_WHITE =
-            "node {" +
-                "	size: 10px, 10px;" +
-                "   fill-color: #6CC644;" +
-                "	text-alignment: at-right;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #999;" +
-                "	stroke-width: 1.0;" +
-                "	text-font: couriernew;" +
-                " 	text-offset: 2,-5;" +
-                "	text-size: 8;" +
-                "}" +
-                "node.pickup {" +
-                " 	fill-color: #6CC644;" +
-                "}" +
-                "node.delivery {" +
-                " 	fill-color: #f93;" +
-                "}" +
-                "node.pickupInRoute {" +
-                "	fill-color: #6CC644;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #333;" +
-                "   stroke-width: 2.0;" +
-                "}" +
-                "node.deliveryInRoute {" +
-                " 	fill-color: #f93;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #333;" +
-                "   stroke-width: 2.0;" +
-                "}" +
-                "node.depot {" +
-                " 	fill-color: #BD2C00;" +
-                "	size: 10px, 10px;" +
-                " 	shape: box;" +
-                "}" +
-                "node.removed {" +
-                " 	fill-color: #BD2C00;" +
-                "	size: 10px, 10px;" +
-                " 	stroke-mode: plain;" +
-                "	stroke-color: #333;" +
-                "   stroke-width: 2.0;" +
-                "}" +
-
-                "edge {" +
-                "	fill-color: #333;" +
-                "	arrow-size: 6px,3px;" +
-                "}" +
-                "edge.shipment {" +
-                "	fill-color: #999;" +
-                "	arrow-size: 6px,3px;" +
-                "}";
-
+	public GraphStreamViewer(VehicleRoutingProblem vrp) {
+        this.vrp = vrp;
     }
 
-    static Graph createMultiGraph(String name, String style) {
+	public GraphStreamViewer(VehicleRoutingProblem vrp, VehicleRoutingProblemSolution solution) {
+        this.vrp = vrp;
+        this.solution = solution;
+    }
+
+	static Graph createMultiGraph(String name, String style) {
         Graph g = new MultiGraph(name);
         g.addAttribute("ui.quality");
         g.addAttribute("ui.antialias");
@@ -176,78 +81,34 @@ public class GraphStreamViewer {
         return g;
     }
 
-    private static ViewPanel createEmbeddedView(Graph graph, double scaling) {
+	private static ViewPanel createEmbeddedView(Graph graph, double scaling) {
         Viewer viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
         ViewPanel view = viewer.addDefaultView(false);
         view.setPreferredSize(new Dimension((int) (698 * scaling), (int) (440 * scaling)));
         return view;
     }
 
-    public enum Label {
-        NO_LABEL, ID, JOB_NAME, ARRIVAL_TIME, DEPARTURE_TIME, ACTIVITY
-    }
-
-    private static class Center {
-        final double x;
-        final double y;
-
-        Center(double x, double y) {
-            super();
-            this.x = x;
-            this.y = y;
-        }
-
-    }
-
-    private Label label = Label.NO_LABEL;
-
-    private long renderDelay_in_ms = 0;
-
-    private boolean renderShipments = false;
-
-    private Center center;
-
-    private VehicleRoutingProblem vrp;
-
-    private VehicleRoutingProblemSolution solution;
-
-    private double zoomFactor;
-
-    private double scaling = 1.0;
-
-
-    public GraphStreamViewer(VehicleRoutingProblem vrp) {
-        super();
-        this.vrp = vrp;
-    }
-
-    public GraphStreamViewer(VehicleRoutingProblem vrp, VehicleRoutingProblemSolution solution) {
-        super();
-        this.vrp = vrp;
-        this.solution = solution;
-    }
-
-    public GraphStreamViewer labelWith(Label label) {
+	public GraphStreamViewer labelWith(Label label) {
         this.label = label;
         return this;
     }
 
-    public GraphStreamViewer setRenderDelay(long ms) {
-        this.renderDelay_in_ms = ms;
+	public GraphStreamViewer setRenderDelay(long ms) {
+        this.renderDelayInMs = ms;
         return this;
     }
 
-    public GraphStreamViewer setRenderShipments(boolean renderShipments) {
+	public GraphStreamViewer setRenderShipments(boolean renderShipments) {
         this.renderShipments = renderShipments;
         return this;
     }
 
-    public GraphStreamViewer setGraphStreamFrameScalingFactor(double factor) {
+	public GraphStreamViewer setGraphStreamFrameScalingFactor(double factor) {
         this.scaling = factor;
         return this;
     }
 
-    /**
+	/**
      * Sets the camera-view. Center describes the center-focus of the camera and zoomFactor its
      * zoomFactor.
      * <p>
@@ -264,7 +125,7 @@ public class GraphStreamViewer {
         return this;
     }
 
-    public void display() {
+	public void display() {
         System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         Graph g = createMultiGraph();
         ViewPanel view = createEmbeddedView(g, scaling);
@@ -272,7 +133,7 @@ public class GraphStreamViewer {
         render(g, view);
     }
 
-    private JFrame createJFrame(ViewPanel view, double scaling) {
+	private JFrame createJFrame(ViewPanel view, double scaling) {
         JFrame jframe = new JFrame();
         JPanel basicPanel = new JPanel();
         basicPanel.setLayout(new BoxLayout(basicPanel, BoxLayout.Y_AXIS));
@@ -312,100 +173,56 @@ public class GraphStreamViewer {
         return jframe;
     }
 
-    private Graph createMultiGraph() {
-        String STYLESHEET = "node {" +
-            "	size: 10px, 10px;" +
-            "   fill-color: #6CC644;" +
-            "	text-alignment: at-right;" +
-            " 	stroke-mode: plain;" +
-            "	stroke-color: #999;" +
-            "	stroke-width: 1.0;" +
-            "	text-font: couriernew;" +
-            " 	text-offset: 2,-5;" +
-            "	text-size: 8;" +
-            "}" +
-            "node.pickup {" +
-            " 	fill-color: #6CC644;" +
-            "}" +
-            "node.delivery {" +
-            " 	fill-color: #f93;" +
-            "}" +
-            "node.pickupInRoute {" +
-            "	fill-color: #6CC644;" +
-            " 	stroke-mode: plain;" +
-            "	stroke-color: #333;" +
-            "   stroke-width: 2.0;" +
-            "}" +
-            "node.deliveryInRoute {" +
-            " 	fill-color: #f93;" +
-            " 	stroke-mode: plain;" +
-            "	stroke-color: #333;" +
-            "   stroke-width: 2.0;" +
-            "}" +
-            "node.depot {" +
-            " 	fill-color: #BD2C00;" +
-            "	size: 10px, 10px;" +
-            " 	shape: box;" +
-            "}" +
-            "node.removed {" +
-            " 	fill-color: #BD2C00;" +
-            "	size: 10px, 10px;" +
-            " 	stroke-mode: plain;" +
-            "	stroke-color: #333;" +
-            "   stroke-width: 2.0;" +
-            "}" +
-
-            "edge {" +
-            "	fill-color: #333;" +
-            "	arrow-size: 6px,3px;" +
-            "}" +
-            "edge.shipment {" +
-            "	fill-color: #999;" +
-            "	arrow-size: 6px,3px;" +
-            "}";
+	private Graph createMultiGraph() {
+        String STYLESHEET = new StringBuilder().append("node {").append("	size: 10px, 10px;").append("   fill-color: #6CC644;").append("	text-alignment: at-right;").append(" 	stroke-mode: plain;").append("	stroke-color: #999;").append("	stroke-width: 1.0;").append("	text-font: couriernew;")
+				.append(" 	text-offset: 2,-5;").append("	text-size: 8;").append("}").append("node.pickup {").append(" 	fill-color: #6CC644;").append("}").append("node.delivery {").append(" 	fill-color: #f93;").append("}")
+				.append("node.pickupInRoute {").append("	fill-color: #6CC644;").append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.deliveryInRoute {").append(" 	fill-color: #f93;").append(" 	stroke-mode: plain;")
+				.append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.depot {").append(" 	fill-color: #BD2C00;").append("	size: 10px, 10px;").append(" 	shape: box;").append("}").append("node.removed {")
+				.append(" 	fill-color: #BD2C00;").append("	size: 10px, 10px;").append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("edge {").append("	fill-color: #333;").append("	arrow-size: 6px,3px;")
+				.append("}").append("edge.shipment {").append("	fill-color: #999;").append("	arrow-size: 6px,3px;").append("}").toString();
         return GraphStreamViewer.createMultiGraph("g", STYLESHEET);
     }
 
-    private void render(Graph g, ViewPanel view) {
+	private void render(Graph g, ViewPanel view) {
         if (center != null) {
             view.resizeFrame(view.getWidth(), view.getHeight());
             alignCamera(view);
         }
 
-        for (Vehicle vehicle : vrp.getVehicles()) {
+        vrp.getVehicles().forEach(vehicle -> {
             renderVehicle(g, vehicle, label);
-            sleep(renderDelay_in_ms);
-        }
+            sleep(renderDelayInMs);
+        });
 
-        for (Job j : vrp.getJobs().values()) {
+        vrp.getJobs().values().forEach(j -> {
             renderJob(g, j, label);
-            sleep(renderDelay_in_ms);
-        }
+            sleep(renderDelayInMs);
+        });
 
-        if (solution != null) {
-            int routeId = 1;
-            for (VehicleRoute route : solution.getRoutes()) {
-                renderRoute(g, route, routeId, renderDelay_in_ms, label);
-                sleep(renderDelay_in_ms);
-                routeId++;
-            }
-        }
+        if (solution == null) {
+			return;
+		}
+		int routeId = 1;
+		for (VehicleRoute route : solution.getRoutes()) {
+		    renderRoute(g, route, routeId, renderDelayInMs, label);
+		    sleep(renderDelayInMs);
+		    routeId++;
+		}
 
     }
 
-
-    private void alignCamera(View view) {
+	private void alignCamera(View view) {
         view.getCamera().setViewCenter(center.x, center.y, 0);
         view.getCamera().setViewPercent(zoomFactor);
     }
 
-    private JLabel createEmptyLabel() {
+	private JLabel createEmptyLabel() {
         JLabel emptyLabel1 = new JLabel();
         emptyLabel1.setPreferredSize(new Dimension((int) (40 * scaling), (int) (25 * scaling)));
         return emptyLabel1;
     }
 
-    private JPanel createResultPanel() {
+	private JPanel createResultPanel() {
         int width = 800;
         int height = 50;
 
@@ -426,7 +243,9 @@ public class GraphStreamViewer {
         jobs.setPreferredSize(new Dimension((int) (40 * scaling), (int) (25 * scaling)));
 
         int noJobs = 0;
-        if (this.vrp != null) noJobs = this.vrp.getJobs().values().size();
+        if (this.vrp != null) {
+			noJobs = this.vrp.getJobs().values().size();
+		}
 
         JFormattedTextField nJobs = new JFormattedTextField(noJobs);
         nJobs.setFont(font);
@@ -481,26 +300,35 @@ public class GraphStreamViewer {
         return panel;
     }
 
-    private Integer getNoRoutes() {
-        if (solution != null) return solution.getRoutes().size();
+	private Integer getNoRoutes() {
+        if (solution != null) {
+			return solution.getRoutes().size();
+		}
         return 0;
     }
 
-    private Double getSolutionCosts() {
-        if (solution != null) return solution.getCost();
+	private Double getSolutionCosts() {
+        if (solution != null) {
+			return solution.getCost();
+		}
         return 0.0;
     }
 
-    private void renderJob(Graph g, Job j, Label label) {
+	private void renderJob(Graph g, Job j, Label label) {
         String lastNodeId = null;
         for (Activity act : j.getActivities()) {
             String nodeId = makeId(j.getId(), act.getLocation().getId());
             Node n1 = g.addNode(nodeId);
-            if (label.equals(Label.ID)) n1.addAttribute("ui.label", j.getId());
+            if (label == Label.ID) {
+				n1.addAttribute("ui.label", j.getId());
+			}
             n1.addAttribute("x", act.getLocation().getCoordinate().getX());
             n1.addAttribute("y", act.getLocation().getCoordinate().getY());
-            if (act.getActivityType().equals(Activity.Type.PICKUP)) n1.setAttribute("ui.class", "pickup");
-            else if (act.getActivityType().equals(Activity.Type.DELIVERY)) n1.setAttribute("ui.class", "delivery");
+            if (act.getActivityType() == Activity.Type.PICKUP) {
+				n1.setAttribute("ui.class", "pickup");
+			} else if (act.getActivityType() == Activity.Type.DELIVERY) {
+				n1.setAttribute("ui.class", "delivery");
+			}
             if (renderShipments && lastNodeId != null) {
                 Edge s = g.addEdge(j.getId(), lastNodeId, nodeId, true);
                 s.addAttribute("ui.class", "shipment");
@@ -509,42 +337,46 @@ public class GraphStreamViewer {
         }
     }
 
-    private void sleep(long renderDelay_in_ms2) {
+	private void sleep(long renderDelay_in_ms2) {
         try {
             Thread.sleep(renderDelay_in_ms2);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
     }
 
-    private String makeId(String id, String locationId) {
-        return id + "_" + locationId;
+	private String makeId(String id, String locationId) {
+        return new StringBuilder().append(id).append("_").append(locationId).toString();
     }
 
-    private void renderVehicle(Graph g, Vehicle vehicle, Label label) {
+	private void renderVehicle(Graph g, Vehicle vehicle, Label label) {
         String nodeId = makeId(vehicle.getId(), vehicle.getStartLocation().getId());
         Node vehicleStart = g.addNode(nodeId);
-        if (label.equals(Label.ID)) vehicleStart.addAttribute("ui.label", "depot");
+        if (label == Label.ID) {
+			vehicleStart.addAttribute("ui.label", "depot");
+		}
 //		if(label.equals(Label.ACTIVITY)) n.addAttribute("ui.label", "start");
         vehicleStart.addAttribute("x", vehicle.getStartLocation().getCoordinate().getX());
         vehicleStart.addAttribute("y", vehicle.getStartLocation().getCoordinate().getY());
         vehicleStart.setAttribute("ui.class", "depot");
 
-        if (!vehicle.getStartLocation().getId().equals(vehicle.getEndLocation().getId())) {
-            Node vehicleEnd = g.addNode(makeId(vehicle.getId(), vehicle.getEndLocation().getId()));
-            if (label.equals(Label.ID)) vehicleEnd.addAttribute("ui.label", "depot");
-            vehicleEnd.addAttribute("x", vehicle.getEndLocation().getCoordinate().getX());
-            vehicleEnd.addAttribute("y", vehicle.getEndLocation().getCoordinate().getY());
-            vehicleEnd.setAttribute("ui.class", "depot");
-
-        }
+        if (vehicle.getStartLocation().getId().equals(vehicle.getEndLocation().getId())) {
+			return;
+		}
+		Node vehicleEnd = g.addNode(makeId(vehicle.getId(), vehicle.getEndLocation().getId()));
+		if (label == Label.ID) {
+			vehicleEnd.addAttribute("ui.label", "depot");
+		}
+		vehicleEnd.addAttribute("x", vehicle.getEndLocation().getCoordinate().getX());
+		vehicleEnd.addAttribute("y", vehicle.getEndLocation().getCoordinate().getY());
+		vehicleEnd.setAttribute("ui.class", "depot");
     }
 
-    private void renderRoute(Graph g, VehicleRoute route, int routeId, long renderDelay_in_ms, Label label) {
+	private void renderRoute(Graph g, VehicleRoute route, int routeId, long renderDelay_in_ms, Label label) {
         int vehicle_edgeId = 1;
         String prevIdentifier = makeId(route.getVehicle().getId(), route.getVehicle().getStartLocation().getId());
-        if (label.equals(Label.ACTIVITY) || label.equals(Label.JOB_NAME)) {
+        if (label == Label.ACTIVITY || label == Label.JOB_NAME) {
             Node n = g.getNode(prevIdentifier);
             n.addAttribute("ui.label", "start");
         }
@@ -572,22 +404,74 @@ public class GraphStreamViewer {
                     }
                 }
                 g.addEdge(makeEdgeId(routeId, vehicle_edgeId), prevIdentifier, currIdentifier, true);
-                if (act instanceof PickupActivity) g.getNode(currIdentifier).addAttribute("ui.class", "pickupInRoute");
-                else if (act instanceof DeliveryActivity)
-                    g.getNode(currIdentifier).addAttribute("ui.class", "deliveryInRoute");
+                if (act instanceof PickupActivity) {
+					g.getNode(currIdentifier).addAttribute("ui.class", "pickupInRoute");
+				} else if (act instanceof DeliveryActivity) {
+					g.getNode(currIdentifier).addAttribute("ui.class", "deliveryInRoute");
+				}
                 prevIdentifier = currIdentifier;
                 vehicle_edgeId++;
                 sleep(renderDelay_in_ms);
             }
         }
-        if (route.getVehicle().isReturnToDepot()) {
-            String lastIdentifier = makeId(route.getVehicle().getId(), route.getVehicle().getEndLocation().getId());
-            g.addEdge(makeEdgeId(routeId, vehicle_edgeId), prevIdentifier, lastIdentifier, true);
-        }
+        if (!route.getVehicle().isReturnToDepot()) {
+			return;
+		}
+		String lastIdentifier = makeId(route.getVehicle().getId(), route.getVehicle().getEndLocation().getId());
+		g.addEdge(makeEdgeId(routeId, vehicle_edgeId), prevIdentifier, lastIdentifier, true);
     }
 
-    private String makeEdgeId(int routeId, int vehicle_edgeId) {
-        return Integer.valueOf(routeId).toString() + "." + Integer.valueOf(vehicle_edgeId).toString();
+	private String makeEdgeId(int routeId, int vehicle_edgeId) {
+        return new StringBuilder().append(Integer.toString(routeId)).append(".").append(Integer.toString(vehicle_edgeId)).toString();
+    }
+
+	public enum Label {
+        NO_LABEL, ID, JOB_NAME, ARRIVAL_TIME, DEPARTURE_TIME, ACTIVITY
+    }
+
+	public static class StyleSheets {
+
+        static String BLUE_FOREST =
+            new StringBuilder().append("graph { fill-color: #141F2E; }").append("node {").append("	size: 7px, 7px;").append("   fill-color: #A0FFA0;").append("	text-alignment: at-right;").append(" 	stroke-mode: plain;").append("	stroke-color: #999;").append("	stroke-width: 1.0;")
+				.append("	text-font: couriernew;").append(" 	text-offset: 2,-5;").append("	text-size: 8;").append("}").append("node.pickup {").append(" 	fill-color: #6CC644;").append("}").append("node.delivery {").append(" 	fill-color: #f93;")
+				.append("}").append("node.pickupInRoute {").append("	fill-color: #6CC644;").append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.deliveryInRoute {").append(" 	fill-color: #f93;")
+				.append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.depot {").append(" 	fill-color: #BD2C00;").append("	size: 10px, 10px;").append(" 	shape: box;").append("}")
+				.append("node.removed {").append(" 	fill-color: #FF8080;").append("	size: 10px, 10px;").append(" 	stroke-mode: plain;").append("	stroke-color: #CCF;").append("   stroke-width: 2.0;").append("   shadow-mode: gradient-radial;").append("   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;").append("}")
+				.append("edge {").append("	fill-color: #D3D3D3;").append("	arrow-size: 6px,3px;").append("}").append(//                    "edge.inserted {" +
+//                    "	fill-color: #A0FFA0;" +
+//                    "	arrow-size: 6px,3px;" +
+//                    "   shadow-mode: gradient-radial;" +
+//                    "   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;" +
+//                    "}" +
+//                    "edge.removed {" +
+//                    "	fill-color: #FF0000;" +
+//                    "	arrow-size: 6px,3px;" +
+//                    "   shadow-mode: gradient-radial;" +
+//                    "   shadow-width: 10px; shadow-color: #EEF, #000; shadow-offset: 0px;" +
+//                    "}" +
+                "edge.shipment {").append("	fill-color: #999;").append("	arrow-size: 6px,3px;").append("}").toString();
+
+
+        @SuppressWarnings("UnusedDeclaration")
+        public static String SIMPLE_WHITE =
+            new StringBuilder().append("node {").append("	size: 10px, 10px;").append("   fill-color: #6CC644;").append("	text-alignment: at-right;").append(" 	stroke-mode: plain;").append("	stroke-color: #999;").append("	stroke-width: 1.0;").append("	text-font: couriernew;")
+				.append(" 	text-offset: 2,-5;").append("	text-size: 8;").append("}").append("node.pickup {").append(" 	fill-color: #6CC644;").append("}").append("node.delivery {").append(" 	fill-color: #f93;").append("}")
+				.append("node.pickupInRoute {").append("	fill-color: #6CC644;").append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.deliveryInRoute {").append(" 	fill-color: #f93;").append(" 	stroke-mode: plain;")
+				.append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("node.depot {").append(" 	fill-color: #BD2C00;").append("	size: 10px, 10px;").append(" 	shape: box;").append("}").append("node.removed {")
+				.append(" 	fill-color: #BD2C00;").append("	size: 10px, 10px;").append(" 	stroke-mode: plain;").append("	stroke-color: #333;").append("   stroke-width: 2.0;").append("}").append("edge {").append("	fill-color: #333;").append("	arrow-size: 6px,3px;")
+				.append("}").append("edge.shipment {").append("	fill-color: #999;").append("	arrow-size: 6px,3px;").append("}").toString();
+
+    }
+
+    private static class Center {
+        final double x;
+        final double y;
+
+        Center(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
     }
 
 }

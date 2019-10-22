@@ -52,18 +52,14 @@ public class AlgorithmUtil {
         UpdateVehicleDependentPracticalTimeWindows twUpdater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.getTransportCosts(), vrp.getActivityCosts());
         twUpdater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
 
-            Map<VehicleTypeKey, Vehicle> uniqueTypes = new HashMap<VehicleTypeKey, Vehicle>();
+            Map<VehicleTypeKey, Vehicle> uniqueTypes = new HashMap<>();
 
             @Override
             public Collection<Vehicle> get(VehicleRoute vehicleRoute) {
                 if (uniqueTypes.isEmpty()) {
-                    for (Vehicle v : vrp.getVehicles()) {
-                        if (!uniqueTypes.containsKey(v.getVehicleTypeIdentifier())) {
-                            uniqueTypes.put(v.getVehicleTypeIdentifier(), v);
-                        }
-                    }
+                    vrp.getVehicles().forEach(v -> uniqueTypes.putIfAbsent(v.getVehicleTypeIdentifier(), v));
                 }
-                Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
+                Collection<Vehicle> vehicles = new ArrayList<>();
                 vehicles.addAll(uniqueTypes.values());
                 return vehicles;
             }

@@ -90,8 +90,11 @@ public final class RuinString extends AbstractRuinStrategy {
             return Collections.emptyList();
         }
         int noStrings;
-        if (kMin == kMax) noStrings = kMax;
-        else noStrings = kMin + random.nextInt((kMax - kMin));
+        if (kMin == kMax) {
+			noStrings = kMax;
+		} else {
+			noStrings = kMin + random.nextInt((kMax - kMin));
+		}
         noStrings = Math.min(noStrings, vehicleRoutes.size());
         Set<Job> unassignedJobs = new HashSet<>();
         Set<VehicleRoute> ruinedRoutes = new HashSet<>();
@@ -115,17 +118,17 @@ public final class RuinString extends AbstractRuinStrategy {
     }
 
     private VehicleRoute getRouteOf(Job job, Collection<VehicleRoute> vehicleRoutes) {
-        for (VehicleRoute route : vehicleRoutes) {
-            if (route.getTourActivities().servesJob(job)) return route;
-        }
-        return null;
+        return vehicleRoutes.stream().filter(route -> route.getTourActivities().servesJob(job)).findFirst().orElse(null);
     }
 
     private void ruinRouteWithSplitStringRuin(VehicleRoute seedRoute, Job prevJob, Set<Job> unassignedJobs) {
         int noActivities = seedRoute.getActivities().size();
         int stringLength;
-        if (lMin == lMax) stringLength = lMin;
-        else stringLength = lMin + random.nextInt(lMax - lMin);
+        if (lMin == lMax) {
+			stringLength = lMin;
+		} else {
+			stringLength = lMin + random.nextInt(lMax - lMin);
+		}
         stringLength = Math.min(stringLength, seedRoute.getActivities().size());
 
         int preservedSubstringLength = StringUtil.determineSubstringLength(stringLength, noActivities, random);
@@ -145,7 +148,9 @@ public final class RuinString extends AbstractRuinStrategy {
 
         int totalStringLength = stringLength + preservedSubstringLength;
         List<Integer> stringBounds = StringUtil.getLowerBoundsOfAllStrings(totalStringLength, seedIndex, noActivities);
-        if (stringBounds.isEmpty()) return;
+        if (stringBounds.isEmpty()) {
+			return;
+		}
         int lowerBound = RandomUtils.nextItem(stringBounds, random);
 
         List<Job> jobs2Remove = new ArrayList<>();
@@ -168,13 +173,15 @@ public final class RuinString extends AbstractRuinStrategy {
                         jobs2Remove.add(job);
                     }
                 }
-            } else noStringsInPreservedSubstring++;
+            } else {
+				noStringsInPreservedSubstring++;
+			}
             position++;
         }
-        for (Job job : jobs2Remove) {
+        jobs2Remove.forEach(job -> {
             removeJob(job, seedRoute);
             unassignedJobs.add(job);
-        }
+        });
 
     }
 
@@ -195,7 +202,9 @@ public final class RuinString extends AbstractRuinStrategy {
             index++;
         }
         List<Integer> stringBounds = StringUtil.getLowerBoundsOfAllStrings(stringLength, seedIndex, noActivities);
-        if (stringBounds.isEmpty()) return;
+        if (stringBounds.isEmpty()) {
+			return;
+		}
         int lowerBound = RandomUtils.nextItem(stringBounds, random);
         List<Job> jobs2Remove = new ArrayList<>();
         for (int i = lowerBound; i < (lowerBound + stringLength); i++) {
@@ -207,10 +216,10 @@ public final class RuinString extends AbstractRuinStrategy {
                 }
             }
         }
-        for (Job job : jobs2Remove) {
+        jobs2Remove.forEach(job -> {
             removeJob(job, seedRoute);
             unassignedJobs.add(job);
-        }
+        });
 
     }
 

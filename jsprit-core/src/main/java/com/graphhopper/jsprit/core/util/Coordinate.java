@@ -19,34 +19,33 @@ package com.graphhopper.jsprit.core.util;
 
 public class Coordinate {
 
-    public static Coordinate newInstance(double x, double y) {
-        return new Coordinate(x, y);
-    }
-
     private final double x;
 
-    private final double y;
+	private final double y;
 
-    public Coordinate(double x, double y) {
-        super();
+	public Coordinate(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public double getX() {
+	public static Coordinate newInstance(double x, double y) {
+        return new Coordinate(x, y);
+    }
+
+	public double getX() {
         return x;
     }
 
-    public double getY() {
+	public double getY() {
         return y;
     }
 
-    @Override
+	@Override
     public String toString() {
-        return "[x=" + x + "][y=" + y + "]";
+        return new StringBuilder().append("[x=").append(x).append("][y=").append(y).append("]").toString();
     }
 
-    @Override
+	@Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -58,19 +57,24 @@ public class Coordinate {
         return result;
     }
 
-    @Override
+	@Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) {
+			return true;
+		}
+        if (obj == null) {
+			return false;
+		}
+        if (getClass() != obj.getClass()) {
+			return false;
+		}
         Coordinate other = (Coordinate) obj;
-        if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
-            return false;
-        if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
-            return false;
+        if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) {
+			return false;
+		}
+        if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) {
+			return false;
+		}
         return true;
     }
 

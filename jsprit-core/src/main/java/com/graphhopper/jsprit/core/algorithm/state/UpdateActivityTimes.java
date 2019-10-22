@@ -48,7 +48,6 @@ public class UpdateActivityTimes implements ActivityVisitor, StateUpdater {
      * <code>activity.getEndTime()</code>
      */
     public UpdateActivityTimes(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
-        super();
         timeTracker = new ActivityTimeTracker(transportTime,activityCosts );
     }
 

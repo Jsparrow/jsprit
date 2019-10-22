@@ -29,6 +29,7 @@ import java.util.Random;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Collections;
 
 /**
  * Created by schroeder on 14/01/15.
@@ -38,14 +39,14 @@ public class RandomUtilsTest {
     @Test
     public void shouldReturnSingleJob() {
         Job job = mock(Job.class);
-        Collection<Job> jobs = Arrays.asList(job);
+        Collection<Job> jobs = Collections.singletonList(job);
         Assert.assertEquals(job, RandomUtils.nextItem(jobs, RandomNumberGeneration.getRandom()));
     }
 
     @Test
     public void shouldReturnSingleJob_() {
         Job job = mock(Job.class);
-        Collection<Job> jobs = Arrays.asList(job);
+        Collection<Job> jobs = Collections.singletonList(job);
         Assert.assertEquals(job, RandomUtils.nextJob(jobs, RandomNumberGeneration.getRandom()));
     }
 

@@ -68,17 +68,13 @@ public class BuildCVRPAlgoFromScratch_IT {
         RuinStrategy radial = new RadialRuinStrategyFactory(0.15, new AvgServiceDistance(vrp.getTransportCosts())).createStrategy(vrp);
         RuinStrategy random = new RandomRuinStrategyFactory(0.25).createStrategy(vrp);
 
-        SolutionCostCalculator solutionCostCalculator = new SolutionCostCalculator() {
-
-            @Override
-            public double getCosts(VehicleRoutingProblemSolution solution) {
-                double costs = 0.0;
-                for (VehicleRoute route : solution.getRoutes()) {
-                    costs += stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
-                }
-                return costs;
-            }
-        };
+        SolutionCostCalculator solutionCostCalculator = (VehicleRoutingProblemSolution solution) -> {
+		    double costs = 0.0;
+		    for (VehicleRoute route : solution.getRoutes()) {
+		        costs += stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
+		    }
+		    return costs;
+		};
 
         SearchStrategy randomStrategy = new SearchStrategy("random", new SelectBest(), new GreedyAcceptance(1), solutionCostCalculator);
         RuinAndRecreateModule randomModule = new RuinAndRecreateModule("randomRuin_bestInsertion", bestInsertion, random);

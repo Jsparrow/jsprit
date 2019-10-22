@@ -25,52 +25,44 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public class ActivityTimeTracker implements ActivityVisitor {
 
-    public static enum ActivityPolicy {
-
-        AS_SOON_AS_TIME_WINDOW_OPENS, AS_SOON_AS_ARRIVED
-
-    }
-
     private final ForwardTransportTime transportTime;
 
-    private final VehicleRoutingActivityCosts activityCosts;
+	private final VehicleRoutingActivityCosts activityCosts;
 
-    private TourActivity prevAct = null;
+	private TourActivity prevAct = null;
 
-    private double startAtPrevAct;
+	private double startAtPrevAct;
 
-    private VehicleRoute route;
+	private VehicleRoute route;
 
-    private boolean beginFirst = false;
+	private boolean beginFirst = false;
 
-    private double actArrTime;
+	private double actArrTime;
 
-    private double actEndTime;
+	private double actEndTime;
 
-    private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
+	private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
 
-    public ActivityTimeTracker(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
-        super();
+	public ActivityTimeTracker(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
         this.transportTime = transportTime;
         this.activityCosts = activityCosts;
     }
 
-    public ActivityTimeTracker(ForwardTransportTime transportTime, ActivityPolicy activityPolicy, VehicleRoutingActivityCosts activityCosts) {
-        super();
+	public ActivityTimeTracker(ForwardTransportTime transportTime, ActivityPolicy activityPolicy, VehicleRoutingActivityCosts activityCosts) {
         this.transportTime = transportTime;
         this.activityPolicy = activityPolicy;
         this.activityCosts = activityCosts;
     }
 
-    public double getActArrTime() {
+	public double getActArrTime() {
         return actArrTime;
     }
 
-    public double getActEndTime() {
+	public double getActEndTime() {
         return actEndTime;
     }
 
-    @Override
+	@Override
     public void begin(VehicleRoute route) {
         prevAct = route.getStart();
         startAtPrevAct = prevAct.getEndTime();
@@ -79,20 +71,24 @@ public class ActivityTimeTracker implements ActivityVisitor {
         beginFirst = true;
     }
 
-    @Override
+	@Override
     public void visit(TourActivity activity) {
-        if (!beginFirst) throw new IllegalStateException("never called begin. this however is essential here");
+        if (!beginFirst) {
+			throw new IllegalStateException("never called begin. this however is essential here");
+		}
         double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), activity.getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
         double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
 
         actArrTime = arrivalTimeAtCurrAct;
         double operationStartTime;
 
-        if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS)) {
+        if (activityPolicy == ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS) {
             operationStartTime = Math.max(activity.getTheoreticalEarliestOperationStartTime(), arrivalTimeAtCurrAct);
-        } else if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_ARRIVED)) {
+        } else if (activityPolicy == ActivityPolicy.AS_SOON_AS_ARRIVED) {
             operationStartTime = actArrTime;
-        } else operationStartTime = actArrTime;
+        } else {
+			operationStartTime = actArrTime;
+		}
 
         double operationEndTime = operationStartTime + activityCosts.getActivityDuration(activity,actArrTime,route.getDriver(),route.getVehicle());
 
@@ -103,7 +99,7 @@ public class ActivityTimeTracker implements ActivityVisitor {
 
     }
 
-    @Override
+	@Override
     public void finish() {
         double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), route.getEnd().getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
         double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
@@ -112,6 +108,12 @@ public class ActivityTimeTracker implements ActivityVisitor {
         actEndTime = arrivalTimeAtCurrAct;
 
         beginFirst = false;
+    }
+
+	public static enum ActivityPolicy {
+
+        AS_SOON_AS_TIME_WINDOW_OPENS, AS_SOON_AS_ARRIVED
+
     }
 
 

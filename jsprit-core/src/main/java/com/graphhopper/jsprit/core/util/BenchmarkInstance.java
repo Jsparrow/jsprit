@@ -26,7 +26,6 @@ public class BenchmarkInstance {
     public Double bestKnownVehicles;
 
     public BenchmarkInstance(String name, VehicleRoutingProblem vrp, Double bestKnownResult, Double bestKnowVehicles) {
-        super();
         this.name = name;
         this.vrp = vrp;
         this.bestKnownResult = bestKnownResult;

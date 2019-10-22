@@ -34,7 +34,6 @@ public class FiniteFleetManagerFactory implements VehicleFleetManagerFactory {
      * @param vehicles vehicles to be added to the fleetManager
      */
     public FiniteFleetManagerFactory(Collection<Vehicle> vehicles) {
-        super();
         this.vehicles = vehicles;
     }
 
@@ -46,8 +45,12 @@ public class FiniteFleetManagerFactory implements VehicleFleetManagerFactory {
      */
     @Override
     public VehicleFleetManager createFleetManager() {
-        if (vehicles == null) throw new IllegalStateException("vehicles is null. this must not be.");
-        if (vehicles.isEmpty()) throw new IllegalStateException("vehicle-collection is empty. this must not be");
+        if (vehicles == null) {
+			throw new IllegalStateException("vehicles is null. this must not be.");
+		}
+        if (vehicles.isEmpty()) {
+			throw new IllegalStateException("vehicle-collection is empty. this must not be");
+		}
         VehicleFleetManagerImpl vehicleFleetManager = new VehicleFleetManagerImpl(vehicles);
         vehicleFleetManager.init();
         return vehicleFleetManager;
